@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 
 export const Route = createFileRoute("/")({
   component: TruthWeaverModule,
@@ -15,10 +16,7 @@ export const Route = createFileRoute("/")({
   }),
 });
 
-type Receipt = {
-  schema: "fcr.truth-weaver.external-test.v1";
-  module: "truth-weaver";
-  createdAt: string;
+type Draft = {
   decision: string;
   evidence: string;
   inference: string;
@@ -26,19 +24,28 @@ type Receipt = {
   boundedTest: string;
   successCondition: string;
   stopCondition: string;
+};
+
+type Receipt = Draft & {
+  schema: "fcr.truth-weaver.external-test.v1";
+  module: "truth-weaver";
+  createdAt: string;
   authority: "non-authorizing";
 };
 
 const STORAGE_KEY = "fcr.truth-weaver.external-tester.v1";
+const EMPTY_DRAFT: Draft = {
+  decision: "",
+  evidence: "",
+  inference: "",
+  challenge: "",
+  boundedTest: "",
+  successCondition: "",
+  stopCondition: "",
+};
 
 function TruthWeaverModule() {
-  const [decision, setDecision] = useState("");
-  const [evidence, setEvidence] = useState("");
-  const [inference, setInference] = useState("");
-  const [challenge, setChallenge] = useState("");
-  const [boundedTest, setBoundedTest] = useState("");
-  const [successCondition, setSuccessCondition] = useState("");
-  const [stopCondition, setStopCondition] = useState("");
+  const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   const [copyState, setCopyState] = useState("Copy receipt");
 
@@ -46,75 +53,50 @@ function TruthWeaverModule() {
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
       if (!saved) return;
-      const value = JSON.parse(saved) as Partial<Receipt>;
-      setDecision(value.decision ?? "");
-      setEvidence(value.evidence ?? "");
-      setInference(value.inference ?? "");
-      setChallenge(value.challenge ?? "");
-      setBoundedTest(value.boundedTest ?? "");
-      setSuccessCondition(value.successCondition ?? "");
-      setStopCondition(value.stopCondition ?? "");
+      const value = JSON.parse(saved) as Partial<Draft>;
+      setDraft({
+        decision: value.decision ?? "",
+        evidence: value.evidence ?? "",
+        inference: value.inference ?? "",
+        challenge: value.challenge ?? "",
+        boundedTest: value.boundedTest ?? "",
+        successCondition: value.successCondition ?? "",
+        stopCondition: value.stopCondition ?? "",
+      });
     } catch {
       window.localStorage.removeItem(STORAGE_KEY);
     }
   }, []);
 
-  const ready = useMemo(
-    () =>
-      [
-        decision,
-        evidence,
-        inference,
-        challenge,
-        boundedTest,
-        successCondition,
-        stopCondition,
-      ].every((value) => value.trim().length > 0),
-    [
-      decision,
-      evidence,
-      inference,
-      challenge,
-      boundedTest,
-      successCondition,
-      stopCondition,
-    ],
-  );
-
   useEffect(() => {
-    const draft = {
-      decision,
-      evidence,
-      inference,
-      challenge,
-      boundedTest,
-      successCondition,
-      stopCondition,
-    };
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
-  }, [
-    decision,
-    evidence,
-    inference,
-    challenge,
-    boundedTest,
-    successCondition,
-    stopCondition,
-  ]);
+  }, [draft]);
 
-  function generateReceipt() {
-    if (!ready) return;
+  function updateDraft(field: keyof Draft, value: string) {
+    setDraft((current) => ({ ...current, [field]: value }));
+  }
+
+  function generateReceipt(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const submitted: Draft = {
+      decision: String(form.get("decision") ?? "").trim(),
+      evidence: String(form.get("evidence") ?? "").trim(),
+      inference: String(form.get("inference") ?? "").trim(),
+      challenge: String(form.get("challenge") ?? "").trim(),
+      boundedTest: String(form.get("boundedTest") ?? "").trim(),
+      successCondition: String(form.get("successCondition") ?? "").trim(),
+      stopCondition: String(form.get("stopCondition") ?? "").trim(),
+    };
+
+    if (Object.values(submitted).some((value) => value.length === 0)) return;
+
+    setDraft(submitted);
     setReceipt({
       schema: "fcr.truth-weaver.external-test.v1",
       module: "truth-weaver",
       createdAt: new Date().toISOString(),
-      decision: decision.trim(),
-      evidence: evidence.trim(),
-      inference: inference.trim(),
-      challenge: challenge.trim(),
-      boundedTest: boundedTest.trim(),
-      successCondition: successCondition.trim(),
-      stopCondition: stopCondition.trim(),
+      ...submitted,
       authority: "non-authorizing",
     });
   }
@@ -175,23 +157,21 @@ function TruthWeaverModule() {
             </div>
           </div>
 
-          <div className="grid gap-4" data-external-tester-loop>
-            <Field number="1" label="Decision or hypothesis" value={decision} onChange={setDecision} placeholder="What are you considering doing?" />
-            <Field number="2" label="Verified evidence" value={evidence} onChange={setEvidence} placeholder="What do you actually know, observe, or have a receipt for?" />
-            <Field number="3" label="Inference" value={inference} onChange={setInference} placeholder="What are you assuming or interpreting?" />
-            <Field number="4" label="Red-team challenge" value={challenge} onChange={setChallenge} placeholder="What would make this idea fail or prove the reasoning weak?" />
-            <Field number="5" label="Smallest reversible test" value={boundedTest} onChange={setBoundedTest} placeholder="What is the smallest action that can produce useful evidence?" />
+          <form className="grid gap-4" data-external-tester-loop onSubmit={generateReceipt}>
+            <Field field="decision" number="1" label="Decision or hypothesis" value={draft.decision} onChange={updateDraft} placeholder="What are you considering doing?" />
+            <Field field="evidence" number="2" label="Verified evidence" value={draft.evidence} onChange={updateDraft} placeholder="What do you actually know, observe, or have a receipt for?" />
+            <Field field="inference" number="3" label="Inference" value={draft.inference} onChange={updateDraft} placeholder="What are you assuming or interpreting?" />
+            <Field field="challenge" number="4" label="Red-team challenge" value={draft.challenge} onChange={updateDraft} placeholder="What would make this idea fail or prove the reasoning weak?" />
+            <Field field="boundedTest" number="5" label="Smallest reversible test" value={draft.boundedTest} onChange={updateDraft} placeholder="What is the smallest action that can produce useful evidence?" />
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field number="6" label="Success condition" value={successCondition} onChange={setSuccessCondition} placeholder="What result counts as a real signal?" />
-              <Field number="7" label="Stop condition" value={stopCondition} onChange={setStopCondition} placeholder="What result means stop, revise, or roll back?" />
+              <Field field="successCondition" number="6" label="Success condition" value={draft.successCondition} onChange={updateDraft} placeholder="What result counts as a real signal?" />
+              <Field field="stopCondition" number="7" label="Stop condition" value={draft.stopCondition} onChange={updateDraft} placeholder="What result means stop, revise, or roll back?" />
             </div>
 
             <button
-              type="button"
+              type="submit"
               data-generate-receipt
-              disabled={!ready}
-              onClick={generateReceipt}
-              className="rounded-xl bg-gradient-to-r from-violet-300 via-fuchsia-200 to-cyan-300 px-5 py-3 font-black text-slate-950 disabled:cursor-not-allowed disabled:opacity-35"
+              className="rounded-xl bg-gradient-to-r from-violet-300 via-fuchsia-200 to-cyan-300 px-5 py-3 font-black text-slate-950"
             >
               Produce completion receipt
             </button>
@@ -216,7 +196,7 @@ function TruthWeaverModule() {
                 </div>
               </section>
             ) : null}
-          </div>
+          </form>
         </div>
       </section>
     </main>
@@ -224,16 +204,18 @@ function TruthWeaverModule() {
 }
 
 function Field({
+  field,
   number,
   label,
   value,
   onChange,
   placeholder,
 }: {
+  field: keyof Draft;
   number: string;
   label: string;
   value: string;
-  onChange: (value: string) => void;
+  onChange: (field: keyof Draft, value: string) => void;
   placeholder: string;
 }) {
   return (
@@ -243,8 +225,11 @@ function Field({
         {label}
       </span>
       <textarea
+        name={field}
+        data-field={field}
+        required
         value={value}
-        onChange={(event) => onChange(event.target.value)}
+        onInput={(event) => onChange(field, event.currentTarget.value)}
         placeholder={placeholder}
         rows={3}
         className="mt-3 w-full resize-y rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-sm text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
