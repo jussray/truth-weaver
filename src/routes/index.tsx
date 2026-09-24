@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, useHydrated } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 
 export const Route = createFileRoute("/")({
@@ -49,26 +49,39 @@ function TruthWeaverModule() {
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   const [copyState, setCopyState] = useState("Copy receipt");
 
+  const hydrated = useHydrated();
+  const formRef = useRef<HTMLFormElement>(null);
+  const loadedRef = useRef(false);
+
   useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(STORAGE_KEY);
-      if (!saved) return;
-      const value = JSON.parse(saved) as Partial<Draft>;
-      setDraft({
-        decision: value.decision ?? "",
-        evidence: value.evidence ?? "",
-        inference: value.inference ?? "",
-        challenge: value.challenge ?? "",
-        boundedTest: value.boundedTest ?? "",
-        successCondition: value.successCondition ?? "",
-        stopCondition: value.stopCondition ?? "",
-      });
-    } catch {
-      window.localStorage.removeItem(STORAGE_KEY);
+    // Prefer values typed into the server-rendered DOM before hydration.
+    const fields = Object.keys(EMPTY_DRAFT) as (keyof Draft)[];
+    const fromDom = { ...EMPTY_DRAFT };
+    const form = formRef.current;
+    if (form) {
+      const data = new FormData(form);
+      for (const f of fields) fromDom[f] = String(data.get(f) ?? "");
     }
+    if (fields.some((f) => fromDom[f].length > 0)) {
+      setDraft(fromDom);
+    } else {
+      try {
+        const saved = window.localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const value = JSON.parse(saved) as Partial<Draft>;
+          const next = { ...EMPTY_DRAFT };
+          for (const f of fields) next[f] = value[f] ?? "";
+          setDraft(next);
+        }
+      } catch {
+        window.localStorage.removeItem(STORAGE_KEY);
+      }
+    }
+    loadedRef.current = true;
   }, []);
 
   useEffect(() => {
+    if (!loadedRef.current) return;
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
   }, [draft]);
 
@@ -157,7 +170,7 @@ function TruthWeaverModule() {
             </div>
           </div>
 
-          <form className="grid gap-4" data-external-tester-loop onSubmit={generateReceipt}>
+          <form ref={formRef} method="post" action="" className="grid gap-4" data-external-tester-loop onSubmit={generateReceipt}>
             <Field field="decision" number="1" label="Decision or hypothesis" value={draft.decision} onChange={updateDraft} placeholder="What are you considering doing?" />
             <Field field="evidence" number="2" label="Verified evidence" value={draft.evidence} onChange={updateDraft} placeholder="What do you actually know, observe, or have a receipt for?" />
             <Field field="inference" number="3" label="Inference" value={draft.inference} onChange={updateDraft} placeholder="What are you assuming or interpreting?" />
@@ -171,7 +184,9 @@ function TruthWeaverModule() {
             <button
               type="submit"
               data-generate-receipt
-              className="rounded-xl bg-gradient-to-r from-violet-300 via-fuchsia-200 to-cyan-300 px-5 py-3 font-black text-slate-950"
+              disabled={!hydrated}
+              aria-disabled={!hydrated}
+              className="rounded-xl bg-gradient-to-r from-violet-300 via-fuchsia-200 to-cyan-300 px-5 py-3 font-black text-slate-950 disabled:cursor-wait"
             >
               Produce completion receipt
             </button>
