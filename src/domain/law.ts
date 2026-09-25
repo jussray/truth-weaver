@@ -22,7 +22,7 @@ export const TRUTH_STATES = [
 export type TruthState = (typeof TRUTH_STATES)[number];
 
 export const TRUTH_STATE_MEANING: Record<TruthState, string> = {
-  "VERIFIED LAW": "Primary law located, jurisdiction resolved, citation recorded, official status known, currentness checked.",
+  "VERIFIED LAW": "Primary law located, jurisdiction resolved, citation recorded, official or authentic source confirmed, currentness checked.",
   SUPPORTED: "Backed by sources, but not established as governing law.",
   "ALLEGED FACT": "Asserted by a party. Not law, not yet evidenced.",
   INFERRED: "Reasoning-derived. Carries no legal authority on its own.",
@@ -146,7 +146,7 @@ export type FindingContext = {
   sources: SourceLike[];
   contrarySources?: SourceLike[];
   citation?: string | null;
-  /** Whether the official / authentic status of the primary source is known. */
+  /** Whether the official / authentic status of the primary source has actually been checked. */
   officialStatusKnown?: boolean;
   currentnessCheckedAt?: string | null;
   asOfDate?: string | null;
@@ -163,17 +163,25 @@ export type GuardResult = {
 /**
  * The VERIFIED LAW guard. A finding reaches VERIFIED LAW only when a qualifying
  * primary source is present, the jurisdiction is resolved, a citation exists,
- * official/authentic status is known, and currentness has been checked.
- * A secondary or discovery source alone can never produce VERIFIED LAW.
+ * official/authentic status has been checked, at least one attached primary-law
+ * source is confirmed official or authentic, and currentness has been checked.
+ * A secondary, discovery, or known-inauthentic source can never produce VERIFIED LAW.
  */
 export function evaluateVerifiedLaw(ctx: FindingContext): GuardResult {
   const blockers: string[] = [];
   const primary = ctx.sources.filter(isPrimaryLaw);
+  const confirmedPrimary = primary.filter(
+    (source) => source.is_official === true || source.is_authentic === true,
+  );
 
   if (!ctx.jurisdictionId) blockers.push("Jurisdiction is unresolved.");
   if (primary.length === 0) blockers.push("No qualifying primary-law source is attached.");
   if (!ctx.citation || ctx.citation.trim() === "") blockers.push("No citation or official identifier recorded.");
-  if (ctx.officialStatusKnown !== true) blockers.push("Official / authentic status of the primary source is not known.");
+  if (ctx.officialStatusKnown !== true) {
+    blockers.push("Official / authentic status of the primary source is not known.");
+  } else if (primary.length > 0 && confirmedPrimary.length === 0) {
+    blockers.push("No attached primary-law source is confirmed official or authentic.");
+  }
   if (!ctx.currentnessCheckedAt) blockers.push("Currentness / as-of status has not been checked.");
 
   if (blockers.length === 0) {
