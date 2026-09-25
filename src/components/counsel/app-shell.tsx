@@ -5,12 +5,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
 import { cn } from "@/lib/utils";
 
+// The current router exposes only `/`. Keep navigation bound to sections that
+// actually exist on that route instead of advertising phantom application pages.
 const NAV = [
-  { to: "/", label: "Dashboard" },
-  { to: "/sources", label: "Source Registry" },
-  { to: "/library", label: "Legal Library" },
-  { to: "/authority", label: "Authority Map" },
-  { to: "/coverage", label: "Coverage" },
+  { href: "/#top", label: "Overview" },
+  { href: "/#sources", label: "Sources" },
+  { href: "/#legal-areas", label: "Legal Areas" },
+  { href: "/#decision-test", label: "Decision Test" },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -33,15 +34,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
           <nav aria-label="Primary" className="ml-auto hidden items-center gap-1 md:flex">
             {NAV.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                activeOptions={{ exact: item.to === "/" }}
-                activeProps={{ className: "bg-secondary text-foreground" }}
+              <a
+                key={item.href}
+                href={item.href}
                 className="rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
               >
                 {item.label}
-              </Link>
+              </a>
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-2 md:ml-0">
@@ -53,12 +52,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                 Sign out
               </button>
             ) : (
-              <Link
-                to="/auth"
-                className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground"
-              >
-                Sign in
-              </Link>
+              <span className="rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground">
+                Local-first
+              </span>
             )}
             <button
               className="rounded-md border border-border px-3 py-1.5 text-sm md:hidden"
@@ -76,14 +72,14 @@ export function AppShell({ children }: { children: ReactNode }) {
           className={cn("border-t border-border px-4 pb-3 md:hidden", open ? "block" : "hidden")}
         >
           {NAV.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
+            <a
+              key={item.href}
+              href={item.href}
               onClick={() => setOpen(false)}
               className="block rounded-md px-2 py-2 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground"
             >
               {item.label}
-            </Link>
+            </a>
           ))}
         </nav>
       </header>
