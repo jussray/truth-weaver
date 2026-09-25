@@ -49,9 +49,9 @@ The domain layer defines:
 - a fail-closed `VERIFIED LAW` guard; and
 - red-team categories for contrary authority, jurisdiction problems, superseding law, exceptions, procedure, missing elements, currentness, and authenticity.
 
-A claim reaches `VERIFIED LAW` only when the current guard has a resolved jurisdiction, a qualifying primary-law source, a citation or official identifier, known official/authentic status, and a currentness check.
+A claim reaches `VERIFIED LAW` only when the guard has a resolved jurisdiction, a qualifying primary-law source, a citation or official identifier, an explicit official/authenticity check, at least one attached primary-law source confirmed official or authentic, and a currentness check.
 
-A model response, secondary source, discovery source, confidence score, or user preference cannot satisfy that guard by itself.
+A model response, secondary source, discovery source, confidence score, user preference, or known unauthentic reproduction cannot satisfy that guard by itself.
 
 ## Truth boundary
 
@@ -74,20 +74,23 @@ The current decision-test draft is stored in browser `localStorage` under the mo
 
 The repository includes Supabase client configuration, but the current decision-test flow described above is local-first. Do not describe browser persistence as durable server-side case storage unless a separately implemented and verified path proves that claim.
 
-## Verification status
+## Verification
 
-The repository currently exposes these package scripts:
+Runnable verification now includes:
 
 ```bash
-npm run dev
-npm run build
-npm run build:dev
-npm run preview
+npm run typecheck
+npm test
 npm run lint
-npm run format
+npm run build
+npm run test:e2e
 ```
 
-`src/domain/law.test.ts` exists as focused domain test source, but `package.json` does not currently expose a `test` or Playwright script. Therefore this README does **not** claim an automated end-to-end Playwright proof lane or a package-level test command until that wiring exists and is verified.
+`src/domain/law.test.ts` covers the legal authority guard, including rejection of secondary-only and known unauthentic primary-law inputs.
+
+`e2e/decision-test.spec.ts` runs the current customer-facing decision flow in Playwright on desktop and mobile Chromium projects. It verifies that a completed stress test produces the bounded receipt and preserves its `non-authorizing` boundary without page or console errors.
+
+`.github/workflows/verify.yml` runs typecheck, unit tests, lint, build, installs Chromium, and runs the Playwright suite on pushes to `main` and pull requests. A checked-in test is not by itself proof of a green run; current CI status remains the execution authority for that claim.
 
 ## Development
 
@@ -98,10 +101,13 @@ npm run dev
 
 ## Current source-of-truth files
 
-- `src/routes/index.tsx` — current user-facing product surface
-- `src/domain/law.ts` — legal truth and authority rules
-- `src/domain/law.test.ts` — focused domain test source
-- `package.json` — runnable package commands
+- `src/routes/index.tsx` - current user-facing product surface
+- `src/domain/law.ts` - legal truth and authority rules
+- `src/domain/law.test.ts` - focused domain tests
+- `e2e/decision-test.spec.ts` - browser journey proof
+- `playwright.config.ts` - desktop/mobile browser configuration
+- `.github/workflows/verify.yml` - executable verification lane
+- `package.json` - runnable package commands
 
 ## Documentation rule
 
