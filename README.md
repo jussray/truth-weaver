@@ -1,58 +1,110 @@
-# Truth Weaver
+# Truth Weaver Counsel
 
-Build a full-stack TypeScript app named ULTRATHINK. This is a deep-reasoning and founder decision-control system that separates evidence from inference, stress-tests decisions, and turns surviving opportunities into the smallest safe candidate tests. Implement the actual product, not a static mock.
+Truth Weaver Counsel is an evidence-first legal knowledge and decision-support module for Founder Control Room.
 
-Core models and flows:
-- ContinuityCookie: subjectType repository/pull_request/document/decision/experiment/deployment/runtime/market_hypothesis; subjectRef; immutable subjectVersion; lane; observedState planned/in_progress/blocked/verified/failed/stale/superseded; narrow claim; evidenceFingerprint; evidenceRefs; previousClaimId; supersedes; dependencyIds; observedAt; expiresAt; invalidationReason; authorizing=false; standingMergeAuthority=false; approvalCarryForward=false; nextGate.
-- WorldRadarFinding: classification PROVEN/EMERGING/HYPE/WHITESPACE/IRRELEVANT; claim; observed mechanism; why it appears to work; repeated failure pattern; manual workaround; underserved need; candidate product fcr/chief/promptos/storyengine/think_sprint/other; relevant primitive; adaptation hypothesis; cited sources with observedAt/sourceType; limitations; next validation gate.
-- CandidatePacket: opportunity; source project_drift/project_failure/world_pattern/world_whitespace/cross_plane_reconciliation; linked lanes; project evidence refs; world evidence refs; classification documentation_correction/experiment/feature_hypothesis/workflow_improvement/risk_reduction; smallest test; expected signal; authority required none_proposal_only/founder_review/fcr_lease/production_change_control; prohibited claims; rollback; next gate.
-- SnapshotBundle: title, source type paste/upload/github/manual, lane, observedAt, notes, content.
+This README describes the implementation that exists on `main`. Older ULTRATHINK build-spec language remains historical intent only when it is not represented by current code.
 
-Operating doctrine:
-- ULTRATHINK generates competing hypotheses, tests them, and keeps only what survives.
-- TruthMode overrides ULTRATHINK when evidence conflicts.
-- Red Team can veto. Never collapse distinct failures into one status. Each failure needs its own receipt/status/evidence chain.
-- Evidence over reasoning. World evidence can suggest a hypothesis but cannot silently update project truth.
-- Continuity fingerprints/cookies work bidirectionally but never authorize, merge, spend, or carry approval forward.
-- Human controls consequence ceilings. No external spend or production mutation from this app.
-- Every candidate must have smallest test, expected signal, rollback, prohibited claims, authority requirement, and next gate.
+## Current product boundary
 
-UI:
-- Dashboard with Truth, Evidence Quality, Confidence, Unknowns, Blocked, stale continuity, and next gates.
-- Reasoning Lab: enter a decision/problem, create competing hypotheses, attach evidence/unknowns, score survival, and show rejected hypotheses with reasons.
-- Red Team page with separate failure paths, vetoes, stress tests, and evidence needed.
-- OODA view showing Observe -> Orient -> Decide -> Act -> Verify -> Loop with current step and next action.
-- World Radar page for findings with classifications and source limitations.
-- Candidate Packets page showing the path from project/world signals to a smallest reversible test.
-- Continuity page with cookies/fingerprints, predecessor/supersession, invalidation, expiration, and permanent non-authorizing labels.
-- Snapshot inbox for pasted/uploaded evidence bundles.
-- Decision detail should show 5W1H, consequence/authority, evidence, attacks, rollback, next gate.
-- Responsive desktop/mobile, accessible focus/keyboard behavior, clear high-signal visual hierarchy.
+The current application is a single TanStack Start / React surface that helps a user:
 
-Verification:
-- Add focused unit tests for truth-over-reasoning precedence, non-authorizing continuity invariants, world-vs-project separation, candidate authority ceiling, duplicate/idempotent handling, and separate failure receipts.
-- Add Playwright desktop/mobile tests for: create problem -> competing hypotheses -> evidence -> Red Team veto/survivor -> candidate packet; world finding remains hypothesis-only; stale cookie invalidates continuity; multiple blockers remain separate.
-- Run typecheck/tests and Playwright where supported, fix failures, leave buildable.
+1. navigate broad legal-problem categories;
+2. understand the distinction between primary, secondary, and discovery sources;
+3. keep evidence separate from inference;
+4. stress-test a proposed decision;
+5. define a bounded next test, success condition, and stop condition; and
+6. export a non-authorizing decision receipt.
 
-Use a durable, minimal architecture. Do not add unrelated features or autonomous production actions.
+It is educational decision infrastructure. It is not a law firm, does not provide representation, and does not turn model output into governing law.
 
-This project was built with [Lovable](https://lovable.dev).
+## Current implementation
 
-## Build with Lovable
+### Browser surface
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/8ef43cd3-8d93-4494-a685-59ce0f795614).
+`src/routes/index.tsx` is the current customer-facing route.
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+It implements:
+
+- legal-area navigation;
+- source-layer explanation;
+- a decision stress-test form;
+- local browser persistence for the in-progress form;
+- a downloadable/copyable `fcr.truth-weaver.external-test.v1` receipt; and
+- a permanent `authority: "non-authorizing"` boundary.
+
+The current browser surface does **not** implement the older multi-page ULTRATHINK specification for World Radar, Candidate Packets, continuity-cookie management, a standalone OODA page, a separate Red Team page, or a snapshot inbox.
+
+Those names must not be presented as current product capabilities unless current source later implements and proves them.
+
+### Legal truth guard
+
+`src/domain/law.ts` contains the current legal-domain rules.
+
+The domain layer defines:
+
+- truth states such as `VERIFIED LAW`, `SUPPORTED`, `INFERRED`, `CONTRADICTED`, `STALE`, and `JURISDICTION UNKNOWN`;
+- candidate primary-law source classes;
+- source roles and authority classification;
+- jurisdiction layers;
+- a fail-closed `VERIFIED LAW` guard; and
+- red-team categories for contrary authority, jurisdiction problems, superseding law, exceptions, procedure, missing elements, currentness, and authenticity.
+
+A claim reaches `VERIFIED LAW` only when the current guard has a resolved jurisdiction, a qualifying primary-law source, a citation or official identifier, known official/authentic status, and a currentness check.
+
+A model response, secondary source, discovery source, confidence score, or user preference cannot satisfy that guard by itself.
+
+## Truth boundary
+
+Keep these states separate:
+
+```text
+source exists
+-> source class and jurisdiction resolved
+-> currentness/authenticity checked
+-> claim classified
+-> user decision stress-tested
+-> non-authorizing receipt
+```
+
+None of those steps authorizes filing, contacting a court or agency, spending money, signing an agreement, changing a provider, merging code, deploying software, or taking another consequential external action.
+
+## Persistence and data
+
+The current decision-test draft is stored in browser `localStorage` under the module's local storage key.
+
+The repository includes Supabase client configuration, but the current decision-test flow described above is local-first. Do not describe browser persistence as durable server-side case storage unless a separately implemented and verified path proves that claim.
+
+## Verification status
+
+The repository currently exposes these package scripts:
+
+```bash
+npm run dev
+npm run build
+npm run build:dev
+npm run preview
+npm run lint
+npm run format
+```
+
+`src/domain/law.test.ts` exists as focused domain test source, but `package.json` does not currently expose a `test` or Playwright script. Therefore this README does **not** claim an automated end-to-end Playwright proof lane or a package-level test command until that wiring exists and is verified.
 
 ## Development
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+```bash
+npm install
 npm run dev
 ```
+
+## Current source-of-truth files
+
+- `src/routes/index.tsx` — current user-facing product surface
+- `src/domain/law.ts` — legal truth and authority rules
+- `src/domain/law.test.ts` — focused domain test source
+- `package.json` — runnable package commands
+
+## Documentation rule
+
+Current `main` implementation outranks historical build prompts and planning prose.
+
+If future code restores or implements World Radar, Candidate Packets, continuity cookies, multi-page Red Team/OODA flows, external research, server persistence, or additional authority/evidence machinery, update this README only after those paths exist and can be verified.
