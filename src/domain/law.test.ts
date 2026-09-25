@@ -90,6 +90,25 @@ describe("VERIFIED LAW guard", () => {
     expect(result.resolvedState).toBe("UNVERIFIED LAW");
   });
 
+  it("blocks when the attached primary-law source is known to be unofficial and unauthentic", () => {
+    const result = evaluateVerifiedLaw({
+      ...complete,
+      sources: [
+        {
+          ...statute,
+          is_official: false,
+          is_authentic: false,
+        },
+      ],
+      officialStatusKnown: true,
+    });
+    expect(result.allowed).toBe(false);
+    expect(result.resolvedState).toBe("UNVERIFIED LAW");
+    expect(result.blockers).toContain(
+      "No attached primary-law source is confirmed official or authentic.",
+    );
+  });
+
   it("blocks when currentness has not been checked", () => {
     const result = evaluateVerifiedLaw({ ...complete, currentnessCheckedAt: null });
     expect(result.allowed).toBe(false);
