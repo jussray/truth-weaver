@@ -70,6 +70,8 @@ source exists
 
 None of those steps authorizes filing, contacting a court or agency, spending money, signing an agreement, changing a provider, merging code, deploying software, or taking another consequential external action.
 
+The repository-level Founder Intelligence carrier in `AGENTS.md` adds the same fail-closed discipline to project work: establish the strongest evidence-bound TRUE baseline first, bind fingerprints/cookies to the exact immutable state, and treat movement as stale evidence rather than automatically calling it false. Those markers remain `EVIDENCE_ONLY` and cannot weaken the legal-source or jurisdiction guard.
+
 ## Persistence and data
 
 The current decision-test draft is stored in browser `localStorage` under the module's local storage key.
@@ -81,6 +83,8 @@ The repository includes Supabase client configuration, but the current decision-
 The focused correctness lane is:
 
 ```bash
+npm run verify:founder-intelligence
+npm run lint
 npm run typecheck
 npm test
 npm run build
@@ -91,11 +95,11 @@ npm run test:e2e
 
 `e2e/decision-test.spec.ts` provides Playwright source coverage for the current customer-facing decision flow on desktop and mobile Chromium projects. It checks that a completed stress test produces the bounded receipt and preserves its `non-authorizing` boundary without page or console errors.
 
-`.github/workflows/verify.yml` runs typecheck, focused unit tests, build, installs Chromium, and runs the Playwright suite on pushes to `main` and pull requests. A checked-in test is not by itself proof of a green run; current exact-head CI status is the execution authority for that claim.
+`.github/workflows/verify.yml` runs the Founder Intelligence carrier verifier, semantic lint, typecheck, focused unit tests, build, installs Chromium, and runs the Playwright suite on pushes to `main` and pull requests. A checked-in test is not by itself proof of a green run; current exact-head CI status is the execution authority for that claim.
 
-### Known repository-wide lint debt
+### Lint and formatting truth
 
-`npm run lint` currently scans the full Lovable-derived repository and is **not green** because hundreds of pre-existing Prettier/style errors remain across generated Supabase and UI files. This debt is intentionally visible rather than silently suppressed. It is also not being mixed into this focused truth repair as a mass formatting refactor. Typecheck, focused domain tests, build, and Playwright are the correctness gates for the audited slice.
+`npm run lint` is the semantic ESLint gate and is required by CI. Formatting is a separate evidence plane: `npm run format:check` reports Prettier/style drift in the Lovable-derived repository without relabeling that drift as semantic lint failure. Existing formatting debt remains visible and is not mass-rewritten by this focused governance repair.
 
 ## Development
 
@@ -106,12 +110,15 @@ npm run dev
 
 ## Current source-of-truth files
 
+- `AGENTS.md` - Founder Intelligence TRUE-FIRST carrier and authority boundary
+- `scripts/verify-founder-intelligence.mjs` - ordered-stack and marker verifier
 - `src/routes/index.tsx` - current user-facing product surface
 - `src/components/counsel/app-shell.tsx` - current real-route navigation shell
 - `src/domain/law.ts` - legal truth and authority rules
 - `src/domain/law.test.ts` - focused domain tests
 - `e2e/decision-test.spec.ts` - browser journey proof source
 - `playwright.config.ts` - desktop/mobile browser configuration
+- `eslint.config.js` - semantic lint configuration with formatting separated
 - `.github/workflows/verify.yml` - executable focused verification lane
 - `package.json` - runnable package commands
 
