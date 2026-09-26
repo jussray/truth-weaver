@@ -11,7 +11,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run src/domain/law.test.ts",
     "test:e2e": "playwright test",
+    "verify:founder-intelligence": "node scripts/verify-founder-intelligence.mjs",
     "lint": "eslint .",
+    "format:check": "prettier --check .",
     "format": "prettier --write ."
   },
   "overrides": {
