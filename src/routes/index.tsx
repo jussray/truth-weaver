@@ -4,7 +4,7 @@ import type { FormEvent } from "react";
 import {
   BookOpen, Briefcase, CreditCard, FileSignature, FileText, Gavel, Globe2, HeartPulse, Home, Landmark,
   Plane, ShieldCheck, Users, UsersRound, Building2, ArrowRight, CheckCircle2, Rocket,
-} from "lucide-react";
+} , Bookmark, BookmarkCheck, Share2, Check } from "lucide-react";
 
 import heroImg from "@/assets/hero-sanctum.jpg";
 import { SiteChrome } from "@/components/storefront/site-chrome";
@@ -222,6 +222,80 @@ export const JURISPRUDENCE_PASSAGES: Passage[] = [
 ];
 
 export function JurisprudenceCrossReferenceSection() {
+  const [selectedVolume, setSelectedVolume] = useState<string>("ALL");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [activeCitationId, setActiveCitationId] = useState<string | null>(null);
+  const [onlyBookmarked, setOnlyBookmarked] = useState<boolean>(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [bookmarkedIds, setBookmarkedIds] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem("tw_bookmarked_passages") || "[]");
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash.replace("#", "");
+      if (hash && JURISPRUDENCE_PASSAGES.some(p => p.id === hash)) {
+        setActiveCitationId(hash);
+        setSelectedVolume("ALL");
+        setTimeout(() => {
+          const el = document.getElementById(hash);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 150);
+      }
+    };
+    handleHash();
+    window.addEventListener("hashchange", handleHash);
+    return () => window.removeEventListener("hashchange", handleHash);
+  }, []);
+
+  const toggleBookmark = (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setBookmarkedIds((prev) => {
+      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      try {
+        localStorage.setItem("tw_bookmarked_passages", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  const copyShareableLink = (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const url = new URL(window.location.href);
+    url.hash = id;
+    navigator.clipboard.writeText(url.toString());
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2500);
+  };
+
+  const filteredPassages = JURISPRUDENCE_PASSAGES.filter((p) => {
+    if (onlyBookmarked && !bookmarkedIds.includes(p.id)) return false;
+    const matchesVolume = selectedVolume === "ALL" || p.volume === selectedVolume;
+    const q = searchQuery.toLowerCase();
+    const matchesSearch =
+      !q ||
+      p.title.toLowerCase().includes(q) ||
+      p.citation.toLowerCase().includes(q) ||
+      p.excerpt.toLowerCase().includes(q) ||
+      p.tags.some((t) => t.toLowerCase().includes(q));
+    return matchesVolume && matchesSearch;
+  });
+
+  const jumpToCitation = (id: string) => {
+    setActiveCitationId(id);
+    setSelectedVolume("ALL");
+    setSearchQuery("");
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 100);
+  };
   const [selectedVolume, setSelectedVolume] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [activeCitationId, setActiveCitationId] = useState<string | null>(null);
