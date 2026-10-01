@@ -20,7 +20,7 @@ describe("provenance", () => {
   });
 
   it("no connector result can become VERIFIED LAW", () => {
-    for (const provider of ["web", "shopify", "github", "perplexity", "gemini", "muse"] as const) {
+    for (const provider of ["web", "shopify", "github", "perplexity", "gemini", "muse", "exa", "notion", "linear", "slack"] as const) {
       const p = createProvenance(
         { provider, evidenceType: "primary_law", sourceUrl: "https://example.gov/a", jurisdiction: "US", requestedVerification: "VERIFIED LAW" },
         now,
@@ -56,14 +56,16 @@ describe("connector status", () => {
     for (const c of CONNECTORS) expect(resolveConnectorStatus(c, null)).not.toBe("connected");
   });
 
-  it("Muse is Not configured until endpoint and secret exist", () => {
+  it("custom adapters fail closed until required configuration exists", () => {
     expect(resolveConnectorStatus(byId("muse"), {})).toBe("not_configured");
     expect(resolveConnectorStatus(byId("muse"), { MUSE_ENDPOINT: true })).toBe("needs_setup");
     expect(resolveConnectorStatus(byId("muse"), { MUSE_ENDPOINT: true, MUSE_API_KEY: true })).toBe("connected");
+    expect(resolveConnectorStatus(byId("exa"), {})).toBe("not_configured");
+    expect(resolveConnectorStatus(byId("exa"), { EXA_API_KEY: true })).toBe("connected");
   });
 
   it("linkable connectors need setup without credentials", () => {
-    for (const id of ["shopify", "perplexity", "github", "anthropic"]) {
+    for (const id of ["shopify", "perplexity", "github", "anthropic", "notion", "linear", "slack"]) {
       expect(resolveConnectorStatus(byId(id), {})).toBe("needs_setup");
     }
     expect(resolveConnectorStatus(byId("shopify"), { SHOPIFY_STORE_DOMAIN: true })).toBe("needs_setup");
