@@ -15,5 +15,5 @@
 - ULTRATHINK plan (superseded by COUNSEL request)
 
 ## Storefront (active)
-- [ ] Reference-matched homepage visuals + animations
-- [ ] Responsive on mobile/tablet/desktop (this app only; other apps out of scope)
+- [x] Reference-matched homepage visuals + animations
+- [x] Responsive on mobile/tablet/desktop (this app only; other apps out of scope)
