@@ -10,7 +10,7 @@ test("decision stress-test produces a non-authorizing bounded receipt", async ({
 
   await page.goto("/");
   await expect(page.locator('[data-fcr-module="truth-weaver"]')).toBeVisible();
-  await expect(page.getByRole("heading", { name: /Understand the law/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Understand the law/i, level: 1 })).toBeVisible();
 
   const values = {
     decision: "Publish a legal claim as current law",
