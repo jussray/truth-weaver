@@ -3,10 +3,10 @@ import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import {
   BookOpen, Briefcase, CreditCard, FileSignature, FileText, Gavel, Globe2, HeartPulse, Home, Landmark,
-  Plane, Scale, ShieldCheck, Users, UsersRound, Zap, Building2,
+  Plane, ShieldCheck, Users, UsersRound, Building2, ArrowRight, CheckCircle2, Rocket,
 } from "lucide-react";
 
-import heroImg from "@/assets/hero-law-desk.jpg";
+import heroImg from "@/assets/hero-sanctum.jpg";
 import { SiteChrome } from "@/components/storefront/site-chrome";
 
 export const Route = createFileRoute("/")({
@@ -161,99 +161,79 @@ function TruthWeaverModule() {
       <SiteChrome>
         {/* HERO */}
         <section id="top" className="relative isolate overflow-hidden">
-          <div className="absolute inset-0 -z-10 bg-[radial-gradient(70rem_40rem_at_10%_0%,color-mix(in_oklab,var(--forest)_80%,transparent),transparent),radial-gradient(40rem_30rem_at_90%_20%,color-mix(in_oklab,var(--violet-accent)_18%,transparent),transparent)]" />
-          <div className="mx-auto grid max-w-7xl items-center gap-10 px-5 pb-16 pt-12 sm:px-6 lg:grid-cols-[1fr_1.05fr] lg:pb-24 lg:pt-16">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.5em] text-gold">Turn knowledge into power</p>
-              <h1 className="mt-5 font-serif text-5xl font-semibold leading-[0.95] tracking-[-0.02em] text-parchment sm:text-7xl lg:text-[5.4rem]">
+          <img src={heroImg} alt="Law office at night with law books, laptop, justice mug, scales and gavel" width={1920} height={1088} className="absolute inset-0 -z-20 h-full w-full object-cover object-[70%_center]" />
+          <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,var(--ink)_0%,color-mix(in_oklab,var(--ink)_92%,transparent)_30%,color-mix(in_oklab,var(--ink)_35%,transparent)_60%,transparent_100%)]" />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-t from-ink via-transparent to-ink/40" />
+          <div className="warm-pulse pointer-events-none absolute right-[30%] top-[18%] -z-10 h-72 w-72 rounded-full bg-gold/25 blur-3xl" aria-hidden />
+
+          <div className="relative mx-auto grid max-w-[96rem] gap-10 px-5 pb-14 pt-12 sm:px-6 lg:min-h-[640px] lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:pt-16">
+            <div className="rise-in">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.6em] text-parchment/85 sm:text-xs">Turn knowledge into power</p>
+              <h1 className="mt-5 font-serif text-5xl font-semibold leading-[0.98] tracking-[-0.01em] text-parchment sm:text-6xl xl:text-7xl">
                 Understand the Law.
                 <br />
-                <span className="italic text-gold">Change What’s Possible.</span>
+                <span className="gold-foil">Change What’s Possible.</span>
               </h1>
-              <p className="mt-6 max-w-xl text-lg leading-8 text-parchment/75">
-                Clear, source-aware legal knowledge and practical tools for individuals, families, creators and
-                businesses — so you can see what the law says, where it comes from, and what you can do next.
+              <p className="mt-6 max-w-xl text-base leading-7 text-parchment/85 sm:text-lg">
+                Practical legal knowledge, professional tools, and real-world resources for individuals, families, creators, and businesses — anywhere in the world.
               </p>
-              <ul className="mt-8 grid gap-4 sm:grid-cols-3">
+              <ul className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-3">
                 {[
-                  [ShieldCheck, "Accurate legal information", "Official sources first, labelled by authority."],
-                  [FileText, "Practical tools & templates", "Checklists, letters and research trails."],
-                  [Globe2, "Global coverage", "Built for every jurisdiction layer."],
-                ].map(([Icon, title, body]) => {
-                  const I = Icon as typeof ShieldCheck;
+                  [BookOpen, "Accurate", "Legal Information"],
+                  [ShieldCheck, "Practical", "Tools & Templates"],
+                  [Globe2, "Global", "Coverage"],
+                ].map(([Icon, a1, a2]) => {
+                  const I = Icon as typeof BookOpen;
                   return (
-                    <li key={title as string} className="border-t border-gold/30 pt-3">
-                      <I className="h-5 w-5 text-gold" aria-hidden />
-                      <strong className="mt-2 block text-sm text-parchment">{title as string}</strong>
-                      <span className="mt-1 block text-xs leading-5 text-parchment/55">{body as string}</span>
+                    <li key={a1 as string} className="flex items-center gap-3">
+                      <I className="h-8 w-8 shrink-0 text-gold" aria-hidden />
+                      <span className="text-sm leading-5 text-parchment/90">{a1 as string}<br />{a2 as string}</span>
                     </li>
                   );
                 })}
               </ul>
-              <div className="mt-9 flex flex-wrap gap-3">
-                <a href="/shop" className="rounded-full bg-gold px-6 py-3.5 text-sm font-bold uppercase tracking-[0.12em] text-ink shadow-[0_18px_50px_-12px_var(--gold)] transition hover:bg-gold-soft">
-                  Shop Legal Tools
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <a href="/shop" className="foil-surface group inline-flex items-center justify-center gap-3 rounded-full px-8 py-3.5 text-base font-semibold text-ink shadow-[0_14px_40px_-10px_var(--gold)] transition hover:shadow-[0_18px_60px_-8px_var(--gold)]">
+                  Shop Legal Tools <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" aria-hidden />
                 </a>
-                <a href="#legal-areas" className="rounded-full border border-gold/50 px-6 py-3.5 text-sm font-bold uppercase tracking-[0.12em] text-gold-soft transition hover:bg-gold/10">
+                <a href="#legal-areas" className="inline-flex items-center justify-center rounded-full border border-gold/70 bg-ink/40 px-8 py-3.5 text-base font-semibold text-parchment backdrop-blur transition hover:bg-gold/10 hover:shadow-[0_0_30px_-8px_var(--gold)]">
                   Explore by Legal Area
                 </a>
               </div>
-              <p className="mt-8 font-script text-3xl text-gold-soft sm:text-4xl">Knowledge Protects. People Thrive.</p>
+              <p className="mt-7 font-script text-4xl text-gold-soft sm:text-5xl">Knowledge Protects. People Thrive.</p>
             </div>
 
-            <div className="relative" aria-label="Law office: source layers from constitutions to international law">
-              <div className="relative overflow-hidden rounded-[2rem] border border-gold/25 shadow-[0_40px_120px_-30px_black]">
-                <img src={heroImg} alt="Law desk at night with scales of justice, gavel, notebook and law books" width={1408} height={1056} className="h-[420px] w-full object-cover sm:h-[520px]" />
-                <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/20 to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-r from-ink/40 to-transparent" />
-              </div>
-              {/* Book stack */}
-              <div className="absolute -right-2 bottom-6 flex w-[58%] max-w-xs flex-col gap-1.5 sm:-right-4">
+            <div className="relative hidden lg:block" aria-hidden>
+              <ul className="absolute right-40 top-0 space-y-2 font-serif text-sm uppercase tracking-[0.22em] text-gold">
+                {["People", "Ideas", "Businesses", "Communities", "Worldwide"].map((w) => <li key={w}>{w}</li>)}
+              </ul>
+              <ul className="absolute -top-2 right-0 space-y-3 rounded-l-xl border-l border-violet-accent/60 bg-violet-accent/15 px-5 py-4 text-sm font-semibold uppercase tracking-[0.3em] text-violet-accent shadow-[0_0_50px_-10px_var(--violet-accent)] backdrop-blur-sm">
+                {["Learn", "Apply", "Solve", "Build", "Belong"].map((w) => <li key={w}>{w}</li>)}
+              </ul>
+              <div className="absolute left-0 top-28 flex w-72 flex-col gap-1.5">
                 {BOOKS.map((b, i) => (
-                  <div
-                    key={b}
-                    className="flex items-center justify-between rounded-[3px] border border-gold/40 px-3 py-2 shadow-[0_6px_14px_-6px_black]"
-                    style={{
-                      marginLeft: `${(i % 3) * 10}px`,
-                      background: i % 2 ? "linear-gradient(90deg, var(--forest-deep), var(--forest))" : "linear-gradient(90deg, oklch(0.25 0.06 30), oklch(0.32 0.07 35))",
-                    }}
-                  >
-                    <span className="font-serif text-sm font-semibold uppercase tracking-[0.18em] text-gold-soft">{b}</span>
-                    <span className="h-3 w-6 border-y border-gold/50" aria-hidden />
+                  <div key={b} className="rise-in flex items-center rounded-r-[4px] border-y border-r border-gold/30 bg-[linear-gradient(180deg,oklch(0.2_0.01_250),oklch(0.12_0.01_250))] shadow-[0_8px_18px_-8px_black]" style={{ animationDelay: `${0.15 + i * 0.08}s`, marginLeft: `${(i % 2) * 8}px` }}>
+                    <span className="h-11 w-10 shrink-0 bg-[repeating-linear-gradient(180deg,var(--parchment)_0_2px,oklch(0.85_0.03_85)_2px_3px)]" />
+                    <span className="gold-foil flex-1 py-2.5 text-center font-serif text-base font-semibold uppercase tracking-[0.12em]">{b}</span>
                   </div>
                 ))}
-              </div>
-              {/* Laptop panel */}
-              <div className="absolute left-4 top-6 max-w-[15rem] rounded-xl border border-parchment/15 bg-ink/80 p-4 backdrop-blur-md sm:left-6">
-                <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-gold">Issue → Jurisdiction → Law → Action</p>
-                <p className="mt-2 text-sm leading-5 text-parchment/85">See which law governs, where it comes from, and what to check next.</p>
-                <p className="mt-3 flex items-center gap-2 text-[11px] text-violet-accent"><Scale className="h-3.5 w-3.5" aria-hidden /> Governing law is the authority</p>
               </div>
             </div>
           </div>
         </section>
 
         {/* LEGAL AREAS */}
-        <section id="legal-areas" className="border-y border-gold/15 bg-forest-deep/60 py-14">
-          <div className="mx-auto max-w-7xl px-5 sm:px-6">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.4em] text-gold">Explore by legal area</p>
-                <h2 className="mt-3 font-serif text-4xl font-semibold text-parchment sm:text-5xl">Start with the problem you actually have.</h2>
-              </div>
-              <p className="max-w-md text-sm leading-6 text-parchment/60">
-                Areas organise research and tools. They don’t promise representation or outcomes, and coverage varies by jurisdiction.
-              </p>
-            </div>
-            <div className="-mx-5 mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-4 sm:-mx-6 sm:px-6" data-legal-areas>
-              {LEGAL_AREAS.map(([title, body, Icon]) => (
-                <article key={title} className="flex w-60 shrink-0 snap-start flex-col rounded-2xl border border-gold/20 bg-ink/70 p-5 transition hover:border-gold/60">
-                  <Icon className="h-7 w-7 text-gold" aria-hidden />
-                  <h3 className="mt-4 font-serif text-xl font-semibold leading-tight text-parchment">{title}</h3>
-                  <p className="mt-2 flex-1 text-sm leading-5 text-parchment/60">{body}</p>
-                  <div className="mt-5 flex gap-2">
-                    <a href={`/shop?area=${encodeURIComponent(title)}`} className="rounded-full bg-gold/90 px-3.5 py-1.5 text-xs font-bold text-ink hover:bg-gold">Shop</a>
-                    <a href="#decision-test" className="rounded-full border border-parchment/20 px-3.5 py-1.5 text-xs text-parchment/80 hover:border-gold/50">Research</a>
+        <section id="legal-areas" className="relative px-3 pb-8 sm:px-6">
+          <h2 className="sr-only">Explore by legal area</h2>
+          <div className="mx-auto max-w-[96rem] rounded-3xl border border-gold/15 bg-ink/80 p-3 backdrop-blur sm:p-4">
+            <div data-legal-areas className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 2xl:grid-cols-11">
+              {LEGAL_AREAS.map(([title, , Icon]) => (
+                <article key={title} className="glow-card group flex flex-col items-center rounded-xl border border-gold/20 bg-[linear-gradient(180deg,oklch(0.2_0.012_250),oklch(0.14_0.01_250))] px-2 py-4 text-center">
+                  <Icon className="h-10 w-10 text-gold drop-shadow-[0_0_10px_color-mix(in_oklab,var(--gold)_60%,transparent)] transition group-hover:scale-110" aria-hidden />
+                  <h3 className="mt-3 flex min-h-[2.5rem] items-center text-sm leading-tight text-parchment">{title}</h3>
+                  <div className="mt-2 flex items-center gap-2 text-xs">
+                    <a href={`/shop?area=${encodeURIComponent(title)}`} className="font-semibold text-gold-soft hover:text-gold">Shop →</a>
+                    <a href="#decision-test" className="text-parchment/50 hover:text-parchment">Research</a>
                   </div>
                 </article>
               ))}
@@ -261,34 +241,34 @@ function TruthWeaverModule() {
           </div>
         </section>
 
-        {/* TRUST BAND */}
-        <section id="about" className="mx-auto max-w-7xl px-5 py-16 sm:px-6">
-          <div className="grid gap-6 md:grid-cols-3">
-            {[
-              [BookOpen, "Curated & Verified Resources", "Official text first. Books and commentary are clearly labelled secondary — they explain the law, they never replace it."],
-              [Zap, "Instant Digital Access", "Guides, templates and courses delivered straight to you through our store."],
-              [Users, "Tools for Real People", "Plain-language checklists, letters and research trails you can actually use."],
-            ].map(([Icon, title, body]) => {
-              const I = Icon as typeof BookOpen;
-              return (
-                <div key={title as string} className="rounded-2xl border border-gold/20 bg-gradient-to-b from-forest-deep/70 to-ink p-6">
-                  <I className="h-6 w-6 text-gold" aria-hidden />
-                  <h3 className="mt-4 font-serif text-2xl font-semibold text-parchment">{title as string}</h3>
-                  <p className="mt-2 text-sm leading-6 text-parchment/65">{body as string}</p>
-                </div>
-              );
-            })}
-          </div>
-          <div className="mt-10 flex flex-col items-start justify-between gap-6 rounded-3xl border border-gold/30 bg-[linear-gradient(110deg,var(--forest-deep),var(--ink)_60%,color-mix(in_oklab,var(--violet-accent)_25%,var(--ink)))] p-8 sm:p-10 md:flex-row md:items-center">
-            <div>
-              <h2 className="font-serif text-3xl font-semibold text-parchment sm:text-4xl">Start Building a Fairer Tomorrow</h2>
-              <p className="mt-2 max-w-xl text-sm leading-6 text-parchment/70">Pick your legal area, check the source, and leave with one clear next step.</p>
+        {/* PROOF BANNER */}
+        <section id="about" className="border-t border-gold/15 bg-[linear-gradient(90deg,var(--forest-deep),var(--ink)_55%,color-mix(in_oklab,var(--violet-accent)_22%,var(--ink)))] px-5 py-6 sm:px-6">
+          <div className="mx-auto flex max-w-[96rem] flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="grid gap-5 sm:grid-cols-3 lg:divide-x lg:divide-gold/25">
+              {[
+                [CheckCircle2, "Curated & Verified Resources", "Backed by real legal sources"],
+                [Rocket, "Instant Digital Access", "Delivered straight to you"],
+                [Users, "Tools for Real People", "Individuals. Families. Creators. Businesses."],
+              ].map(([Icon, t, d], i) => {
+                const I = Icon as typeof Users;
+                return (
+                  <div key={t as string} className={`flex items-center gap-3 ${i ? "lg:pl-6" : ""}`}>
+                    <I className="h-9 w-9 shrink-0 text-gold" aria-hidden />
+                    <div><h3 className="text-sm font-semibold text-parchment">{t as string}</h3><p className="text-xs text-parchment/60">{d as string}</p></div>
+                  </div>
+                );
+              })}
             </div>
-            <a href="/shop" className="shrink-0 rounded-full bg-gold px-7 py-3.5 text-sm font-bold uppercase tracking-[0.12em] text-ink hover:bg-gold-soft">Shop Legal Tools</a>
+            <div className="flex flex-col items-start gap-2 lg:items-end">
+              <h2 className="sr-only">Start Building a Fairer Tomorrow</h2>
+              <a href="/shop" className="foil-surface group inline-flex items-center gap-3 rounded-full px-7 py-3.5 text-sm font-semibold text-ink shadow-[0_12px_36px_-10px_var(--gold)]">
+                Start Building a Fairer Tomorrow <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" aria-hidden />
+              </a>
+            </div>
           </div>
-          <p className="mt-6 text-xs leading-5 text-parchment/50">
-            Sources are labelled by authority: primary law, secondary commentary, or discovery. AI and web results are marked generated or unverified until backed by official text.{" "}
-            <a href="/connectors" className="text-gold underline-offset-4 hover:underline">See the Source Center</a>.
+          <p className="mx-auto mt-5 max-w-[96rem] text-xs leading-5 text-parchment/50">
+            Sources are labelled by authority: primary law, secondary commentary, or discovery. AI and web results stay marked generated or unverified until backed by official text.{" "}
+            <a href="/connectors" className="text-gold underline-offset-4 hover:underline">Source Center</a>
           </p>
         </section>
 
