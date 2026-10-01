@@ -1,0 +1,126 @@
+import type { ProviderId } from "./provenance";
+
+export const CONNECTOR_STATUSES = ["connected", "available", "needs_setup", "not_configured"] as const;
+export type ConnectorStatus = (typeof CONNECTOR_STATUSES)[number];
+
+export const CONNECTOR_STATUS_LABEL: Record<ConnectorStatus, string> = {
+  connected: "Connected",
+  available: "Available",
+  needs_setup: "Needs setup",
+  not_configured: "Not configured",
+};
+
+export type ConnectorPath =
+  | "lovable_ai" // Lovable AI built-in models (no user key)
+  | "standard_connector" // workspace connector linked to the project
+  | "shopify_integration"
+  | "custom_adapter" // user-supplied endpoint + secret, server-side only
+  | "public_web"; // no credentials; public/official sources
+
+export type ConnectorDefinition = {
+  id: ProviderId;
+  name: string;
+  role: string;
+  path: ConnectorPath;
+  /** Server env names whose presence is required. Never read on the client. */
+  requiredEnv: string[];
+  consumerFacing: boolean;
+  limits: string;
+};
+
+export const CONNECTORS: readonly ConnectorDefinition[] = [
+  {
+    id: "shopify",
+    name: "Shopify",
+    role: "Paid tools, templates, guides and bundles.",
+    path: "shopify_integration",
+    requiredEnv: ["SHOPIFY_STORE_DOMAIN", "SHOPIFY_STOREFRONT_TOKEN"],
+    consumerFacing: true,
+    limits: "Commerce listings are never legal authority.",
+  },
+  {
+    id: "openai",
+    name: "OpenAI / ChatGPT",
+    role: "Explain, compare and draft checklists.",
+    path: "lovable_ai",
+    requiredEnv: ["LOVABLE_API_KEY"],
+    consumerFacing: true,
+    limits: "Output is labelled generated / inferred unless backed by primary sources.",
+  },
+  {
+    id: "gemini",
+    name: "Google Gemini",
+    role: "Long-document summarising and comparison.",
+    path: "lovable_ai",
+    requiredEnv: ["LOVABLE_API_KEY"],
+    consumerFacing: true,
+    limits: "Output is labelled generated / inferred unless backed by primary sources.",
+  },
+  {
+    id: "anthropic",
+    name: "Anthropic Claude",
+    role: "Careful drafting of letters and research trails.",
+    path: "standard_connector",
+    requiredEnv: ["ANTHROPIC_API_KEY"],
+    consumerFacing: true,
+    limits: "Output is labelled generated / inferred unless backed by primary sources.",
+  },
+  {
+    id: "perplexity",
+    name: "Perplexity",
+    role: "Cited web search to discover sources.",
+    path: "standard_connector",
+    requiredEnv: ["PERPLEXITY_API_KEY"],
+    consumerFacing: true,
+    limits: "Search answers are discovery only; citations must be checked against official text.",
+  },
+  {
+    id: "muse",
+    name: "Meta Muse",
+    role: "Custom server-side model adapter.",
+    path: "custom_adapter",
+    requiredEnv: ["MUSE_ENDPOINT", "MUSE_API_KEY"],
+    consumerFacing: true,
+    limits: "Stays Not configured until a real endpoint and secret are supplied.",
+  },
+  {
+    id: "web",
+    name: "Public web & official sources",
+    role: "Official legislation, gazettes, courts and public pages.",
+    path: "public_web",
+    requiredEnv: [],
+    consumerFacing: true,
+    limits: "Official text first; unofficial pages are secondary or discovery.",
+  },
+  {
+    id: "github",
+    name: "GitHub",
+    role: "Optional: link a technical project you are researching.",
+    path: "standard_connector",
+    requiredEnv: ["GITHUB_API_KEY"],
+    consumerFacing: false,
+    limits: "Code is never legal evidence.",
+  },
+];
+
+export type EnvPresence = Record<string, boolean>;
+
+/**
+ * Truthful status. "Connected" only when every required credential is present
+ * server-side. Built-in AI without a key is "Available"; linkable connectors
+ * are "Needs setup"; custom adapters with nothing supplied are "Not configured".
+ */
+export function resolveConnectorStatus(def: ConnectorDefinition, env: EnvPresence | null): ConnectorStatus {
+  if (def.path === "public_web") return "available";
+  const present = env !== null && def.requiredEnv.every((name) => env[name] === true);
+  if (present) return "connected";
+  if (def.path === "custom_adapter") {
+    return def.requiredEnv.some((name) => env?.[name]) ? "needs_setup" : "not_configured";
+  }
+  if (def.path === "lovable_ai") return "available";
+  return "needs_setup";
+}
+
+export function allConnectorEnvNames() {
+  return Array.from(new Set(CONNECTORS.flatMap((c) => c.requiredEnv)));
+}
