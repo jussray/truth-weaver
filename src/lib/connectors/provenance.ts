@@ -14,6 +14,10 @@ export const PROVIDER_IDS = [
   "perplexity",
   "gemini",
   "muse",
+  "exa",
+  "notion",
+  "linear",
+  "slack",
   "web",
 ] as const;
 export type ProviderId = (typeof PROVIDER_IDS)[number];
