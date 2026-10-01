@@ -95,6 +95,15 @@
   --ok: oklch(0.72 0.13 155);
   --surface-raised: oklch(0.24 0.018 250);
 
+  /* Storefront palette: midnight, forest ombré, gold, violet accent */
+  --ink: oklch(0.13 0.012 250);
+  --forest: oklch(0.24 0.05 160);
+  --forest-deep: oklch(0.17 0.035 165);
+  --gold: oklch(0.8 0.13 80);
+  --gold-soft: oklch(0.88 0.07 85);
+  --parchment: oklch(0.95 0.02 85);
+  --violet-accent: oklch(0.6 0.16 300);
+
   --chart-1: oklch(0.78 0.13 84);
   --chart-2: oklch(0.72 0.12 200);
   --chart-3: oklch(0.72 0.13 155);
@@ -110,7 +119,7 @@
   --sidebar-ring: oklch(0.78 0.13 84);
 
   --font-sans: "Inter Tight", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Source Serif 4", ui-serif, Georgia, serif;
+  --font-serif: "Cormorant Garamond", "Source Serif 4", ui-serif, Georgia, serif;
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
@@ -123,6 +132,14 @@
   --color-danger: var(--danger);
   --color-ok: var(--ok);
   --color-surface-raised: var(--surface-raised);
+  --color-ink: var(--ink);
+  --color-forest: var(--forest);
+  --color-forest-deep: var(--forest-deep);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-parchment: var(--parchment);
+  --color-violet-accent: var(--violet-accent);
+  --font-script: "Great Vibes", cursive;
   --font-sans: var(--font-sans);
   --font-serif: var(--font-serif);
   --font-mono: var(--font-mono);
