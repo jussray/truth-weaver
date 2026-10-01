@@ -36,7 +36,7 @@ function ShopPage() {
       <section className="mx-auto max-w-7xl px-5 py-14 sm:px-6">
         <p className="text-xs font-bold uppercase tracking-[0.4em] text-gold">Shop legal tools</p>
         <h1 className="mt-3 font-serif text-5xl text-parchment sm:text-6xl">
-          {area ? area : category ? category[0].toUpperCase() + category.slice(1) : "The Counsel Store"}
+          {area ? area : category ? category.charAt(0).toUpperCase() + category.slice(1) : "The Counsel Store"}
         </h1>
         <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-parchment/70">
           <span>Store connection</span>

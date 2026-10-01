@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
+import type { ProviderId } from "./provenance";
 import { CONNECTORS, resolveConnectorStatus, type ConnectorStatus } from "./registry";
 import { getConnectorEnvPresence } from "./status.functions";
 
@@ -11,6 +12,6 @@ export function useConnectorStatuses() {
   const env = q.data ?? null;
   const statuses = Object.fromEntries(
     CONNECTORS.map((c) => [c.id, resolveConnectorStatus(c, env)]),
-  ) as Record<string, ConnectorStatus>;
+  ) as Record<ProviderId, ConnectorStatus>;
   return { statuses, loading: q.isLoading, error: q.error };
 }
