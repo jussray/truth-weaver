@@ -17,3 +17,7 @@
 ## Storefront (active)
 - [x] Reference-matched homepage visuals + animations
 - [x] Responsive on mobile/tablet/desktop (this app only; other apps out of scope)
+- [ ] Connect Shopify store; real products on Shop + legal area pages with checkout
+- [ ] AI Gateway legal issue triage (issue + jurisdiction -> legal area + next steps, non-authorizing)
+- [ ] GitHub: connect project to GitHub (user request 05:32)
+
