@@ -11,7 +11,7 @@ test("public storefront homepage renders the cinematic legal storefront", async 
   await expect(page.getByRole("link", { name: "Shop Legal Tools" }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Explore by Legal Area" })).toBeVisible();
   await expect(page.locator("[data-legal-areas] article")).toHaveCount(11);
-  await expect(page.getByRole("heading", { name: "Start Building a Fairer Tomorrow" })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Start Building a Fairer Tomorrow/ })).toBeVisible();
   await expect(page.getByText(/FCR module/i)).toHaveCount(0);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(1);

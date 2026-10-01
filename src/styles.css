@@ -185,3 +185,35 @@
   border-radius: var(--radius);
 }
 
+
+/* Storefront motion: gold foil shimmer, warm light pulse, hover glow */
+@keyframes foil-shimmer { 0% { background-position: 200% 50%; } 100% { background-position: -200% 50%; } }
+@keyframes warm-pulse { 0%, 100% { opacity: 0.55; transform: scale(1); } 50% { opacity: 0.9; transform: scale(1.06); } }
+@keyframes rise-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+@utility gold-foil {
+  background-image: linear-gradient(100deg, var(--gold) 0%, var(--gold-soft) 22%, oklch(0.98 0.04 90) 30%, var(--gold-soft) 38%, var(--gold) 60%, oklch(0.7 0.13 70) 100%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: foil-shimmer 7s linear infinite;
+}
+@utility foil-surface {
+  background-image: linear-gradient(100deg, var(--gold) 0%, var(--gold-soft) 30%, oklch(0.97 0.05 90) 40%, var(--gold-soft) 50%, var(--gold) 75%);
+  background-size: 250% 100%;
+  animation: foil-shimmer 6s linear infinite;
+}
+@utility warm-pulse { animation: warm-pulse 5s ease-in-out infinite; }
+@utility rise-in { animation: rise-in 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+@utility glow-card {
+  transition: transform 300ms ease, box-shadow 300ms ease, border-color 300ms ease;
+  &:hover, &:focus-within {
+    transform: translateY(-4px);
+    border-color: color-mix(in oklab, var(--gold) 70%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--gold) 30%, transparent), 0 18px 50px -14px color-mix(in oklab, var(--gold) 55%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gold-foil, .foil-surface, .warm-pulse, .rise-in { animation: none; }
+}
