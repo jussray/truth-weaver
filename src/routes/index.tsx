@@ -4,7 +4,8 @@ import type { FormEvent } from "react";
 import {
   BookOpen, Briefcase, CreditCard, FileSignature, FileText, Gavel, Globe2, HeartPulse, Home, Landmark,
   Plane, ShieldCheck, Users, UsersRound, Building2, ArrowRight, CheckCircle2, Rocket,
-} , Bookmark, BookmarkCheck, Share2, Check } from "lucide-react";
+  Bookmark, BookmarkCheck, Share2, Check,
+} from "lucide-react";
 
 import heroImg from "@/assets/hero-sanctum.jpg";
 import { SiteChrome } from "@/components/storefront/site-chrome";
