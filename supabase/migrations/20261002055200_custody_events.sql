@@ -1,4 +1,4 @@
-CREATE TABLE public.custody_events (
+CREATE TABLE IF NOT EXISTS public.custody_events (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   sequence_no BIGINT GENERATED ALWAYS AS IDENTITY UNIQUE,
   correlation_id TEXT NOT NULL,
@@ -29,14 +29,14 @@ CREATE TABLE public.custody_events (
   )
 );
 
-CREATE INDEX custody_events_correlation_sequence_idx
+CREATE INDEX IF NOT EXISTS custody_events_correlation_sequence_idx
   ON public.custody_events (correlation_id, sequence_no);
-CREATE INDEX custody_events_evidence_idx
+CREATE INDEX IF NOT EXISTS custody_events_evidence_idx
   ON public.custody_events (evidence_id, sequence_no);
-CREATE INDEX custody_events_command_idx
+CREATE INDEX IF NOT EXISTS custody_events_command_idx
   ON public.custody_events (command_id)
   WHERE command_id IS NOT NULL;
-CREATE UNIQUE INDEX custody_events_chain_link_uq
+CREATE UNIQUE INDEX IF NOT EXISTS custody_events_chain_link_uq
   ON public.custody_events (correlation_id, COALESCE(previous_event_hash, 'GENESIS'));
 
 REVOKE ALL ON public.custody_events FROM anon, authenticated;
@@ -51,6 +51,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SET search_path = public;
 
+DROP TRIGGER IF EXISTS custody_events_append_only ON public.custody_events;
 CREATE TRIGGER custody_events_append_only
 BEFORE UPDATE OR DELETE ON public.custody_events
 FOR EACH ROW EXECUTE FUNCTION public.block_custody_event_mutation();
