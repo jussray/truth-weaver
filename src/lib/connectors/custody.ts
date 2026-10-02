@@ -1,25 +1,21 @@
-export const CANONICALIZATION = "juss-json-c14n-v1" as const;
+export const CANONICALIZATION = "jcs-v1" as const;
 
 export type JsonPrimitive = string | number | boolean | null;
-export type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
+export type JsonValue = JsonPrimitive | readonly JsonValue[] | { readonly [key: string]: JsonValue };
 
 export type EvidenceEnvelope = {
   evidenceId: string;
+  correlationId: string;
   origin: "truth-os";
   source: {
     provider: "exa";
-    reference: string;
+    discoveryRef: string;
+    retrievedAt: string;
   };
-  operation: "exa.discovery.record";
   canonicalization: typeof CANONICALIZATION;
   contentHash: `sha256:${string}`;
-  correlationId: string;
   recordedAt: string;
   body: JsonValue;
-  authority: {
-    canMutate: false;
-    grants: readonly [];
-  };
 };
 
 export type AuthorityDecision = {
@@ -29,33 +25,42 @@ export type AuthorityDecision = {
   target: Record<string, string>;
   evidenceId: string;
   correlationId: string;
-  scope: string[];
+  scope: readonly string[];
   issuedAt: string;
   expiresAt: string;
   commandNonce: string;
+  credentialRef: `credref_${string}`;
   status: "approved" | "rejected";
 };
 
 export type AuthorizedCommand = {
   commandId: string;
+  correlationId: string;
   evidenceId: string;
   contentHash: `sha256:${string}`;
-  correlationId: string;
+  authorityDecisionId: string;
   provider: AuthorityDecision["provider"];
   operation: string;
   target: Record<string, string>;
-  authorityDecisionId: string;
+  targetHash: `sha256:${string}`;
+  scope: readonly string[];
+  issuedAt: string;
+  expiresAt: string;
   commandNonce: string;
   idempotencyKey: `sha256:${string}`;
+  credentialRef: `credref_${string}`;
 };
 
 export type ProviderReceipt = {
   receiptId: string;
+  correlationId: string;
   evidenceId: string;
   contentHash: `sha256:${string}`;
-  correlationId: string;
+  commandId: string;
   authorityDecisionId: string;
+  provider: AuthorityDecision["provider"];
   operation: string;
+  targetHash: `sha256:${string}`;
   adapterIdentity: string;
   externalObjectId: string;
   providerTimestamp: string;
@@ -65,33 +70,66 @@ export type ProviderReceipt = {
   status: "verified";
 };
 
+export type ProviderReadBack = {
+  externalObjectId: string;
+  evidenceId: string;
+  contentHash: `sha256:${string}`;
+  correlationId: string;
+  commandId: string;
+  provider: AuthorityDecision["provider"];
+  operation: string;
+  targetHash: `sha256:${string}`;
+  adapterIdentity: string;
+};
+
 export type ReconciliationResult =
   | { status: "VERIFIED"; receiptId: string; externalObjectId: string }
   | { status: "UNVERIFIED"; reason: string; next: "RECONCILIATION_REQUIRED"; promotion: "BLOCKED" };
 
 function assertFiniteNumber(value: number) {
-  if (!Number.isFinite(value)) throw new Error("canonical JSON forbids non-finite numbers");
-  if (Object.is(value, -0)) return 0;
+  if (!Number.isFinite(value)) throw new Error("JCS forbids non-finite numbers");
   return value;
 }
 
+function assertValidUnicode(value: string) {
+  for (let i = 0; i < value.length; i += 1) {
+    const unit = value.charCodeAt(i);
+    if (unit >= 0xd800 && unit <= 0xdbff) {
+      const next = value.charCodeAt(i + 1);
+      if (!(next >= 0xdc00 && next <= 0xdfff)) throw new Error("JCS forbids lone Unicode surrogates");
+      i += 1;
+    } else if (unit >= 0xdc00 && unit <= 0xdfff) {
+      throw new Error("JCS forbids lone Unicode surrogates");
+    }
+  }
+}
+
 /**
- * juss-json-c14n-v1
- * - object keys sorted lexicographically by Unicode code point
+ * jcs-v1: RFC 8785 JSON Canonicalization Scheme for the supported JSON domain.
+ * - object properties are sorted by ECMAScript/UTF-16 lexical order
  * - arrays preserve order
- * - undefined/functions/symbols are rejected
- * - finite numbers use ECMAScript JSON serialization
- * - strings are serialized by JSON.stringify without Unicode normalization
- *
- * This is versioned explicitly and is NOT represented as RFC 8785/JCS.
+ * - finite numbers use ECMAScript JSON number serialization
+ * - strings use JSON escaping without Unicode normalization
+ * - lone Unicode surrogates and non-finite numbers are rejected
  */
 export function canonicalizeJson(value: JsonValue): string {
   if (value === null) return "null";
-  if (typeof value === "string" || typeof value === "boolean") return JSON.stringify(value);
+  if (typeof value === "string") {
+    assertValidUnicode(value);
+    return JSON.stringify(value);
+  }
+  if (typeof value === "boolean") return JSON.stringify(value);
   if (typeof value === "number") return JSON.stringify(assertFiniteNumber(value));
   if (Array.isArray(value)) return `[${value.map(canonicalizeJson).join(",")}]`;
-  const keys = Object.keys(value).sort();
-  return `{${keys.map((key) => `${JSON.stringify(key)}:${canonicalizeJson(value[key] as JsonValue)}`).join(",")}}`;
+
+  const objectValue = value as { readonly [key: string]: JsonValue };
+  const keys = Object.keys(objectValue).sort();
+  return `{${keys
+    .map((key) => {
+      assertValidUnicode(key);
+      return `${JSON.stringify(key)}:${canonicalizeJson(objectValue[key])}`;
+    })
+    .join(",")}}`;
 }
 
 function bytesToHex(bytes: ArrayBuffer) {
@@ -114,13 +152,21 @@ function sameTarget(a: Record<string, string>, b: Record<string, string>) {
   return canonicalizeJson(a as JsonValue) === canonicalizeJson(b as JsonValue);
 }
 
+function normalizedScope(scope: readonly string[]) {
+  const normalized = Array.from(new Set(scope.map((item) => item.trim()).filter(Boolean))).sort();
+  if (normalized.length === 0) throw new Error("authority scope required");
+  return normalized;
+}
+
 export async function mintEvidenceEnvelope(input: {
   evidenceId: string;
   correlationId: string;
   sourceReference: string;
+  retrievedAt: string;
   recordedAt: string;
   body: JsonValue;
 }): Promise<EvidenceEnvelope> {
+  requireIsoTimestamp(input.retrievedAt, "retrievedAt");
   requireIsoTimestamp(input.recordedAt, "recordedAt");
   if (!input.evidenceId.startsWith("evd_")) throw new Error("evidenceId must be OS-minted (evd_)");
   if (!input.correlationId.startsWith("cor_")) throw new Error("correlationId must be OS-minted (cor_)");
@@ -128,15 +174,17 @@ export async function mintEvidenceEnvelope(input: {
 
   return {
     evidenceId: input.evidenceId,
+    correlationId: input.correlationId,
     origin: "truth-os",
-    source: { provider: "exa", reference: input.sourceReference },
-    operation: "exa.discovery.record",
+    source: {
+      provider: "exa",
+      discoveryRef: input.sourceReference,
+      retrievedAt: new Date(input.retrievedAt).toISOString(),
+    },
     canonicalization: CANONICALIZATION,
     contentHash: await sha256Canonical(input.body),
-    correlationId: input.correlationId,
     recordedAt: new Date(input.recordedAt).toISOString(),
     body: input.body,
-    authority: { canMutate: false, grants: [] },
   };
 }
 
@@ -162,6 +210,8 @@ export function validateAuthorityDecision(input: {
   if (now < issued) throw new Error("authority decision not active yet");
   if (now > expires) throw new Error("authority decision expired");
   if (!decision.commandNonce.trim()) throw new Error("authority command nonce required");
+  if (!decision.credentialRef.startsWith("credref_")) throw new Error("opaque credential reference required");
+  normalizedScope(decision.scope);
 }
 
 export async function createAuthorizedCommand(input: {
@@ -174,28 +224,34 @@ export async function createAuthorizedCommand(input: {
   now: string;
 }): Promise<AuthorizedCommand> {
   validateAuthorityDecision(input);
-
+  const scope = normalizedScope(input.decision.scope);
+  const targetHash = await sha256Canonical(input.target as JsonValue);
   const idempotencyKey = await sha256Canonical({
     evidenceId: input.envelope.evidenceId,
     correlationId: input.envelope.correlationId,
     provider: input.provider,
     operation: input.operation,
-    target: input.target,
+    targetHash,
     authorityDecisionId: input.decision.authorityDecisionId,
     commandNonce: input.decision.commandNonce,
   });
 
   return {
     commandId: input.commandId,
+    correlationId: input.envelope.correlationId,
     evidenceId: input.envelope.evidenceId,
     contentHash: input.envelope.contentHash,
-    correlationId: input.envelope.correlationId,
+    authorityDecisionId: input.decision.authorityDecisionId,
     provider: input.provider,
     operation: input.operation,
     target: input.target,
-    authorityDecisionId: input.decision.authorityDecisionId,
+    targetHash,
+    scope,
+    issuedAt: new Date(input.decision.issuedAt).toISOString(),
+    expiresAt: new Date(input.decision.expiresAt).toISOString(),
     commandNonce: input.decision.commandNonce,
     idempotencyKey,
+    credentialRef: input.decision.credentialRef,
   };
 }
 
@@ -213,15 +269,10 @@ export async function mintReceipt(input: ReceiptWithoutHash): Promise<ProviderRe
 
 export async function reconcileCustody(input: {
   envelope: EvidenceEnvelope;
+  decision: AuthorityDecision;
   command: AuthorizedCommand;
   receipt: ProviderReceipt;
-  readBack: {
-    externalObjectId: string;
-    evidenceId: string;
-    contentHash: `sha256:${string}`;
-    correlationId: string;
-    operation: string;
-  };
+  readBack: ProviderReadBack;
 }): Promise<ReconciliationResult> {
   const fail = (reason: string): ReconciliationResult => ({
     status: "UNVERIFIED",
@@ -230,10 +281,24 @@ export async function reconcileCustody(input: {
     promotion: "BLOCKED",
   });
 
-  const expectedEvidenceHash = await sha256Canonical(input.envelope.body);
-  if (expectedEvidenceHash !== input.envelope.contentHash) return fail("evidence body hash mismatch");
+  const { envelope, decision, command, receipt, readBack } = input;
+  const expectedEvidenceHash = await sha256Canonical(envelope.body);
+  if (expectedEvidenceHash !== envelope.contentHash) return fail("evidence body hash mismatch");
 
-  const { command, receipt, readBack, envelope } = input;
+  try {
+    validateAuthorityDecision({
+      decision,
+      envelope,
+      provider: command.provider,
+      operation: command.operation,
+      target: command.target,
+      now: receipt.providerTimestamp,
+    });
+  } catch (error) {
+    return fail(error instanceof Error ? error.message : "authority decision invalid");
+  }
+
+  if (decision.authorityDecisionId !== command.authorityDecisionId) return fail("command authority decision missing or mismatched");
   if (command.evidenceId !== envelope.evidenceId || receipt.evidenceId !== envelope.evidenceId || readBack.evidenceId !== envelope.evidenceId) {
     return fail("evidence identity mismatch");
   }
@@ -243,8 +308,16 @@ export async function reconcileCustody(input: {
   if (command.correlationId !== envelope.correlationId || receipt.correlationId !== envelope.correlationId || readBack.correlationId !== envelope.correlationId) {
     return fail("correlation mismatch");
   }
+  if (receipt.commandId !== command.commandId || readBack.commandId !== command.commandId) return fail("command identity mismatch");
   if (receipt.authorityDecisionId !== command.authorityDecisionId) return fail("authority decision mismatch");
+  if (receipt.provider !== command.provider || readBack.provider !== command.provider) return fail("provider mismatch");
   if (receipt.operation !== command.operation || readBack.operation !== command.operation) return fail("operation mismatch");
+
+  const expectedTargetHash = await sha256Canonical(command.target as JsonValue);
+  if (expectedTargetHash !== command.targetHash || receipt.targetHash !== command.targetHash || readBack.targetHash !== command.targetHash) {
+    return fail("target binding mismatch");
+  }
+  if (receipt.adapterIdentity !== readBack.adapterIdentity) return fail("adapter identity mismatch");
   if (receipt.externalObjectId !== readBack.externalObjectId) return fail("provider object mismatch");
 
   const { receiptHash, ...receiptBody } = receipt;
