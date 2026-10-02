@@ -255,16 +255,59 @@ export async function createAuthorizedCommand(input: {
   };
 }
 
-type ReceiptWithoutHash = Omit<ProviderReceipt, "receiptHash">;
-
-export async function mintReceipt(input: ReceiptWithoutHash): Promise<ProviderReceipt> {
+function assertReadBackMatchesCommand(input: {
+  command: AuthorizedCommand;
+  readBack: ProviderReadBack;
+  adapterIdentity: string;
+  externalObjectId: string;
+}) {
+  const { command, readBack } = input;
   if (!input.adapterIdentity.includes("@")) throw new Error("adapterIdentity must include a version");
   if (!input.externalObjectId.trim()) throw new Error("externalObjectId is required");
-  requireIsoTimestamp(input.providerTimestamp, "providerTimestamp");
-  requireIsoTimestamp(input.readBackVerifiedAt, "readBackVerifiedAt");
+  if (readBack.externalObjectId !== input.externalObjectId) throw new Error("provider object mismatch");
+  if (readBack.evidenceId !== command.evidenceId) throw new Error("read-back evidence mismatch");
+  if (readBack.contentHash !== command.contentHash) throw new Error("read-back content hash mismatch");
+  if (readBack.correlationId !== command.correlationId) throw new Error("read-back correlation mismatch");
+  if (readBack.commandId !== command.commandId) throw new Error("read-back command mismatch");
+  if (readBack.provider !== command.provider) throw new Error("read-back provider mismatch");
+  if (readBack.operation !== command.operation) throw new Error("read-back operation mismatch");
+  if (readBack.targetHash !== command.targetHash) throw new Error("read-back target mismatch");
+  if (readBack.adapterIdentity !== input.adapterIdentity) throw new Error("read-back adapter mismatch");
+}
 
-  const receiptHash = await sha256Canonical(input as unknown as JsonValue);
-  return { ...input, receiptHash };
+export async function mintReceipt(input: {
+  receiptId: string;
+  command: AuthorizedCommand;
+  readBack: ProviderReadBack;
+  adapterIdentity: string;
+  externalObjectId: string;
+  providerTimestamp: string;
+  readBackVerifiedAt: string;
+}): Promise<ProviderReceipt> {
+  const providerTimestamp = requireIsoTimestamp(input.providerTimestamp, "providerTimestamp");
+  const readBackVerifiedAt = requireIsoTimestamp(input.readBackVerifiedAt, "readBackVerifiedAt");
+  if (readBackVerifiedAt < providerTimestamp) throw new Error("read-back verification cannot predate provider result");
+  assertReadBackMatchesCommand(input);
+
+  const receiptBody: Omit<ProviderReceipt, "receiptHash"> = {
+    receiptId: input.receiptId,
+    correlationId: input.command.correlationId,
+    evidenceId: input.command.evidenceId,
+    contentHash: input.command.contentHash,
+    commandId: input.command.commandId,
+    authorityDecisionId: input.command.authorityDecisionId,
+    provider: input.command.provider,
+    operation: input.command.operation,
+    targetHash: input.command.targetHash,
+    adapterIdentity: input.adapterIdentity,
+    externalObjectId: input.externalObjectId,
+    providerTimestamp: providerTimestamp.toISOString(),
+    readBackVerifiedAt: readBackVerifiedAt.toISOString(),
+    canonicalization: CANONICALIZATION,
+    status: "verified",
+  };
+  const receiptHash = await sha256Canonical(receiptBody as unknown as JsonValue);
+  return { ...receiptBody, receiptHash };
 }
 
 export async function reconcileCustody(input: {
