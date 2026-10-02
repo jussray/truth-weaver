@@ -25,19 +25,30 @@ test("public storefront homepage renders the cinematic legal storefront", async 
   expect(errors).toEqual([]);
 });
 
-test("custody witness real path exposes no secret and cannot mutate without an explicit permit", async ({ page }) => {
+test("custody witness on connector route fails closed unless the operator gate is explicitly enabled", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("console", (m) => {
     if (m.type() === "error") errors.push(m.text());
   });
 
-  await page.goto("/custody-witness");
-  await expect(page.getByRole("heading", { name: /Evidence does not authorize its own action/i })).toBeVisible();
-  await expect(page.getByTestId("witness-readiness")).toBeVisible();
-  await expect(page.getByTestId("witness-token")).toHaveValue("");
-  await expect(page.getByTestId("run-witness")).toBeDisabled();
-  await expect(page.getByTestId("witness-run-id")).toHaveText(/[0-9a-f-]{36}/i);
-  await expect(page.getByText(/No secret values are exposed here/i)).toBeVisible();
+  await page.goto("/connectors");
+  const gate = page.getByTestId("witness-gate");
+  await expect(gate).toHaveCount(1);
+
+  const enabled = await gate.getAttribute("data-enabled");
+  if (enabled === "true") {
+    await expect(page.getByTestId("witness-readiness")).toBeVisible();
+    await expect(page.getByTestId("witness-token")).toHaveValue("");
+    await expect(page.getByTestId("run-witness")).toBeDisabled();
+    await expect(page.getByTestId("witness-run-id")).toHaveText(/[0-9a-f-]{36}/i);
+    await expect(page.getByText(/No secret values are exposed/i)).toBeVisible();
+  } else {
+    await expect(gate).toHaveAttribute("data-enabled", "false");
+    await expect(page.getByTestId("witness-token")).toHaveCount(0);
+    await expect(page.getByTestId("run-witness")).toHaveCount(0);
+    await expect(page.getByTestId("witness-result")).toHaveCount(0);
+  }
+
   expect(errors).toEqual([]);
 });
