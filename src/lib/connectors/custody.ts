@@ -127,7 +127,7 @@ export function canonicalizeJson(value: JsonValue): string {
   return `{${keys
     .map((key) => {
       assertValidUnicode(key);
-      return `${JSON.stringify(key)}:${canonicalizeJson(objectValue[key])}`;
+      return `${JSON.stringify(key)}:${canonicalizeJson(objectValue[key]!)}`;
     })
     .join(",")}}`;
 }
