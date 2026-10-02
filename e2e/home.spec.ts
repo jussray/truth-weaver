@@ -3,7 +3,9 @@ import { expect, test } from "@playwright/test";
 test("public storefront homepage renders the cinematic legal storefront", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
+  page.on("console", (m) => {
+    if (m.type() === "error") errors.push(m.text());
+  });
 
   await page.goto("/");
   await expect(page.getByText(/Knowledge changes lives/i)).toBeVisible();
@@ -20,5 +22,22 @@ test("public storefront homepage renders the cinematic legal storefront", async 
   await expect(page.locator('[data-connector="muse"] [data-connector-status]')).toHaveText("Not configured");
   await page.goto("/shop");
   await expect(page.locator("[data-shop-unavailable]")).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test("custody witness real path exposes no secret and cannot mutate without an explicit permit", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  page.on("console", (m) => {
+    if (m.type() === "error") errors.push(m.text());
+  });
+
+  await page.goto("/custody-witness");
+  await expect(page.getByRole("heading", { name: /Evidence does not authorize its own action/i })).toBeVisible();
+  await expect(page.getByTestId("witness-readiness")).toBeVisible();
+  await expect(page.getByTestId("witness-token")).toHaveValue("");
+  await expect(page.getByTestId("run-witness")).toBeDisabled();
+  await expect(page.getByTestId("witness-run-id")).toHaveText(/[0-9a-f-]{36}/i);
+  await expect(page.getByText(/No secret values are exposed here/i)).toBeVisible();
   expect(errors).toEqual([]);
 });
