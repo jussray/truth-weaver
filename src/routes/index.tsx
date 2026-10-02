@@ -297,34 +297,6 @@ export function JurisprudenceCrossReferenceSection() {
       }
     }, 100);
   };
-  const [selectedVolume, setSelectedVolume] = useState<string>("ALL");
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [activeCitationId, setActiveCitationId] = useState<string | null>(null);
-
-  const filteredPassages = JURISPRUDENCE_PASSAGES.filter((p) => {
-    const matchesVolume = selectedVolume === "ALL" || p.volume === selectedVolume;
-    const q = searchQuery.toLowerCase();
-    const matchesSearch =
-      !q ||
-      p.title.toLowerCase().includes(q) ||
-      p.citation.toLowerCase().includes(q) ||
-      p.excerpt.toLowerCase().includes(q) ||
-      p.tags.some((t) => t.toLowerCase().includes(q));
-    return matchesVolume && matchesSearch;
-  });
-
-  const jumpToCitation = (id: string) => {
-    setActiveCitationId(id);
-    setSelectedVolume("ALL");
-    setSearchQuery("");
-    setTimeout(() => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-    }, 100);
-  };
-
   return (
     <section id="jurisprudence-explorer" className="scroll-mt-24 space-y-8 rounded-3xl border border-amber-500/25 bg-linear-to-b from-stone-900/90 via-stone-950 to-black p-6 sm:p-10 shadow-2xl backdrop-blur-md">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-amber-500/20 pb-6">
