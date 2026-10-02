@@ -9,7 +9,7 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run src/domain/law.test.ts src/lib/connectors/connectors.test.ts",
+    "test": "vitest run src/domain/law.test.ts src/lib/connectors/connectors.test.ts src/lib/connectors/custody.test.ts",
     "test:e2e": "playwright test",
     "verify:founder-intelligence": "node scripts/verify-founder-intelligence.mjs",
     "lint": "eslint .",
