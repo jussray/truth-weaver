@@ -30,11 +30,11 @@ async function fixture() {
   const decision: AuthorityDecision = {
     authorityDecisionId: "authz_test_001",
     provider: "linear",
-    operation: "linear.issue.create",
-    target: { workspaceId: "ws_test", teamId: "team_test", projectId: "project_test" },
+    operation: "linear.issue.comment.create",
+    target: { workspaceId: "ws_test", issueId: "ENG-1" },
     evidenceId: envelope.evidenceId,
     correlationId: envelope.correlationId,
-    scope: ["issues:create"],
+    scope: ["comments:create"],
     issuedAt: "2026-10-02T00:00:00Z",
     expiresAt: "2026-10-02T00:10:00Z",
     commandNonce: "nonce_test_001",
@@ -46,7 +46,7 @@ async function fixture() {
     envelope,
     decision,
     provider: "linear",
-    operation: "linear.issue.create",
+    operation: "linear.issue.comment.create",
     target: decision.target,
     now: "2026-10-02T00:05:00Z",
   });
@@ -55,34 +55,26 @@ async function fixture() {
 
 async function verifiedArtifacts() {
   const { envelope, decision, command } = await fixture();
-  const receipt = await mintReceipt({
-    receiptId: "rcpt_test_001",
-    correlationId: envelope.correlationId,
+  const readBack: ProviderReadBack = {
+    externalObjectId: "comment_test_001",
     evidenceId: envelope.evidenceId,
     contentHash: envelope.contentHash,
+    correlationId: envelope.correlationId,
     commandId: command.commandId,
-    authorityDecisionId: command.authorityDecisionId,
     provider: command.provider,
     operation: command.operation,
     targetHash: command.targetHash,
     adapterIdentity: "linear-adapter@1.0.0",
-    externalObjectId: "ENG-TEST-1",
+  };
+  const receipt = await mintReceipt({
+    receiptId: "rcpt_test_001",
+    command,
+    readBack,
+    adapterIdentity: readBack.adapterIdentity,
+    externalObjectId: readBack.externalObjectId,
     providerTimestamp: "2026-10-02T00:05:01Z",
     readBackVerifiedAt: "2026-10-02T00:05:02Z",
-    canonicalization: CANONICALIZATION,
-    status: "verified",
   });
-  const readBack: ProviderReadBack = {
-    externalObjectId: receipt.externalObjectId,
-    evidenceId: envelope.evidenceId,
-    contentHash: envelope.contentHash,
-    correlationId: envelope.correlationId,
-    commandId: command.commandId,
-    provider: command.provider,
-    operation: command.operation,
-    targetHash: command.targetHash,
-    adapterIdentity: receipt.adapterIdentity,
-  };
   return { envelope, decision, command, receipt, readBack };
 }
 
@@ -91,7 +83,7 @@ describe("custody canonicalization", () => {
     expect(canonicalizeJson({ b: 2, a: 1 })).toBe('{"a":1,"b":2}');
     expect(canonicalizeJson({ a: 1, b: 2 })).toBe(canonicalizeJson({ b: 2, a: 1 }));
     const { envelope } = await fixture();
-    expect(envelope.canonicalization).toBe("jcs-v1");
+    expect(envelope.canonicalization).toBe(CANONICALIZATION);
     expect(envelope.contentHash).toMatch(/^sha256:[a-f0-9]{64}$/);
   });
 
@@ -112,7 +104,8 @@ describe("non-transferable authority", () => {
   it("binds a command to provider, operation, target, evidence, correlation, scope and opaque credential reference", async () => {
     const { command } = await fixture();
     expect(command.provider).toBe("linear");
-    expect(command.scope).toEqual(["issues:create"]);
+    expect(command.operation).toBe("linear.issue.comment.create");
+    expect(command.scope).toEqual(["comments:create"]);
     expect(command.credentialRef).toBe("credref_linear_test");
     expect(command.targetHash).toMatch(/^sha256:[a-f0-9]{64}$/);
     expect(command.idempotencyKey).toMatch(/^sha256:[a-f0-9]{64}$/);
@@ -126,8 +119,8 @@ describe("non-transferable authority", () => {
         envelope,
         decision,
         provider: "linear",
-        operation: "linear.issue.create",
-        target: { ...decision.target, teamId: "other_team" },
+        operation: decision.operation,
+        target: { ...decision.target, issueId: "ENG-999" },
         now: "2026-10-02T00:05:00Z",
       }),
     ).rejects.toThrow("authority target mismatch");
@@ -153,7 +146,7 @@ describe("non-transferable authority", () => {
         envelope,
         decision: { ...decision, correlationId: "cor_other" },
         provider: "linear",
-        operation: "linear.issue.create",
+        operation: decision.operation,
         target: decision.target,
         now: "2026-10-02T00:05:00Z",
       }),
@@ -165,7 +158,7 @@ describe("non-transferable authority", () => {
         envelope,
         decision,
         provider: "linear",
-        operation: "linear.issue.create",
+        operation: decision.operation,
         target: decision.target,
         now: "2026-10-02T00:11:00Z",
       }),
@@ -179,7 +172,7 @@ describe("non-transferable authority", () => {
       envelope,
       decision,
       provider: "linear",
-      operation: "linear.issue.create",
+      operation: decision.operation,
       target: decision.target,
       now: "2026-10-02T00:06:00Z",
     });
@@ -187,19 +180,73 @@ describe("non-transferable authority", () => {
   });
 });
 
+describe("provider read-back and receipt minting", () => {
+  it("refuses to mint a verified receipt when read-back does not match the command", async () => {
+    const { envelope, command } = await fixture();
+    const mismatchedReadBack: ProviderReadBack = {
+      externalObjectId: "comment_test_001",
+      evidenceId: envelope.evidenceId,
+      contentHash: envelope.contentHash,
+      correlationId: envelope.correlationId,
+      commandId: command.commandId,
+      provider: command.provider,
+      operation: command.operation,
+      targetHash: "sha256:wrong",
+      adapterIdentity: "linear-adapter@1.0.0",
+    };
+    await expect(
+      mintReceipt({
+        receiptId: "rcpt_should_not_exist",
+        command,
+        readBack: mismatchedReadBack,
+        adapterIdentity: mismatchedReadBack.adapterIdentity,
+        externalObjectId: mismatchedReadBack.externalObjectId,
+        providerTimestamp: "2026-10-02T00:05:01Z",
+        readBackVerifiedAt: "2026-10-02T00:05:02Z",
+      }),
+    ).rejects.toThrow("read-back target mismatch");
+  });
+
+  it("refuses a receipt whose claimed verification predates the provider result", async () => {
+    const { envelope, command } = await fixture();
+    const readBack: ProviderReadBack = {
+      externalObjectId: "comment_test_001",
+      evidenceId: envelope.evidenceId,
+      contentHash: envelope.contentHash,
+      correlationId: envelope.correlationId,
+      commandId: command.commandId,
+      provider: command.provider,
+      operation: command.operation,
+      targetHash: command.targetHash,
+      adapterIdentity: "linear-adapter@1.0.0",
+    };
+    await expect(
+      mintReceipt({
+        receiptId: "rcpt_bad_time",
+        command,
+        readBack,
+        adapterIdentity: readBack.adapterIdentity,
+        externalObjectId: readBack.externalObjectId,
+        providerTimestamp: "2026-10-02T00:05:02Z",
+        readBackVerifiedAt: "2026-10-02T00:05:01Z",
+      }),
+    ).rejects.toThrow("read-back verification cannot predate provider result");
+  });
+});
+
 describe("receipt reconciliation", () => {
   it("verifies only a receipt that matches the separately authorized command and provider read-back", async () => {
     const artifacts = await verifiedArtifacts();
     const result = await reconcileCustody(artifacts);
-    expect(result).toEqual({ status: "VERIFIED", receiptId: artifacts.receipt.receiptId, externalObjectId: "ENG-TEST-1" });
+    expect(result).toEqual({ status: "VERIFIED", receiptId: artifacts.receipt.receiptId, externalObjectId: "comment_test_001" });
   });
 
-  it("blocks promotion when the provider read-back disagrees about object, command, target or adapter", async () => {
+  it("blocks promotion when provider state disagrees about object, command, target or adapter", async () => {
     const artifacts = await verifiedArtifacts();
 
     const objectMismatch = await reconcileCustody({
       ...artifacts,
-      readBack: { ...artifacts.readBack, externalObjectId: "ENG-TEST-2" },
+      readBack: { ...artifacts.readBack, externalObjectId: "comment_other" },
     });
     expect(objectMismatch).toMatchObject({ status: "UNVERIFIED", reason: "provider object mismatch", promotion: "BLOCKED" });
 
