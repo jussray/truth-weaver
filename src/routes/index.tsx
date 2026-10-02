@@ -259,7 +259,7 @@ export function JurisprudenceCrossReferenceSection() {
       const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
       try {
         localStorage.setItem("tw_bookmarked_passages", JSON.stringify(next));
-      } catch {}
+      } catch (error) { console.warn("Bookmark storage unavailable", error); }
       return next;
     });
   };
