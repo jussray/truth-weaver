@@ -1,0 +1,28 @@
+name: One-time inherited typecheck repair
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/repair-inherited-typecheck.yml']
+permissions:
+  contents: write
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove duplicated jurisprudence state block only
+        shell: bash
+        run: |
+          set -euo pipefail
+          node -e 'const fs=require("fs"); const p="src/routes/index.tsx"; let s=fs.readFileSync(p,"utf8"); const m="  const [selectedVolume, setSelectedVolume] = useState<string>(\"ALL\");"; const a=s.indexOf(m); const b=s.indexOf(m,a+1); if(a<0||b<0) throw new Error("expected duplicate selectedVolume block"); const end=s.indexOf("\n  return (",b); if(end<0) throw new Error("return anchor missing"); s=s.slice(0,b)+s.slice(end+1); if((s.match(/const \[selectedVolume, setSelectedVolume\]/g)||[]).length!==1) throw new Error("duplicate removal did not converge"); fs.writeFileSync(p,s);'
+          git diff --check
+          git diff -- src/routes/index.tsx
+      - name: Commit bounded repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'Juss'
+          git config user.email '286642846+jussray@users.noreply.github.com'
+          git add src/routes/index.tsx
+          git commit -m 'fix(ci): remove duplicated jurisprudence state block'
+          git push origin HEAD:main
