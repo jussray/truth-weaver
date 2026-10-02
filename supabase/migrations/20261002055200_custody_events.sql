@@ -36,6 +36,8 @@ CREATE INDEX custody_events_evidence_idx
 CREATE INDEX custody_events_command_idx
   ON public.custody_events (command_id)
   WHERE command_id IS NOT NULL;
+CREATE UNIQUE INDEX custody_events_chain_link_uq
+  ON public.custody_events (correlation_id, COALESCE(previous_event_hash, 'GENESIS'));
 
 REVOKE ALL ON public.custody_events FROM anon, authenticated;
 GRANT SELECT, INSERT ON public.custody_events TO service_role;
