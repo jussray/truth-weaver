@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { createClientOnlyFn } from "@tanstack/react-start";
 import { useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import {
@@ -19,7 +20,6 @@ import {
   type NoticeAnalyzerInput,
   type NoticeAnalyzerResult,
 } from "@/lib/notice-analyzer";
-import { extractPdfPages, fileToBase64 } from "@/lib/notice-document.client";
 import { transcribeNoticeImage } from "@/lib/notice-document.functions";
 import {
   NOTICE_DOCUMENT_MAX_BYTES,
@@ -45,6 +45,23 @@ export const Route = createFileRoute("/notice-analyzer")({
 });
 
 type FormState = NoticeAnalyzerInput;
+type PdfOcrFallback = (input: {
+  fileName: string;
+  mimeType: SupportedNoticeImageType;
+  base64: string;
+}) => Promise<string>;
+
+const extractPdfPagesOnClient = createClientOnlyFn(
+  async (file: File, ocrFallback: PdfOcrFallback): Promise<ExtractedNoticePage[]> => {
+    const { extractPdfPages } = await import("@/lib/notice-document.client");
+    return extractPdfPages(file, ocrFallback);
+  },
+);
+
+const fileToBase64OnClient = createClientOnlyFn(async (file: File) => {
+  const { fileToBase64 } = await import("@/lib/notice-document.client");
+  return fileToBase64(file);
+});
 
 const INITIAL_FORM: FormState = {
   noticeText: "",
@@ -114,7 +131,7 @@ function NoticeAnalyzerPage() {
         if (file.size > NOTICE_DOCUMENT_MAX_BYTES) {
           throw new Error("That PDF is too large for this analyzer.");
         }
-        pages = await extractPdfPages(file, ({ fileName, mimeType, base64 }) =>
+        pages = await extractPdfPagesOnClient(file, ({ fileName, mimeType, base64 }) =>
           transcribeImage(fileName, mimeType, base64),
         );
       } else {
@@ -125,7 +142,7 @@ function NoticeAnalyzerPage() {
         if (file.size > NOTICE_IMAGE_MAX_BYTES) {
           throw new Error("That image is too large for notice transcription.");
         }
-        const base64 = await fileToBase64(file);
+        const base64 = await fileToBase64OnClient(file);
         const text = await transcribeImage(file.name, mimeType, base64);
         pages = [{ page: 1, text }];
       }
