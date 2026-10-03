@@ -1,17 +1,36 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
+import type { ConnectorHealth } from "./health";
 import type { ProviderId } from "./provenance";
-import { CONNECTORS, resolveConnectorStatus, type ConnectorStatus } from "./registry";
-import { getConnectorEnvPresence } from "./status.functions";
+import { CONNECTORS, type ConnectorStatus } from "./registry";
+import { getConnectorHealth } from "./status.functions";
 
-/** Until the server answers, every status resolves as if nothing is linked (never "Connected"). */
+/**
+ * Runtime connector truth. Until the server check returns, statuses are
+ * Connecting. A failed health request fails closed and never synthesizes a
+ * Connected state.
+ */
 export function useConnectorStatuses() {
-  const fetchPresence = useServerFn(getConnectorEnvPresence);
-  const q = useQuery({ queryKey: ["connector-presence"], queryFn: () => fetchPresence(), staleTime: 60_000 });
-  const env = q.data ?? null;
+  const fetchHealth = useServerFn(getConnectorHealth);
+  const q = useQuery({
+    queryKey: ["connector-health"],
+    queryFn: () => fetchHealth(),
+    staleTime: 60_000,
+    retry: 1,
+  });
+
+  const health = Object.fromEntries((q.data ?? []).map((record) => [record.provider, record])) as Partial<
+    Record<ProviderId, ConnectorHealth>
+  >;
+
   const statuses = Object.fromEntries(
-    CONNECTORS.map((c) => [c.id, resolveConnectorStatus(c, env)]),
+    CONNECTORS.map((connector) => {
+      if (q.isLoading && !q.data) return [connector.id, "connecting"];
+      if (q.error) return [connector.id, connector.path === "public_web" ? "available" : "error"];
+      return [connector.id, health[connector.id]?.status ?? "error"];
+    }),
   ) as Record<ProviderId, ConnectorStatus>;
-  return { statuses, loading: q.isLoading, error: q.error };
+
+  return { health, statuses, loading: q.isLoading, error: q.error };
 }

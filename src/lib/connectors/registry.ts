@@ -1,17 +1,28 @@
 import type { ProviderId } from "./provenance";
 
-export const CONNECTOR_STATUSES = ["connected", "available", "needs_setup", "not_configured"] as const;
+export const CONNECTOR_STATUSES = [
+  "connected",
+  "available",
+  "needs_setup",
+  "connecting",
+  "degraded",
+  "error",
+  "not_configured",
+] as const;
 export type ConnectorStatus = (typeof CONNECTOR_STATUSES)[number];
 
 export const CONNECTOR_STATUS_LABEL: Record<ConnectorStatus, string> = {
   connected: "Connected",
   available: "Available",
   needs_setup: "Needs setup",
+  connecting: "Connecting",
+  degraded: "Degraded",
+  error: "Error",
   not_configured: "Not configured",
 };
 
 export type ConnectorPath =
-  | "lovable_ai" // Lovable AI built-in models (no user key)
+  | "lovable_ai" // Lovable AI built-in models (no user key required for availability)
   | "standard_connector" // managed or direct connector linked to the project
   | "shopify_integration"
   | "custom_adapter" // user-supplied endpoint + secret, server-side only
@@ -166,7 +177,8 @@ export const CONNECTORS: readonly ConnectorDefinition[] = [
     authMode: "env_secret",
     requiredEnv: ["GITHUB_API_KEY"],
     consumerFacing: false,
-    limits: "Code is never legal evidence.",
+    limits:
+      "Code is not governing legal authority. Repository content may serve as evidence only when its provenance, relevance, and authenticity are established.",
   },
 ];
 
@@ -174,13 +186,10 @@ export type EnvPresence = Record<string, boolean>;
 export type ManagedConnectorPresence = Partial<Record<ProviderId, boolean>>;
 
 /**
- * Truthful status resolver.
- *
- * A Lovable-managed connection is never inferred from env vars. It can become
- * Connected only when a trusted runtime probe supplies managed[id] === true.
- * Until that probe exists, the UI remains Needs setup even after the user has
- * opened the OAuth surface. This intentionally prefers a stale red state over
- * a false green state.
+ * Configuration-only baseline. This function deliberately cannot return
+ * `connected`: credential presence or managed-link presence is configuration
+ * evidence, not provider callability evidence. A successful server-side
+ * provider read must promote a connector to Connected for the current check.
  */
 export function resolveConnectorStatus(
   def: ConnectorDefinition,
@@ -190,18 +199,23 @@ export function resolveConnectorStatus(
   if (def.path === "public_web") return "available";
 
   if (def.authMode === "lovable_app_connector") {
-    return managed?.[def.id] === true ? "connected" : "needs_setup";
+    return managed?.[def.id] === true ? "degraded" : "needs_setup";
   }
 
-  const present =
-    def.requiredEnv.length > 0 && env !== null && def.requiredEnv.every((name) => env[name] === true);
-  if (present) return "connected";
+  const anyPresent = def.requiredEnv.some((name) => env?.[name] === true);
+  const fullyPresent =
+    env !== null && def.requiredEnv.length > 0 && def.requiredEnv.every((name) => env[name] === true);
 
   if (def.path === "custom_adapter") {
-    return def.requiredEnv.some((name) => env?.[name]) ? "needs_setup" : "not_configured";
+    if (!anyPresent) return "not_configured";
+    return fullyPresent ? "degraded" : "needs_setup";
   }
-  if (def.path === "lovable_ai") return "available";
-  return "needs_setup";
+
+  if (def.path === "lovable_ai") {
+    return fullyPresent ? "degraded" : "available";
+  }
+
+  return fullyPresent ? "degraded" : "needs_setup";
 }
 
 export function allConnectorEnvNames() {

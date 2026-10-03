@@ -1,10 +1,15 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { probeConnectorHealth } from "./health";
 import { createProvenance, provenanceKey } from "./provenance";
 import { allConnectorEnvNames, CONNECTORS, resolveConnectorStatus } from "./registry";
 
 const byId = (id: string) => CONNECTORS.find((c) => c.id === id)!;
 const now = new Date("2026-01-01T00:00:00Z");
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe("provenance", () => {
   it("labels AI output generated and INFERRED without backing", () => {
@@ -56,15 +61,14 @@ describe("connector status", () => {
     for (const c of CONNECTORS) expect(resolveConnectorStatus(c, null)).not.toBe("connected");
   });
 
-  it("custom adapters fail closed until required configuration exists", () => {
-    expect(resolveConnectorStatus(byId("muse"), {})).toBe("not_configured");
-    expect(resolveConnectorStatus(byId("muse"), { MUSE_ENDPOINT: true })).toBe("needs_setup");
-    expect(resolveConnectorStatus(byId("muse"), { MUSE_ENDPOINT: true, MUSE_API_KEY: true })).toBe("connected");
-    expect(resolveConnectorStatus(byId("exa"), {})).toBe("not_configured");
-    expect(resolveConnectorStatus(byId("exa"), { EXA_API_KEY: true })).toBe("connected");
+  it("credential presence alone can never report Connected", () => {
+    for (const connector of CONNECTORS) {
+      const presence = Object.fromEntries(connector.requiredEnv.map((name) => [name, true]));
+      expect(resolveConnectorStatus(connector, presence)).not.toBe("connected");
+    }
   });
 
-  it("Lovable-managed connectors never infer OAuth linkage from raw env tokens", () => {
+  it("Lovable-managed connectors cannot self-certify from env or linkage presence", () => {
     for (const id of ["notion", "linear", "slack"] as const) {
       const connector = byId(id);
       expect(connector.authMode).toBe("lovable_app_connector");
@@ -74,7 +78,8 @@ describe("connector status", () => {
         LINEAR_API_KEY: true,
         SLACK_BOT_TOKEN: true,
       })).toBe("needs_setup");
-      expect(resolveConnectorStatus(connector, {}, { [id]: true })).toBe("connected");
+      expect(resolveConnectorStatus(connector, {}, { [id]: true })).toBe("degraded");
+      expect(resolveConnectorStatus(connector, {}, { [id]: true })).not.toBe("connected");
     }
   });
 
@@ -86,16 +91,67 @@ describe("connector status", () => {
     expect(names).toContain("EXA_API_KEY");
   });
 
-  it("linkable direct connectors need setup without credentials", () => {
-    for (const id of ["shopify", "perplexity", "github", "anthropic"]) {
-      expect(resolveConnectorStatus(byId(id), {})).toBe("needs_setup");
-    }
-    expect(resolveConnectorStatus(byId("shopify"), { SHOPIFY_STORE_DOMAIN: true })).toBe("needs_setup");
+  it("custom adapters fail closed until required configuration exists", () => {
+    expect(resolveConnectorStatus(byId("muse"), {})).toBe("not_configured");
+    expect(resolveConnectorStatus(byId("muse"), { MUSE_ENDPOINT: true })).toBe("needs_setup");
+    expect(resolveConnectorStatus(byId("muse"), { MUSE_ENDPOINT: true, MUSE_API_KEY: true })).toBe("degraded");
+    expect(resolveConnectorStatus(byId("exa"), {})).toBe("not_configured");
+    expect(resolveConnectorStatus(byId("exa"), { EXA_API_KEY: true })).toBe("degraded");
   });
 
-  it("built-in AI is Available without key and public web always Available", () => {
+  it("built-in AI is Available without key and remains non-green with configuration only", () => {
     expect(resolveConnectorStatus(byId("openai"), {})).toBe("available");
-    expect(resolveConnectorStatus(byId("gemini"), { LOVABLE_API_KEY: true })).toBe("connected");
+    expect(resolveConnectorStatus(byId("gemini"), { LOVABLE_API_KEY: true })).toBe("degraded");
     expect(resolveConnectorStatus(byId("web"), null)).toBe("available");
+  });
+
+  it("promotes only a successful read-only provider probe to Connected and sanitizes the receipt", async () => {
+    const secret = "TEST_SECRET_MARKER_123";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ login: "truth-weaver-test", id: 42, ignored: secret }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      ),
+    );
+
+    const health = await probeConnectorHealth(byId("github"), { GITHUB_API_KEY: secret }, now);
+    expect(health.status).toBe("connected");
+    expect(health.capability).toBe("identity_read");
+    expect(health.lastSuccess).toBe(now.toISOString());
+    expect(health.receipt).toMatch(/^sha256:[a-f0-9]{64}$/);
+    expect(health.scope).toEqual({ login: "truth-weaver-test", id: "42" });
+    expect(JSON.stringify(health)).not.toContain(secret);
+  });
+
+  it("failed provider probes never promote to Connected", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response(JSON.stringify({ message: "Bad credentials" }), { status: 401 })),
+    );
+
+    const health = await probeConnectorHealth(byId("github"), { GITHUB_API_KEY: "TEST_BAD_MARKER" }, now);
+    expect(health.status).toBe("error");
+    expect(health.lastSuccess).toBeNull();
+    expect(health.status).not.toBe("connected");
+    expect(JSON.stringify(health)).not.toContain("TEST_BAD_MARKER");
+  });
+
+  it("full custom-adapter configuration stays non-green without a safe probe", async () => {
+    const health = await probeConnectorHealth(
+      byId("muse"),
+      { MUSE_ENDPOINT: "https://example.invalid/muse", MUSE_API_KEY: "TEST_SECRET_MARKER_456" },
+      now,
+    );
+    expect(health.status).toBe("degraded");
+    expect(health.lastSuccess).toBeNull();
+    expect(JSON.stringify(health)).not.toContain("TEST_SECRET_MARKER_456");
+  });
+
+  it("keeps the GitHub legal boundary accurate", () => {
+    expect(byId("github").limits).toContain("Code is not governing legal authority.");
+    expect(byId("github").limits).not.toContain("Code is never legal evidence.");
   });
 });

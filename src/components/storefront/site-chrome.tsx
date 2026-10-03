@@ -96,9 +96,13 @@ export function StatusPill({ status, label }: { status: string; label: string })
       ? "border-ok/50 text-ok"
       : status === "available"
         ? "border-gold/50 text-gold"
-        : status === "needs_setup"
+        : status === "needs_setup" || status === "degraded"
           ? "border-warn/50 text-warn"
-          : "border-parchment/25 text-parchment/60";
+          : status === "error"
+            ? "border-red-400/50 text-red-300"
+            : status === "connecting"
+              ? "border-parchment/35 text-parchment/70"
+              : "border-parchment/25 text-parchment/60";
   return (
     <span data-connector-status={status} className={`rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] ${tone}`}>
       {label}
