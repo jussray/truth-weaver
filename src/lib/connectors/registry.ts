@@ -1,18 +1,29 @@
 import type { ProviderId } from "./provenance";
 
-export const CONNECTOR_STATUSES = ["connected", "available", "needs_setup", "not_configured"] as const;
+export const CONNECTOR_STATUSES = [
+  "connected",
+  "available",
+  "needs_setup",
+  "connecting",
+  "degraded",
+  "error",
+  "not_configured",
+] as const;
 export type ConnectorStatus = (typeof CONNECTOR_STATUSES)[number];
 
 export const CONNECTOR_STATUS_LABEL: Record<ConnectorStatus, string> = {
   connected: "Connected",
   available: "Available",
   needs_setup: "Needs setup",
+  connecting: "Connecting",
+  degraded: "Degraded",
+  error: "Error",
   not_configured: "Not configured",
 };
 
 export type ConnectorPath =
-  | "lovable_ai" // Lovable AI built-in models (no user key)
-  | "standard_connector" // workspace connector linked to the project
+  | "lovable_ai" // Lovable AI built-in models (no user key required for availability)
+  | "standard_connector" // provider credential/configuration supplied server-side
   | "shopify_integration"
   | "custom_adapter" // user-supplied endpoint + secret, server-side only
   | "public_web"; // no credentials; public/official sources
@@ -135,26 +146,36 @@ export const CONNECTORS: readonly ConnectorDefinition[] = [
     path: "standard_connector",
     requiredEnv: ["GITHUB_API_KEY"],
     consumerFacing: false,
-    limits: "Code is never legal evidence.",
+    limits:
+      "Code is not governing legal authority. Repository content may serve as evidence only when its provenance, relevance, and authenticity are established.",
   },
 ];
 
 export type EnvPresence = Record<string, boolean>;
 
 /**
- * Truthful status. "Connected" only when every required credential is present
- * server-side. Built-in AI without a key is "Available"; linkable connectors
- * are "Needs setup"; custom adapters with nothing supplied are "Not configured".
+ * Configuration-only baseline. This function deliberately cannot return
+ * `connected`: credential presence is configuration evidence, not provider
+ * callability evidence. A server-side provider probe must promote a connector
+ * to Connected for the current check.
  */
 export function resolveConnectorStatus(def: ConnectorDefinition, env: EnvPresence | null): ConnectorStatus {
   if (def.path === "public_web") return "available";
-  const present = env !== null && def.requiredEnv.every((name) => env[name] === true);
-  if (present) return "connected";
+
+  const anyPresent = def.requiredEnv.some((name) => env?.[name] === true);
+  const fullyPresent =
+    env !== null && def.requiredEnv.length > 0 && def.requiredEnv.every((name) => env[name] === true);
+
   if (def.path === "custom_adapter") {
-    return def.requiredEnv.some((name) => env?.[name]) ? "needs_setup" : "not_configured";
+    if (!anyPresent) return "not_configured";
+    return fullyPresent ? "degraded" : "needs_setup";
   }
-  if (def.path === "lovable_ai") return "available";
-  return "needs_setup";
+
+  if (def.path === "lovable_ai") {
+    return fullyPresent ? "degraded" : "available";
+  }
+
+  return fullyPresent ? "degraded" : "needs_setup";
 }
 
 export function allConnectorEnvNames() {
