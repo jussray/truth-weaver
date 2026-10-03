@@ -177,20 +177,34 @@ function SourceCenter() {
         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {list.map((c) => {
             const record = health[c.id];
+            const status = statuses[c.id];
+            const pathLabel = c.authMode === "lovable_app_connector" ? "Lovable app connector" : PATH_LABEL[c.path];
             return (
               <article key={c.id} data-connector={c.id} className="rounded-2xl border border-parchment/10 bg-forest-deep/40 p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h2 className="font-serif text-2xl text-parchment">{c.name}</h2>
                     <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-parchment/50">
-                      {PATH_LABEL[c.path]}
+                      {pathLabel}
                       {c.consumerFacing ? "" : " · optional"}
                     </p>
                   </div>
-                  <StatusPill status={statuses[c.id]} label={CONNECTOR_STATUS_LABEL[statuses[c.id]]} />
+                  <StatusPill status={status} label={CONNECTOR_STATUS_LABEL[status]} />
                 </div>
                 <p className="mt-3 text-sm leading-6 text-parchment/75">{c.role}</p>
                 <p className="mt-3 border-t border-parchment/10 pt-3 text-xs leading-5 text-parchment/55">{c.limits}</p>
+
+                {readiness.enabled && c.setupUrl && status !== "connected" ? (
+                  <a
+                    href={c.setupUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-4 inline-flex min-h-11 items-center rounded-full border border-gold/30 px-4 py-2 text-xs font-bold text-gold-soft transition hover:border-gold/60 hover:text-gold"
+                    data-testid={`connector-setup-${c.id}`}
+                  >
+                    {c.setupLabel ?? "Open connector setup"} ↗
+                  </a>
+                ) : null}
 
                 <details
                   className="mt-3 border-t border-parchment/10 pt-3 text-xs text-parchment/60"
@@ -198,7 +212,7 @@ function SourceCenter() {
                 >
                   <summary className="cursor-pointer select-none font-semibold text-parchment/70">Connection proof</summary>
                   <div className="mt-2 grid gap-1.5 break-words" data-testid={`connector-health-${c.id}`}>
-                    <p>{record?.detail ?? (statuses[c.id] === "connecting" ? "Checking provider…" : "No server health receipt available.")}</p>
+                    <p>{record?.detail ?? (status === "connecting" ? "Checking provider…" : "No server health receipt available.")}</p>
                     {record ? (
                       <>
                         <p>Capability: <span className="font-mono">{record.capability}</span></p>
@@ -224,10 +238,10 @@ function SourceCenter() {
             ["Connected", "A non-mutating server read succeeded in the current health check."],
             ["Available", "Usable without a private connector, but not presented as a verified provider connection."],
             ["Connecting", "The current server health check is still running."],
-            ["Needs setup", "Required connector configuration is incomplete."],
-            ["Degraded", "Configuration exists, but callability is not verified by a safe read probe."],
+            ["Needs setup", "Authorize or link the provider before Truth Weaver may call it."],
+            ["Degraded", "Configuration or linkage exists, but callability is not verified by a safe read probe."],
             ["Error", "A read probe was attempted but did not produce verified provider state."],
-            ["Not configured", "No endpoint or credential is configured for this custom adapter."],
+            ["Not configured", "No custom endpoint or server credential has been configured."],
           ].map(([t, d]) => (
             <div key={t} className="rounded-xl border border-gold/15 p-4">
               <p className="font-semibold text-gold-soft">{t}</p>
