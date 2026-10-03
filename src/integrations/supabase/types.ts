@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      custody_events: {
+        Row: {
+          authority_decision_id: string | null
+          command_id: string | null
+          correlation_id: string
+          created_at: string
+          event_hash: string
+          event_type: string
+          evidence_id: string
+          external_object_id: string | null
+          id: string
+          payload: Json
+          previous_event_hash: string | null
+          provider: string | null
+          sequence_no: number
+        }
+        Insert: {
+          authority_decision_id?: string | null
+          command_id?: string | null
+          correlation_id: string
+          created_at?: string
+          event_hash: string
+          event_type: string
+          evidence_id: string
+          external_object_id?: string | null
+          id?: string
+          payload: Json
+          previous_event_hash?: string | null
+          provider?: string | null
+          sequence_no?: never
+        }
+        Update: {
+          authority_decision_id?: string | null
+          command_id?: string | null
+          correlation_id?: string
+          created_at?: string
+          event_hash?: string
+          event_type?: string
+          evidence_id?: string
+          external_object_id?: string | null
+          id?: string
+          payload?: Json
+          previous_event_hash?: string | null
+          provider?: string | null
+          sequence_no?: never
+        }
+        Relationships: []
+      }
       findings: {
         Row: {
           citation: string | null
