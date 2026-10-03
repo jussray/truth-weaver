@@ -188,7 +188,7 @@ function SourceCenter() {
                 </div>
                 <p className="mt-3 text-sm leading-6 text-parchment/75">{c.role}</p>
                 <p className="mt-3 border-t border-parchment/10 pt-3 text-xs leading-5 text-parchment/55">{c.limits}</p>
-                {c.setupUrl && status !== "connected" ? (
+                {readiness.enabled && c.setupUrl && status !== "connected" ? (
                   <a
                     href={c.setupUrl}
                     target="_blank"
