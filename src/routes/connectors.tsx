@@ -139,7 +139,7 @@ function WitnessConsole({ readiness }: { readiness: WitnessReadiness }) {
 
 function SourceCenter() {
   const readiness = Route.useLoaderData();
-  const { statuses, error } = useConnectorStatuses();
+  const { statuses, health, error } = useConnectorStatuses();
   const [q, setQ] = useState("");
   const list = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -158,7 +158,11 @@ function SourceCenter() {
           the kind of evidence it is, and how far it has been verified. AI and web results can point you to evidence —
           they never become verified law on their own.
         </p>
-        {error ? <p className="mt-4 text-sm text-warn">Couldn’t check connection status; showing everything as not linked.</p> : null}
+        {error ? (
+          <p className="mt-4 text-sm text-warn">
+            Couldn’t complete provider health checks. No private connector is promoted to Connected without a verified server read.
+          </p>
+        ) : null}
 
         <label id="search" className="mt-8 block max-w-md">
           <span className="sr-only">Search sources</span>
@@ -171,30 +175,59 @@ function SourceCenter() {
         </label>
 
         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {list.map((c) => (
-            <article key={c.id} data-connector={c.id} className="rounded-2xl border border-parchment/10 bg-forest-deep/40 p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h2 className="font-serif text-2xl text-parchment">{c.name}</h2>
-                  <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-parchment/50">
-                    {PATH_LABEL[c.path]}
-                    {c.consumerFacing ? "" : " · optional"}
-                  </p>
+          {list.map((c) => {
+            const record = health[c.id];
+            return (
+              <article key={c.id} data-connector={c.id} className="rounded-2xl border border-parchment/10 bg-forest-deep/40 p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h2 className="font-serif text-2xl text-parchment">{c.name}</h2>
+                    <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-parchment/50">
+                      {PATH_LABEL[c.path]}
+                      {c.consumerFacing ? "" : " · optional"}
+                    </p>
+                  </div>
+                  <StatusPill status={statuses[c.id]} label={CONNECTOR_STATUS_LABEL[statuses[c.id]]} />
                 </div>
-                <StatusPill status={statuses[c.id]} label={CONNECTOR_STATUS_LABEL[statuses[c.id]]} />
-              </div>
-              <p className="mt-3 text-sm leading-6 text-parchment/75">{c.role}</p>
-              <p className="mt-3 border-t border-parchment/10 pt-3 text-xs leading-5 text-parchment/55">{c.limits}</p>
-            </article>
-          ))}
+                <p className="mt-3 text-sm leading-6 text-parchment/75">{c.role}</p>
+                <p className="mt-3 border-t border-parchment/10 pt-3 text-xs leading-5 text-parchment/55">{c.limits}</p>
+
+                <details
+                  className="mt-3 border-t border-parchment/10 pt-3 text-xs text-parchment/60"
+                  data-testid={`connector-proof-${c.id}`}
+                >
+                  <summary className="cursor-pointer select-none font-semibold text-parchment/70">Connection proof</summary>
+                  <div className="mt-2 grid gap-1.5 break-words" data-testid={`connector-health-${c.id}`}>
+                    <p>{record?.detail ?? (statuses[c.id] === "connecting" ? "Checking provider…" : "No server health receipt available.")}</p>
+                    {record ? (
+                      <>
+                        <p>Capability: <span className="font-mono">{record.capability}</span></p>
+                        <p>Checked: <time dateTime={record.checkedAt}>{record.checkedAt}</time></p>
+                        {record.lastSuccess ? <p>Last success: <time dateTime={record.lastSuccess}>{record.lastSuccess}</time></p> : null}
+                        {record.scope ? (
+                          <p>Scope: <span className="font-mono">{Object.entries(record.scope).map(([key, value]) => `${key}=${value}`).join(" · ")}</span></p>
+                        ) : null}
+                        <p className="font-mono text-[10px] text-parchment/45" data-testid={`connector-receipt-${c.id}`}>
+                          Receipt: {record.receipt}
+                        </p>
+                      </>
+                    ) : null}
+                  </div>
+                </details>
+              </article>
+            );
+          })}
         </div>
 
-        <div className="mt-12 grid gap-4 md:grid-cols-4">
+        <div className="mt-12 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {[
-            ["Connected", "Linked and callable from our server."],
-            ["Available", "Ready to use without your own key."],
-            ["Needs setup", "A connection must be linked first."],
-            ["Not configured", "No endpoint or credentials supplied."],
+            ["Connected", "A non-mutating server read succeeded in the current health check."],
+            ["Available", "Usable without a private connector, but not presented as a verified provider connection."],
+            ["Connecting", "The current server health check is still running."],
+            ["Needs setup", "Required connector configuration is incomplete."],
+            ["Degraded", "Configuration exists, but callability is not verified by a safe read probe."],
+            ["Error", "A read probe was attempted but did not produce verified provider state."],
+            ["Not configured", "No endpoint or credential is configured for this custom adapter."],
           ].map(([t, d]) => (
             <div key={t} className="rounded-xl border border-gold/15 p-4">
               <p className="font-semibold text-gold-soft">{t}</p>
