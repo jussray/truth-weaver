@@ -17,7 +17,7 @@ export const getConnectorHealth = createServerFn({ method: "GET" }).handler(asyn
   // Optional version selector is configuration, not authentication material.
   const shopifyApiVersion = process.env["SHOPIFY_STOREFRONT_API_VERSION"];
   if (typeof shopifyApiVersion === "string" && shopifyApiVersion.length > 0) {
-    env.SHOPIFY_STOREFRONT_API_VERSION = shopifyApiVersion;
+    env["SHOPIFY_STOREFRONT_API_VERSION"] = shopifyApiVersion;
   }
 
   const checkedAt = new Date();
