@@ -171,30 +171,45 @@ function SourceCenter() {
         </label>
 
         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {list.map((c) => (
-            <article key={c.id} data-connector={c.id} className="rounded-2xl border border-parchment/10 bg-forest-deep/40 p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h2 className="font-serif text-2xl text-parchment">{c.name}</h2>
-                  <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-parchment/50">
-                    {PATH_LABEL[c.path]}
-                    {c.consumerFacing ? "" : " · optional"}
-                  </p>
+          {list.map((c) => {
+            const status = statuses[c.id];
+            const pathLabel = c.authMode === "lovable_app_connector" ? "Lovable app connector" : PATH_LABEL[c.path];
+            return (
+              <article key={c.id} data-connector={c.id} className="rounded-2xl border border-parchment/10 bg-forest-deep/40 p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h2 className="font-serif text-2xl text-parchment">{c.name}</h2>
+                    <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-parchment/50">
+                      {pathLabel}
+                      {c.consumerFacing ? "" : " · optional"}
+                    </p>
+                  </div>
+                  <StatusPill status={status} label={CONNECTOR_STATUS_LABEL[status]} />
                 </div>
-                <StatusPill status={statuses[c.id]} label={CONNECTOR_STATUS_LABEL[statuses[c.id]]} />
-              </div>
-              <p className="mt-3 text-sm leading-6 text-parchment/75">{c.role}</p>
-              <p className="mt-3 border-t border-parchment/10 pt-3 text-xs leading-5 text-parchment/55">{c.limits}</p>
-            </article>
-          ))}
+                <p className="mt-3 text-sm leading-6 text-parchment/75">{c.role}</p>
+                <p className="mt-3 border-t border-parchment/10 pt-3 text-xs leading-5 text-parchment/55">{c.limits}</p>
+                {c.setupUrl && status !== "connected" ? (
+                  <a
+                    href={c.setupUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-4 inline-flex min-h-11 items-center rounded-full border border-gold/30 px-4 py-2 text-xs font-bold text-gold-soft transition hover:border-gold/60 hover:text-gold"
+                    data-testid={`connector-setup-${c.id}`}
+                  >
+                    {c.setupLabel ?? "Open connector setup"} ↗
+                  </a>
+                ) : null}
+              </article>
+            );
+          })}
         </div>
 
         <div className="mt-12 grid gap-4 md:grid-cols-4">
           {[
-            ["Connected", "Linked and callable from our server."],
-            ["Available", "Ready to use without your own key."],
-            ["Needs setup", "A connection must be linked first."],
-            ["Not configured", "No endpoint or credentials supplied."],
+            ["Connected", "Independently confirmed callable from our server."],
+            ["Available", "Ready to use without a separate provider connection."],
+            ["Needs setup", "Authorize or link the provider before Truth Weaver may call it."],
+            ["Not configured", "No custom endpoint or server credential has been configured."],
           ].map(([t, d]) => (
             <div key={t} className="rounded-xl border border-gold/15 p-4">
               <p className="font-semibold text-gold-soft">{t}</p>
