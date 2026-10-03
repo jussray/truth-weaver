@@ -53,38 +53,33 @@ export async function extractPdfPages(file: File, ocrFallback: PdfOcrFallback): 
   const document = await pdfjs.getDocument({ data }).promise;
 
   if (document.numPages > NOTICE_PDF_MAX_PAGES) {
-    await document.destroy();
     throw new Error(`PDFs are limited to ${NOTICE_PDF_MAX_PAGES} pages for this analyzer.`);
   }
 
   const pages: ExtractedNoticePage[] = [];
 
-  try {
-    for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
-      const page = await document.getPage(pageNumber);
-      const textContent = await page.getTextContent();
-      const text = normalizeExtractedText(
-        textContent.items.map((item) => ("str" in item ? item.str : "")),
-      );
+  for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
+    const page = await document.getPage(pageNumber);
+    const textContent = await page.getTextContent();
+    const text = normalizeExtractedText(
+      textContent.items.map((item) => ("str" in item ? item.str : "")),
+    );
 
-      if (text) {
-        pages.push({ page: pageNumber, text });
-        continue;
-      }
-
-      const base64 = await renderPdfPageToJpeg(page);
-      const ocrText = (await ocrFallback({
-        fileName: `${file.name} page ${pageNumber}`,
-        mimeType: "image/jpeg",
-        base64,
-      })).trim();
-
-      if (ocrText) {
-        pages.push({ page: pageNumber, text: ocrText });
-      }
+    if (text) {
+      pages.push({ page: pageNumber, text });
+      continue;
     }
-  } finally {
-    await document.destroy();
+
+    const base64 = await renderPdfPageToJpeg(page);
+    const ocrText = (await ocrFallback({
+      fileName: `${file.name} page ${pageNumber}`,
+      mimeType: "image/jpeg",
+      base64,
+    })).trim();
+
+    if (ocrText) {
+      pages.push({ page: pageNumber, text: ocrText });
+    }
   }
 
   if (!pages.length) {
