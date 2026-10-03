@@ -1,3 +1,4 @@
+import type { PDFPageProxy } from "pdfjs-dist";
 import workerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
 import {
@@ -28,14 +29,7 @@ export async function fileToBase64(file: File) {
   return btoa(binary);
 }
 
-async function renderPdfPageToJpeg(page: {
-  getViewport: (options: { scale: number }) => { width: number; height: number };
-  render: (options: {
-    canvas: HTMLCanvasElement;
-    canvasContext: CanvasRenderingContext2D;
-    viewport: { width: number; height: number };
-  }) => { promise: Promise<unknown> };
-}) {
+async function renderPdfPageToJpeg(page: PDFPageProxy) {
   const viewport = page.getViewport({ scale: 1.5 });
   const canvas = document.createElement("canvas");
   const context = canvas.getContext("2d");
@@ -52,7 +46,7 @@ async function renderPdfPageToJpeg(page: {
 }
 
 export async function extractPdfPages(file: File, ocrFallback: PdfOcrFallback): Promise<ExtractedNoticePage[]> {
-  const pdfjs = await import("pdfjs-dist/build/pdf.mjs");
+  const pdfjs = await import("pdfjs-dist");
   pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
 
   const data = new Uint8Array(await file.arrayBuffer());
