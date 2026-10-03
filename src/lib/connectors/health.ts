@@ -98,7 +98,7 @@ async function probeGitHub(env: ConnectorSecretEnv): Promise<ProbeResult> {
   const response = await fetchWithTimeout("https://api.github.com/user", {
     headers: {
       Accept: "application/vnd.github+json",
-      Authorization: `Bearer ${env.GITHUB_API_KEY}`,
+      Authorization: `Bearer ${env["GITHUB_API_KEY"]}`,
       "X-GitHub-Api-Version": "2022-11-28",
       "User-Agent": "truth-weaver-connector-health",
     },
@@ -121,7 +121,7 @@ async function probeGitHub(env: ConnectorSecretEnv): Promise<ProbeResult> {
 async function probeSlack(env: ConnectorSecretEnv): Promise<ProbeResult> {
   const response = await fetchWithTimeout("https://slack.com/api/auth.test", {
     method: "POST",
-    headers: { Authorization: `Bearer ${env.SLACK_BOT_TOKEN}` },
+    headers: { Authorization: `Bearer ${env["SLACK_BOT_TOKEN"]}` },
   });
   const body = (await readJson(response)) as
     | { ok?: unknown; team_id?: unknown; user_id?: unknown; team?: unknown }
@@ -140,7 +140,7 @@ async function probeSlack(env: ConnectorSecretEnv): Promise<ProbeResult> {
 async function probeNotion(env: ConnectorSecretEnv): Promise<ProbeResult> {
   const response = await fetchWithTimeout("https://api.notion.com/v1/users/me", {
     headers: {
-      Authorization: `Bearer ${env.NOTION_API_KEY}`,
+      Authorization: `Bearer ${env["NOTION_API_KEY"]}`,
       "Notion-Version": "2022-06-28",
     },
   });
@@ -163,7 +163,7 @@ async function probeLinear(env: ConnectorSecretEnv): Promise<ProbeResult> {
   const response = await fetchWithTimeout("https://api.linear.app/graphql", {
     method: "POST",
     headers: {
-      Authorization: env.LINEAR_API_KEY ?? "",
+      Authorization: env["LINEAR_API_KEY"] ?? "",
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ query: "query ConnectorHealth { viewer { id } }" }),
@@ -188,16 +188,16 @@ function normalizeShopifyDomain(value: string) {
 }
 
 async function probeShopify(env: ConnectorSecretEnv): Promise<ProbeResult> {
-  const domain = normalizeShopifyDomain(env.SHOPIFY_STORE_DOMAIN ?? "");
+  const domain = normalizeShopifyDomain(env["SHOPIFY_STORE_DOMAIN"] ?? "");
   if (!/^[a-z0-9.-]+$/i.test(domain)) {
     return { ok: false, capability: "storefront_read", detail: "Shopify store domain is invalid." };
   }
-  const apiVersion = env.SHOPIFY_STOREFRONT_API_VERSION?.trim() || "2026-10";
+  const apiVersion = env["SHOPIFY_STOREFRONT_API_VERSION"]?.trim() || "2026-10";
   const response = await fetchWithTimeout(`https://${domain}/api/${apiVersion}/graphql.json`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-Shopify-Storefront-Access-Token": env.SHOPIFY_STOREFRONT_TOKEN ?? "",
+      "X-Shopify-Storefront-Access-Token": env["SHOPIFY_STOREFRONT_TOKEN"] ?? "",
     },
     body: JSON.stringify({ query: "query ConnectorHealth { shop { name } }" }),
   });
