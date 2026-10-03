@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { createProvenance, provenanceKey } from "./provenance";
-import { CONNECTORS, resolveConnectorStatus } from "./registry";
+import { allConnectorEnvNames, CONNECTORS, resolveConnectorStatus } from "./registry";
 
 const byId = (id: string) => CONNECTORS.find((c) => c.id === id)!;
 const now = new Date("2026-01-01T00:00:00Z");
@@ -64,8 +64,30 @@ describe("connector status", () => {
     expect(resolveConnectorStatus(byId("exa"), { EXA_API_KEY: true })).toBe("connected");
   });
 
-  it("linkable connectors need setup without credentials", () => {
-    for (const id of ["shopify", "perplexity", "github", "anthropic", "notion", "linear", "slack"]) {
+  it("Lovable-managed connectors never infer OAuth linkage from raw env tokens", () => {
+    for (const id of ["notion", "linear", "slack"] as const) {
+      const connector = byId(id);
+      expect(connector.authMode).toBe("lovable_app_connector");
+      expect(connector.requiredEnv).toEqual([]);
+      expect(resolveConnectorStatus(connector, {
+        NOTION_API_KEY: true,
+        LINEAR_API_KEY: true,
+        SLACK_BOT_TOKEN: true,
+      })).toBe("needs_setup");
+      expect(resolveConnectorStatus(connector, {}, { [id]: true })).toBe("connected");
+    }
+  });
+
+  it("does not pollute server env discovery with Lovable-managed provider tokens", () => {
+    const names = allConnectorEnvNames();
+    expect(names).not.toContain("NOTION_API_KEY");
+    expect(names).not.toContain("LINEAR_API_KEY");
+    expect(names).not.toContain("SLACK_BOT_TOKEN");
+    expect(names).toContain("EXA_API_KEY");
+  });
+
+  it("linkable direct connectors need setup without credentials", () => {
+    for (const id of ["shopify", "perplexity", "github", "anthropic"]) {
       expect(resolveConnectorStatus(byId(id), {})).toBe("needs_setup");
     }
     expect(resolveConnectorStatus(byId("shopify"), { SHOPIFY_STORE_DOMAIN: true })).toBe("needs_setup");
