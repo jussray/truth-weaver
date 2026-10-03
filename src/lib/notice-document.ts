@@ -40,7 +40,9 @@ const imageTranscriptionOutputSchema = z
 
 export function sanitizeSourceName(fileName: string) {
   const cleaned = fileName
-    .replace(/[\r\n\[\]]/g, " ")
+    .replace(/[\r\n]/g, " ")
+    .replaceAll("[", " ")
+    .replaceAll("]", " ")
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, 180);
