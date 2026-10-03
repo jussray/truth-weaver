@@ -1,0 +1,32 @@
+name: live-notice-analyzer
+
+on:
+  push:
+    branches: [proof/live-notice-analyzer]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  witness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Run deployed notice analyzer witness
+        env:
+          LIVE_BASE_URL: https://id-preview--8ef43cd3-8d93-4494-a685-59ce0f795614.lovable.app
+        run: npx playwright test e2e/live-notice-analyzer.spec.ts --config=playwright.live.config.ts --project=live-chromium
+      - name: Upload witness evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-notice-analyzer-evidence
+          path: test-results/live-notice-analyzer
+          if-no-files-found: ignore
