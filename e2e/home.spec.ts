@@ -20,6 +20,9 @@ test("public storefront homepage renders the cinematic legal storefront", async 
 
   await page.goto("/connectors");
   await expect(page.locator('[data-connector="muse"] [data-connector-status]')).toHaveText("Not configured");
+  for (const id of ["notion", "linear", "slack"]) {
+    await expect(page.locator(`[data-connector="${id}"]`)).toContainText("Lovable app connector");
+  }
   await page.goto("/shop");
   await expect(page.locator("[data-shop-unavailable]")).toBeVisible();
   expect(errors).toEqual([]);
@@ -48,6 +51,9 @@ test("custody witness on connector route fails closed unless the operator gate i
     await expect(page.getByTestId("witness-token")).toHaveCount(0);
     await expect(page.getByTestId("run-witness")).toHaveCount(0);
     await expect(page.getByTestId("witness-result")).toHaveCount(0);
+    for (const id of ["exa", "notion", "linear", "slack"]) {
+      await expect(page.getByTestId(`connector-setup-${id}`)).toHaveCount(0);
+    }
   }
 
   expect(errors).toEqual([]);
