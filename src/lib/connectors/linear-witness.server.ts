@@ -5,6 +5,7 @@ import {
   mintReceipt,
   reconcileCustody,
   sha256Canonical,
+  validateAuthorizedCommandForExecution,
   type AuthorityDecision,
   type AuthorizedCommand,
   type EvidenceEnvelope,
@@ -310,12 +311,12 @@ function findWitnessComment(issue: LinearIssue, command: AuthorizedCommand) {
   return issue.comments.nodes.find((comment) => comment.body.includes(marker)) ?? null;
 }
 
-function providerReadBackFromComment(comment: LinearComment, command: AuthorizedCommand): ProviderReadBack {
+function providerReadBackFromComment(comment: LinearComment, command: AuthorizedCommand, witnessRunId: string): ProviderReadBack {
   const metadata = parseWitnessMetadata(comment.body);
   if (!metadata) throw new Error("Linear read-back is missing structured witness metadata");
   const expected: WitnessMetadata = {
     schema: "truth-os-linear-witness-v1",
-    witness_run_id: metadata.witness_run_id,
+    witness_run_id: witnessRunId,
     evidence_id: command.evidenceId,
     content_hash: command.contentHash,
     correlation_id: command.correlationId,
@@ -563,6 +564,25 @@ export async function runLinearCustodyWitness(input: {
   }
 
   if (!attempt) {
+    try {
+      await validateAuthorizedCommandForExecution({
+        envelope,
+        decision,
+        command,
+        requiredScope: ["comments:create"],
+        now: new Date().toISOString(),
+      });
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "provider execution authority check failed";
+      await appendBlocked({ correlationId, evidenceId: envelope.evidenceId, command, reason });
+      return {
+        status: "BLOCKED",
+        promotion: "BLOCKED",
+        reason: `provider execution blocked: ${reason}`,
+        correlationId,
+        evidenceId: envelope.evidenceId,
+      };
+    }
     await appendCustodyEvent({
       correlationId,
       evidenceId: envelope.evidenceId,
@@ -613,7 +633,7 @@ export async function runLinearCustodyWitness(input: {
     };
   }
 
-  const readBack = providerReadBackFromComment(comment, command);
+  const readBack = providerReadBackFromComment(comment, command, input.witnessRunId);
   if (!chain.some((event) => event.event_type === "provider_read_back")) {
     await appendCustodyEvent({
       correlationId,
@@ -686,6 +706,22 @@ export async function runLinearCustodyWitness(input: {
   const negativeEvent = (await readCustodyChain(correlationId)).find(
     (event) => event.event_type === "provider_write_rejected",
   );
+  if (negativeEvent) {
+    const kind = eventPayload<string>(negativeEvent, "kind");
+    const mismatch = eventPayload<string>(negativeEvent, "mismatch");
+    const zeroMutation = eventPayload<boolean>(negativeEvent, "zeroMutation");
+    if (kind !== "negative_authority_test" || mismatch !== "target" || zeroMutation !== true) {
+      const reason = "stored negative authorization proof is incomplete or mismatched";
+      await appendBlocked({ correlationId, evidenceId: envelope.evidenceId, command, reason });
+      return {
+        status: "UNVERIFIED",
+        promotion: "BLOCKED",
+        reason,
+        correlationId,
+        evidenceId: envelope.evidenceId,
+      };
+    }
+  }
   if (!negativeEvent) {
     const negative = await runNegativeZeroMutationProof({ envelope, decision, issue: await readLinearTarget() });
     await appendCustodyEvent({

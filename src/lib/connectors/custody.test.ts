@@ -4,6 +4,7 @@ import {
   CANONICALIZATION,
   canonicalizeJson,
   createAuthorizedCommand,
+  validateAuthorizedCommandForExecution,
   mintEvidenceEnvelope,
   mintReceipt,
   reconcileCustody,
@@ -163,6 +164,67 @@ describe("non-transferable authority", () => {
         now: "2026-10-02T00:11:00Z",
       }),
     ).rejects.toThrow("authority decision expired");
+  });
+
+  it("revalidates expiry and required scope immediately before provider execution", async () => {
+    const { envelope, decision, command } = await fixture();
+    await expect(
+      validateAuthorizedCommandForExecution({
+        envelope,
+        decision,
+        command,
+        requiredScope: ["comments:create"],
+        now: "2026-10-02T00:11:00Z",
+      }),
+    ).rejects.toThrow("authority decision expired");
+
+    const limitedDecision: AuthorityDecision = {
+      ...decision,
+      authorityDecisionId: "authz_scope_limited",
+      scope: ["issues:read"],
+      commandNonce: "nonce_scope_limited",
+    };
+    const limitedCommand = await createAuthorizedCommand({
+      commandId: "cmd_scope_limited",
+      envelope,
+      decision: limitedDecision,
+      provider: "linear",
+      operation: limitedDecision.operation,
+      target: limitedDecision.target,
+      now: "2026-10-02T00:05:00Z",
+    });
+    await expect(
+      validateAuthorizedCommandForExecution({
+        envelope,
+        decision: limitedDecision,
+        command: limitedCommand,
+        requiredScope: ["comments:create"],
+        now: "2026-10-02T00:06:00Z",
+      }),
+    ).rejects.toThrow("command scope insufficient: comments:create");
+  });
+
+  it("rejects tampered command binding before provider execution", async () => {
+    const { envelope, decision, command } = await fixture();
+    await expect(
+      validateAuthorizedCommandForExecution({
+        envelope,
+        decision,
+        command: { ...command, targetHash: "sha256:tampered" },
+        requiredScope: ["comments:create"],
+        now: "2026-10-02T00:06:00Z",
+      }),
+    ).rejects.toThrow("command target hash mismatch");
+
+    await expect(
+      validateAuthorizedCommandForExecution({
+        envelope,
+        decision,
+        command: { ...command, idempotencyKey: "sha256:tampered" },
+        requiredScope: ["comments:create"],
+        now: "2026-10-02T00:06:00Z",
+      }),
+    ).rejects.toThrow("command idempotency identity mismatch");
   });
 
   it("derives the same idempotency key for the same authorized attempt", async () => {

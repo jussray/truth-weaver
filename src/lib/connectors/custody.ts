@@ -255,6 +255,58 @@ export async function createAuthorizedCommand(input: {
   };
 }
 
+export async function validateAuthorizedCommandForExecution(input: {
+  envelope: EvidenceEnvelope;
+  decision: AuthorityDecision;
+  command: AuthorizedCommand;
+  requiredScope: readonly string[];
+  now: string;
+}): Promise<void> {
+  const { envelope, decision, command } = input;
+  validateAuthorityDecision({
+    decision,
+    envelope,
+    provider: command.provider,
+    operation: command.operation,
+    target: command.target,
+    now: input.now,
+  });
+
+  if (!command.commandId.trim()) throw new Error("command identity required");
+  if (decision.authorityDecisionId !== command.authorityDecisionId) throw new Error("command authority decision mismatch");
+  if (command.evidenceId !== envelope.evidenceId) throw new Error("command evidence mismatch");
+  if (command.contentHash !== envelope.contentHash) throw new Error("command content hash mismatch");
+  if (command.correlationId !== envelope.correlationId) throw new Error("command correlation mismatch");
+  if (command.credentialRef !== decision.credentialRef) throw new Error("command credential reference mismatch");
+  if (command.commandNonce !== decision.commandNonce) throw new Error("command nonce mismatch");
+  if (command.issuedAt !== new Date(decision.issuedAt).toISOString()) throw new Error("command issued-at mismatch");
+  if (command.expiresAt !== new Date(decision.expiresAt).toISOString()) throw new Error("command expiry mismatch");
+
+  const targetHash = await sha256Canonical(command.target as JsonValue);
+  if (command.targetHash !== targetHash) throw new Error("command target hash mismatch");
+
+  const commandScope = normalizedScope(command.scope);
+  const decisionScope = normalizedScope(decision.scope);
+  if (canonicalizeJson(commandScope as unknown as JsonValue) !== canonicalizeJson(decisionScope as unknown as JsonValue)) {
+    throw new Error("command scope differs from authority decision");
+  }
+  const requiredScope = normalizedScope(input.requiredScope);
+  for (const scope of requiredScope) {
+    if (!commandScope.includes(scope)) throw new Error(`command scope insufficient: ${scope}`);
+  }
+
+  const expectedIdempotencyKey = await sha256Canonical({
+    evidenceId: envelope.evidenceId,
+    correlationId: envelope.correlationId,
+    provider: command.provider,
+    operation: command.operation,
+    targetHash: command.targetHash,
+    authorityDecisionId: command.authorityDecisionId,
+    commandNonce: command.commandNonce,
+  });
+  if (command.idempotencyKey !== expectedIdempotencyKey) throw new Error("command idempotency identity mismatch");
+}
+
 function assertReadBackMatchesCommand(input: {
   command: AuthorizedCommand;
   readBack: ProviderReadBack;
