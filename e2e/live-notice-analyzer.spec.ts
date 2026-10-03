@@ -8,6 +8,8 @@ const SAMPLE_NOTICE =
 const DATE_PATTERN = /\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+20\d{2}\b/g;
 const LEGAL_CITATION_PATTERN = /\b\d+\s+(?:U\.?S\.?C\.?|C\.?F\.?R\.?)\b/i;
 
+test.skip(!process.env.LIVE_BASE_URL, "live runtime witness requires LIVE_BASE_URL");
+
 test("deployed notice analyzer reaches the real server AI path and stays source-bound", async ({ page }, testInfo) => {
   const errors: string[] = [];
   const sameOriginPosts: Array<{ url: string; status: number }> = [];
