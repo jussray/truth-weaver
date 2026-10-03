@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ConnectorsRouteImport } from './routes/connectors'
+import { Route as NoticeAnalyzerRouteImport } from './routes/notice-analyzer'
 import { Route as ShopRouteImport } from './routes/shop'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +24,11 @@ const ConnectorsRoute = ConnectorsRouteImport.update({
   path: '/connectors',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NoticeAnalyzerRoute = NoticeAnalyzerRouteImport.update({
+  id: '/notice-analyzer',
+  path: '/notice-analyzer',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShopRoute = ShopRouteImport.update({
   id: '/shop',
   path: '/shop',
@@ -32,30 +38,34 @@ const ShopRoute = ShopRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/connectors': typeof ConnectorsRoute
+  '/notice-analyzer': typeof NoticeAnalyzerRoute
   '/shop': typeof ShopRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/connectors': typeof ConnectorsRoute
+  '/notice-analyzer': typeof NoticeAnalyzerRoute
   '/shop': typeof ShopRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/connectors': typeof ConnectorsRoute
+  '/notice-analyzer': typeof NoticeAnalyzerRoute
   '/shop': typeof ShopRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/connectors' | '/shop'
+  fullPaths: '/' | '/connectors' | '/notice-analyzer' | '/shop'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/connectors' | '/shop'
-  id: '__root__' | '/' | '/connectors' | '/shop'
+  to: '/' | '/connectors' | '/notice-analyzer' | '/shop'
+  id: '__root__' | '/' | '/connectors' | '/notice-analyzer' | '/shop'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ConnectorsRoute: typeof ConnectorsRoute
+  NoticeAnalyzerRoute: typeof NoticeAnalyzerRoute
   ShopRoute: typeof ShopRoute
 }
 
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConnectorsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/notice-analyzer': {
+      id: '/notice-analyzer'
+      path: '/notice-analyzer'
+      fullPath: '/notice-analyzer'
+      preLoaderRoute: typeof NoticeAnalyzerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/shop': {
       id: '/shop'
       path: '/shop'
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ConnectorsRoute: ConnectorsRoute,
+  NoticeAnalyzerRoute: NoticeAnalyzerRoute,
   ShopRoute: ShopRoute,
 }
 export const routeTree = rootRouteImport
