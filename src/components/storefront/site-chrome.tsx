@@ -4,6 +4,7 @@ import { Globe, Landmark, Menu, Search, ShoppingBag, X } from "lucide-react";
 
 const NAV: { label: string; href: string }[] = [
   { label: "Shop", href: "/shop" },
+  { label: "Notice Analyzer", href: "/notice-analyzer" },
   { label: "Legal Areas", href: "/#legal-areas" },
   { label: "Guides", href: "/shop?category=guides" },
   { label: "Templates", href: "/shop?category=templates" },
@@ -79,6 +80,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-2 md:justify-end">
             <a href="/shop" className="hover:text-gold">Shop</a>
+            <a href="/notice-analyzer" className="hover:text-gold">Notice Analyzer</a>
             <a href="/connectors" className="hover:text-gold">Source Center</a>
             <a href="/#decision-test" className="hover:text-gold">Decision Test</a>
           </div>
