@@ -5,6 +5,12 @@ import {
   noticeAnalyzerInputSchema,
   parseNoticeAnalyzerModelText,
 } from "./notice-analyzer";
+import {
+  formatExtractedPages,
+  imageExtractionInputSchema,
+  parseImageTranscriptionModelText,
+  sanitizeSourceName,
+} from "./notice-document";
 
 describe("notice analyzer contracts", () => {
   it("requires a concrete jurisdiction detail outside the federal lane", () => {
@@ -39,6 +45,47 @@ describe("notice analyzer contracts", () => {
 
   it("fails closed on malformed model output instead of inventing a fallback", () => {
     expect(() => parseNoticeAnalyzerModelText("Here is your answer: no structured result."))
+      .toThrow(/JSON object/i);
+  });
+});
+
+describe("notice document extraction contracts", () => {
+  it("preserves source and page provenance in analyzer text", () => {
+    const formatted = formatExtractedPages("hearing-notice.pdf", [
+      { page: 2, text: "Second page text." },
+      { page: 1, text: "First page text." },
+    ]);
+
+    expect(formatted).toBe(
+      "[SOURCE: hearing-notice.pdf | PAGE 1]\nFirst page text.\n\n[SOURCE: hearing-notice.pdf | PAGE 2]\nSecond page text.",
+    );
+  });
+
+  it("sanitizes marker-like filename characters", () => {
+    expect(sanitizeSourceName("notice]\n[SOURCE: fake | PAGE 9].pdf"))
+      .toBe("notice SOURCE: fake | PAGE 9 .pdf");
+  });
+
+  it("accepts only supported image formats for transcription", () => {
+    const valid = imageExtractionInputSchema.safeParse({
+      fileName: "notice.png",
+      mimeType: "image/png",
+      base64: "aGVsbG8taW1hZ2UtdGV4dA==",
+    });
+    const invalid = imageExtractionInputSchema.safeParse({
+      fileName: "notice.gif",
+      mimeType: "image/gif",
+      base64: "aGVsbG8taW1hZ2UtdGV4dA==",
+    });
+
+    expect(valid.success).toBe(true);
+    expect(invalid.success).toBe(false);
+  });
+
+  it("validates transcription JSON and rejects commentary", () => {
+    expect(parseImageTranscriptionModelText('{"text":"NOTICE OF HEARING"}').text)
+      .toBe("NOTICE OF HEARING");
+    expect(() => parseImageTranscriptionModelText("No readable text."))
       .toThrow(/JSON object/i);
   });
 });
