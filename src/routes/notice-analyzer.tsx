@@ -19,6 +19,16 @@ import {
   type NoticeAnalyzerInput,
   type NoticeAnalyzerResult,
 } from "@/lib/notice-analyzer";
+import { extractPdfPages, fileToBase64 } from "@/lib/notice-document.client";
+import { transcribeNoticeImage } from "@/lib/notice-document.functions";
+import {
+  NOTICE_DOCUMENT_MAX_BYTES,
+  NOTICE_IMAGE_MAX_BYTES,
+  SUPPORTED_NOTICE_IMAGE_TYPES,
+  formatExtractedPages,
+  type ExtractedNoticePage,
+  type SupportedNoticeImageType,
+} from "@/lib/notice-document";
 
 export const Route = createFileRoute("/notice-analyzer")({
   component: NoticeAnalyzerPage,
@@ -46,44 +56,95 @@ const INITIAL_FORM: FormState = {
   receivedDate: "",
 };
 
+function imageMimeTypeForFile(file: File): SupportedNoticeImageType | null {
+  if (SUPPORTED_NOTICE_IMAGE_TYPES.includes(file.type as SupportedNoticeImageType)) {
+    return file.type as SupportedNoticeImageType;
+  }
+
+  const extension = file.name.toLowerCase().split(".").pop();
+  if (extension === "jpg" || extension === "jpeg") return "image/jpeg";
+  if (extension === "png") return "image/png";
+  if (extension === "webp") return "image/webp";
+  return null;
+}
+
 function NoticeAnalyzerPage() {
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [result, setResult] = useState<NoticeAnalyzerResult | null>(null);
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+  const [extracting, setExtracting] = useState(false);
   const [fileMessage, setFileMessage] = useState("");
 
   function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
   }
 
-  async function handleTextFile(event: ChangeEvent<HTMLInputElement>) {
-    setFileMessage("");
-    const file = event.currentTarget.files?.[0];
+  async function transcribeImage(fileName: string, mimeType: SupportedNoticeImageType, base64: string) {
+    const response = await transcribeNoticeImage({
+      data: { fileName, mimeType, base64 },
+    });
+    return response.text;
+  }
+
+  async function handleDocumentFile(event: ChangeEvent<HTMLInputElement>) {
+    const inputElement = event.currentTarget;
+    const file = inputElement.files?.[0];
     if (!file) return;
 
-    const isPlainText = file.type === "text/plain" || file.name.toLowerCase().endsWith(".txt");
-    if (!isPlainText) {
-      setFileMessage("Only .txt files are supported in this verified pass. Paste extracted PDF or image text instead.");
-      event.currentTarget.value = "";
-      return;
-    }
+    setFileMessage("");
+    setError("");
+    setResult(null);
+    setExtracting(true);
 
-    if (file.size > 100_000) {
-      setFileMessage("That text file is too large. Paste the relevant notice text instead.");
-      event.currentTarget.value = "";
-      return;
-    }
+    try {
+      const lowerName = file.name.toLowerCase();
+      let pages: ExtractedNoticePage[];
 
-    const text = await file.text();
-    if (text.length > NOTICE_TEXT_MAX) {
-      setFileMessage(`Notice text must be ${NOTICE_TEXT_MAX.toLocaleString()} characters or fewer.`);
-      event.currentTarget.value = "";
-      return;
-    }
+      if (file.type === "text/plain" || lowerName.endsWith(".txt")) {
+        if (file.size > 100_000) {
+          throw new Error("That text file is too large. Paste the relevant notice text instead.");
+        }
+        const text = (await file.text()).trim();
+        if (!text) {
+          throw new Error("No readable text was found in that text file.");
+        }
+        pages = [{ page: 1, text }];
+      } else if (file.type === "application/pdf" || lowerName.endsWith(".pdf")) {
+        if (file.size > NOTICE_DOCUMENT_MAX_BYTES) {
+          throw new Error("That PDF is too large for this analyzer.");
+        }
+        pages = await extractPdfPages(file, ({ fileName, mimeType, base64 }) =>
+          transcribeImage(fileName, mimeType, base64),
+        );
+      } else {
+        const mimeType = imageMimeTypeForFile(file);
+        if (!mimeType) {
+          throw new Error("Use a .txt, PDF, JPEG, PNG, or WebP notice file.");
+        }
+        if (file.size > NOTICE_IMAGE_MAX_BYTES) {
+          throw new Error("That image is too large for notice transcription.");
+        }
+        const base64 = await fileToBase64(file);
+        const text = await transcribeImage(file.name, mimeType, base64);
+        pages = [{ page: 1, text }];
+      }
 
-    updateField("noticeText", text);
-    setFileMessage(`Loaded ${file.name}. Review the text before analysis.`);
+      const extractedText = formatExtractedPages(file.name, pages);
+      updateField("noticeText", extractedText);
+      setFileMessage(
+        `Extracted ${pages.length} page${pages.length === 1 ? "" : "s"} from ${file.name}. Source/page markers are preserved below; review the text before analysis.`,
+      );
+    } catch (cause) {
+      setFileMessage(
+        cause instanceof Error
+          ? cause.message
+          : "Document extraction failed. No source text was added.",
+      );
+    } finally {
+      setExtracting(false);
+      inputElement.value = "";
+    }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -184,14 +245,21 @@ function NoticeAnalyzerPage() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className="font-serif text-2xl text-parchment">3. Notice text</h2>
                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-gold/35 px-3 py-2 text-xs font-bold text-gold hover:bg-gold/10">
-                  <Upload className="h-4 w-4" aria-hidden /> Load .txt
-                  <input type="file" accept=".txt,text/plain" onChange={handleTextFile} className="sr-only" />
+                  <Upload className="h-4 w-4" aria-hidden /> Load document
+                  <input
+                    data-testid="notice-document-file"
+                    type="file"
+                    accept=".txt,text/plain,.pdf,application/pdf,image/jpeg,image/png,image/webp"
+                    onChange={handleDocumentFile}
+                    disabled={extracting || pending}
+                    className="sr-only"
+                  />
                 </label>
               </div>
               <p className="mt-2 text-xs leading-5 text-parchment/55">
-                PDF and image extraction are not enabled in this verified pass. Paste extracted text instead. Notice text is sent to the server only when you choose Analyze.
+                Text PDFs are extracted in your browser. Scanned PDF pages and JPEG, PNG, or WebP images use transcription-only AI to recover visible text. Source and page markers stay in the text before analysis.
               </p>
-              {fileMessage ? <p className="mt-2 text-xs text-gold-soft">{fileMessage}</p> : null}
+              {fileMessage ? <p data-testid="file-message" className="mt-2 text-xs text-gold-soft">{fileMessage}</p> : null}
               <textarea
                 data-testid="notice-text"
                 required
@@ -212,11 +280,11 @@ function NoticeAnalyzerPage() {
             <button
               data-testid="analyze-notice"
               type="submit"
-              disabled={pending}
+              disabled={pending || extracting}
               className="foil-surface inline-flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 font-bold text-ink disabled:cursor-wait disabled:opacity-60"
             >
-              {pending ? <LoaderCircle className="h-5 w-5 animate-spin" aria-hidden /> : <FileSearch className="h-5 w-5" aria-hidden />}
-              {pending ? "Analyzing source text..." : "Analyze notice"}
+              {pending || extracting ? <LoaderCircle className="h-5 w-5 animate-spin" aria-hidden /> : <FileSearch className="h-5 w-5" aria-hidden />}
+              {extracting ? "Extracting source text..." : pending ? "Analyzing source text..." : "Analyze notice"}
             </button>
 
             {error ? (
