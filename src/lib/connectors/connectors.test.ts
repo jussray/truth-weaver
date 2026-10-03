@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { probeConnectorHealth } from "./health";
 import { createProvenance, provenanceKey } from "./provenance";
-import { CONNECTORS, resolveConnectorStatus } from "./registry";
+import { allConnectorEnvNames, CONNECTORS, resolveConnectorStatus } from "./registry";
 
 const byId = (id: string) => CONNECTORS.find((c) => c.id === id)!;
 const now = new Date("2026-01-01T00:00:00Z");
@@ -66,6 +66,29 @@ describe("connector status", () => {
       const presence = Object.fromEntries(connector.requiredEnv.map((name) => [name, true]));
       expect(resolveConnectorStatus(connector, presence)).not.toBe("connected");
     }
+  });
+
+  it("Lovable-managed connectors cannot self-certify from env or linkage presence", () => {
+    for (const id of ["notion", "linear", "slack"] as const) {
+      const connector = byId(id);
+      expect(connector.authMode).toBe("lovable_app_connector");
+      expect(connector.requiredEnv).toEqual([]);
+      expect(resolveConnectorStatus(connector, {
+        NOTION_API_KEY: true,
+        LINEAR_API_KEY: true,
+        SLACK_BOT_TOKEN: true,
+      })).toBe("needs_setup");
+      expect(resolveConnectorStatus(connector, {}, { [id]: true })).toBe("degraded");
+      expect(resolveConnectorStatus(connector, {}, { [id]: true })).not.toBe("connected");
+    }
+  });
+
+  it("does not pollute server env discovery with Lovable-managed provider tokens", () => {
+    const names = allConnectorEnvNames();
+    expect(names).not.toContain("NOTION_API_KEY");
+    expect(names).not.toContain("LINEAR_API_KEY");
+    expect(names).not.toContain("SLACK_BOT_TOKEN");
+    expect(names).toContain("EXA_API_KEY");
   });
 
   it("custom adapters fail closed until required configuration exists", () => {
