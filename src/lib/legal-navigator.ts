@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+import { createContinuityMarker, hashSensitiveText } from "./continuity";
+import { relevantLegalBooks } from "./legal-books";
+
 export const legalNavigatorInputSchema = z.object({
   question: z.string().trim().min(3, "Tell Truth Weaver what you are trying to understand.").max(1200),
   place: z.string().trim().min(2, "Add the place or jurisdiction.").max(220),
@@ -263,6 +266,53 @@ export function resolveJurisdictionHint(placeRaw: string): JurisdictionResolutio
     layers: [place],
     allowedDomains: [],
     missing: ["No verified official-source adapter is registered for this place yet. Truth Weaver must not guess the governing law."],
+  };
+}
+
+export async function createLocalJurisdictionFailClosedResult(input: LegalNavigatorInput) {
+  const jurisdiction = resolveJurisdictionHint(input.place);
+  if (jurisdiction.status !== "JURISDICTION UNKNOWN" && jurisdiction.allowedDomains.length > 0) {
+    return null;
+  }
+
+  const message =
+    jurisdiction.missing[0] || "The governing jurisdiction is not resolved.";
+  const questionHash = await hashSensitiveText(input.question + "\n" + input.facts);
+  const continuity = await createContinuityMarker(
+    {
+      repo: "jussray/truth-weaver",
+      branch: "main",
+      codeVersion: "runtime-unbound",
+      researchVersion: "legal-navigator.v1",
+      normalizedQuestionHash: questionHash,
+      jurisdiction: jurisdiction.layers,
+      eventDate: input.eventDate || null,
+      asOfDate: input.asOfDate || null,
+      sourceEvidence: [],
+      findingStates: ["JURISDICTION UNKNOWN"],
+    },
+    { predecessor: input.predecessorFingerprint || null },
+  );
+
+  return {
+    researchStatus: "JURISDICTION UNKNOWN" as const,
+    generatedAt: new Date().toISOString(),
+    model: null,
+    jurisdiction,
+    jurisdictionSummary: message,
+    issues: [],
+    findings: [],
+    sources: [],
+    books: relevantLegalBooks(input.question),
+    missingFacts: jurisdiction.missing,
+    procedureAndDeadlines: [],
+    options: [],
+    nextResearch: [message],
+    continuity,
+    authority: {
+      status: "NON-AUTHORIZING" as const,
+      statement: "GOVERNING LAW IS THE AUTHORITY" as const,
+    },
   };
 }
 
