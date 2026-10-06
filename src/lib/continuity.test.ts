@@ -14,7 +14,7 @@ const BASE: ResearchFingerprintEvidence = {
   codeVersion: "abc123",
   researchVersion: "legal-navigator.v1",
   normalizedQuestionHash: "qhash",
-  jurisdiction: ["United States federal", "Pennsylvania", "Philadelphia"],
+  jurisdiction: ["United States (Federal)", "Pennsylvania", "Philadelphia"],
   eventDate: null,
   asOfDate: "2026-10-06",
   sourceEvidence: [
