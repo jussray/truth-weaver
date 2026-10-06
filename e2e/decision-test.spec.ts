@@ -16,7 +16,9 @@ test("legal navigator fails closed when the jurisdiction is too broad", async ({
 
   await page.getByTestId("legal-question").fill("Rent to own");
   await page.getByTestId("legal-place").fill("Africa");
-  await page.getByTestId("research-law").click();
+  const researchButton = page.getByTestId("research-law");
+  await expect(researchButton).toBeEnabled({ timeout: 15_000 });
+  await researchButton.click();
 
   const result = page.getByTestId("legal-research-result");
   await expect(result).toBeVisible({ timeout: 15_000 });
