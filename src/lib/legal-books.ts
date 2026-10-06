@@ -11,7 +11,7 @@ export type LegalBookRecord = {
   authorityNote: string;
 };
 
-export const LEGAL_BOOK_CATALOG: readonly LegalBookRecord[] = [
+export const LEGAL_BOOK_CATALOG = [
   {
     title: "Commentaries on the Laws of England",
     author: "William Blackstone",
@@ -48,7 +48,7 @@ export const LEGAL_BOOK_CATALOG: readonly LegalBookRecord[] = [
     licensingNote: "Copyrighted/licensed publication. Store metadata and lawful excerpts only unless licensed for full-text use.",
     authorityNote: "SECONDARY / PERSUASIVE. It can be influential but does not itself establish governing law.",
   },
-] as const;
+] as const satisfies readonly LegalBookRecord[];
 
 export function relevantLegalBooks(question: string): LegalBookRecord[] {
   const q = question.toLowerCase();
