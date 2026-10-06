@@ -23,7 +23,7 @@ const CONTINENT_ONLY = /^(africa|asia|europe|north america|south america|antarct
 export const OFFICIAL_SOURCE_REGISTRY = [
   {
     domain: "uscode.house.gov",
-    jurisdiction: "United States federal",
+    jurisdiction: "United States (Federal)",
     sourceType: "statute_code",
     sourceRole: "primary",
     issuingBody: "Office of the Law Revision Counsel, U.S. House of Representatives",
@@ -31,7 +31,7 @@ export const OFFICIAL_SOURCE_REGISTRY = [
   },
   {
     domain: "ecfr.gov",
-    jurisdiction: "United States federal",
+    jurisdiction: "United States (Federal)",
     sourceType: "regulation",
     sourceRole: "primary",
     issuingBody: "Office of the Federal Register / U.S. Government Publishing Office",
@@ -39,7 +39,7 @@ export const OFFICIAL_SOURCE_REGISTRY = [
   },
   {
     domain: "govinfo.gov",
-    jurisdiction: "United States federal",
+    jurisdiction: "United States (Federal)",
     sourceType: "jurisdiction_defined_authority",
     sourceRole: "primary",
     issuingBody: "U.S. Government Publishing Office",
@@ -47,7 +47,7 @@ export const OFFICIAL_SOURCE_REGISTRY = [
   },
   {
     domain: "supremecourt.gov",
-    jurisdiction: "United States federal",
+    jurisdiction: "United States (Federal)",
     sourceType: "judicial_decision",
     sourceRole: "primary",
     issuingBody: "Supreme Court of the United States",
@@ -189,12 +189,12 @@ export function resolveJurisdictionHint(placeRaw: string): JurisdictionResolutio
   }
 
   if (/philadelphia/i.test(place)) {
-    const layers = ["United States federal", "Pennsylvania", "Philadelphia"];
+    const layers = ["United States (Federal)", "Pennsylvania", "Philadelphia"];
     return { status: "RESOLVED", layers, allowedDomains: domainsFor(...layers), missing: [] };
   }
 
   if (/pennsylvania|\bpa\b/i.test(place)) {
-    const layers = ["United States federal", "Pennsylvania"];
+    const layers = ["United States (Federal)", "Pennsylvania"];
     return {
       status: "PARTIAL",
       layers,
@@ -204,7 +204,7 @@ export function resolveJurisdictionHint(placeRaw: string): JurisdictionResolutio
   }
 
   if (/united states|\bu\.?s\.?\b|federal/i.test(place)) {
-    const layers = ["United States federal"];
+    const layers = ["United States (Federal)"];
     return {
       status: "PARTIAL",
       layers,
