@@ -1,3 +1,4 @@
+import { useHydrated } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   AlertTriangle,
@@ -67,6 +68,7 @@ function StateBadge({ state }: { state: string }) {
 }
 
 export function LegalNavigator() {
+  const hydrated = useHydrated();
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [result, setResult] = useState<ResearchResult | null>(null);
   const [pending, setPending] = useState(false);
@@ -186,11 +188,11 @@ export function LegalNavigator() {
               <button
                 data-testid="research-law"
                 type="submit"
-                disabled={pending}
+                disabled={!hydrated || pending}
                 className="foil-surface inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 font-bold text-ink disabled:cursor-wait disabled:opacity-60"
               >
                 {pending ? <LoaderCircle className="h-5 w-5 animate-spin" aria-hidden /> : <Search className="h-5 w-5" aria-hidden />}
-                {pending ? "Researching official sources..." : "Research my situation"}
+                {!hydrated ? "Preparing legal navigator..." : pending ? "Researching official sources..." : "Research my situation"}
               </button>
 
               {error ? (
