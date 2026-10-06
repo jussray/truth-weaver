@@ -19,7 +19,7 @@ describe("Truth Weaver jurisdiction resolver", () => {
     const result = resolveJurisdictionHint("Philadelphia, Pennsylvania");
     expect(result.status).toBe("RESOLVED");
     expect(result.layers).toEqual([
-      "United States federal",
+      "United States (Federal)",
       "Pennsylvania",
       "Philadelphia",
     ]);
