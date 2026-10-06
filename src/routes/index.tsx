@@ -8,7 +8,8 @@ import {
 } from "lucide-react";
 
 import heroImg from "@/assets/hero-sanctum.jpg";
-import { SiteChrome } from "@/components/storefront/site-chrome";\nimport { LegalNavigator } from "@/components/legal-navigator";
+import { SiteChrome } from "@/components/storefront/site-chrome";
+import { LegalNavigator } from "@/components/legal-navigator";
 
 export const Route = createFileRoute("/")({
   component: TruthWeaverModule,
