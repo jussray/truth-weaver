@@ -33,3 +33,67 @@ Proof means current evidence for the exact head and path being claimed. For UI/r
 Fingerprints, cookies, receipts, challenge-stack completion, CI, and Playwright are evidence only. They do not grant standing merge, deploy, publication, provider-write, spending, deletion, filing, signing, or other consequential authority.
 
 For Truth Weaver, the local legal-source and jurisdiction guards remain binding. A governance carrier cannot turn model output or non-primary evidence into VERIFIED LAW.
+
+## Proof-led Truth Weaver status brief
+
+The existing Founder Intelligence / FCR continuity lane owns this brief. Do not create a parallel ChatGPT automation merely to watch the same state.
+
+### Evidence scope
+
+Reconcile all available project evidence, including:
+
+- authoritative repository source, commit/PR lineage, exact-head CI, focused tests, Playwright, runtime/provider readback, and project receipts;
+- FCR/Chief continuity and evidence receipts that name the exact Truth Weaver subject;
+- connected project Drive/docs and other durable project documentation; and
+- current authoritative legal-source evidence used by the legal navigator.
+
+Evidence type must stay explicit. Planning prose, Drive/docs, model output, source-family registration, a preview, or a continuity cookie can prove intent, metadata, or project state where appropriate, but cannot by themselves prove governing law, runtime behavior, exhaustive legal coverage, or a successful user path.
+
+### Trigger rule
+
+Surface a new brief when at least one of these occurs:
+
+1. any newly verified capability;
+2. any material readiness change, including a prior proof becoming stale or superseded; or
+3. any newly verified blocker, evidence gap, or failure that changes the safe next action.
+
+If none of those changed from the last brief fingerprint, do not manufacture an update.
+
+### Required reconciliation dimensions
+
+Every brief must reconcile, separately:
+
+- current jurisdiction-aware legal navigation;
+- authoritative source coverage and explicit coverage limits;
+- citation, source URL/identifier, retrieval, effective/as-of date, edition/version, and currentness metadata where applicable;
+- uncertainty handling, including `JURISDICTION UNKNOWN`, `UNVERIFIED LAW`, `SUPPORTED`, `INFERRED`, `STALE`, contrary authority, historical-law gaps, and missing facts; and
+- practical navigation guidance such as neutral options, procedure/deadline research, questions for counsel, and the smallest unresolved research or verification step.
+
+### Reporting contract
+
+Keep these states separate:
+
+- `VERIFIED` — current, exact-subject evidence proves the capability or condition being claimed.
+- `PLANNED_OR_UNPROVED` — source intent, design, registry entries, or implementation exists without the required execution/source/runtime proof.
+- `UNKNOWN` — evidence is missing or cannot resolve the claim.
+- `BLOCKED` — a verified dependency, evidence gap, authority boundary, or failure prevents the claimed state.
+
+A legal proposition is not `VERIFIED LAW` unless the local law guard independently satisfies its jurisdiction, primary-authority, citation/identifier, authenticity, retrieval/currentness, and applicable citation-matching requirements.
+
+### Brief fingerprint and invalidation
+
+The durable brief marker should bind, when available:
+
+- canonical repository and exact Truth Weaver head;
+- runtime/build identity for any runtime claim;
+- research-engine/source-registry version or migration identity relevant to coverage;
+- exact evidence references and legal-source metadata used for material claims;
+- the triggering delta;
+- the prior brief fingerprint/hash; and
+- invalidation conditions.
+
+Any movement in the bound head, runtime identity, material source registry, cited authority/currentness evidence, or required proof set expires present-tense reliance on the predecessor brief. Preserve the predecessor as historical evidence rather than deleting or laundering it into current proof.
+
+### Output shape
+
+Return a concise proof-led status brief that separates verified capability from planned/unproved work, flags blockers and stale assumptions, and ends with exactly one smallest safe next verification step worth advancing.
