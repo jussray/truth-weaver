@@ -14,6 +14,7 @@ import {
 
 import { CONTINUITY_COOKIE_NAME, writeContinuityCookie } from "@/lib/continuity";
 import { researchLegalSituation } from "@/lib/legal-navigator.functions";
+import { createLocalJurisdictionFailClosedResult } from "@/lib/legal-navigator";
 
 type ResearchResult = Awaited<ReturnType<typeof researchLegalSituation>>;
 
@@ -80,12 +81,18 @@ export function LegalNavigator() {
     setPending(true);
     setError("");
     try {
-      const next = await researchLegalSituation({
-        data: {
-          ...form,
-          predecessorFingerprint: readPredecessorFingerprint(),
-        },
-      });
+      const data = {
+        ...form,
+        predecessorFingerprint: readPredecessorFingerprint(),
+      };
+      const localFailClosed = await createLocalJurisdictionFailClosedResult(data);
+      if (localFailClosed) {
+        setResult(localFailClosed);
+        writeContinuityCookie(localFailClosed.continuity);
+        return;
+      }
+
+      const next = await researchLegalSituation({ data });
       setResult(next);
       writeContinuityCookie(next.continuity);
     } catch (cause) {
