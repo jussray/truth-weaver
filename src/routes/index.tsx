@@ -444,11 +444,11 @@ function TruthWeaverModule() {\n  return (
                 <span className="gold-foil">Change What’s Possible.</span>
               </h1>
               <p className="mt-6 max-w-xl text-base leading-7 text-parchment/85 sm:text-lg">
-                Practical legal knowledge, professional tools, and real-world resources for individuals, families, creators, and businesses — anywhere in the world.
+                Source-aware legal navigation and practical tools for real situations, across supported jurisdictions with unresolved coverage shown explicitly.
               </p>
               <ul className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-3">
                 {[
-                  [BookOpen, "Accurate", "Legal Information"],
+                  [BookOpen, "Source-bound", "Legal Research"],
                   [ShieldCheck, "Practical", "Tools & Templates"],
                   [Globe2, "Jurisdiction-aware", "Research"],
                 ].map(([Icon, a1, a2]) => {
@@ -515,7 +515,7 @@ function TruthWeaverModule() {\n  return (
           <div className="mx-auto flex max-w-[96rem] flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="grid gap-5 sm:grid-cols-3 lg:divide-x lg:divide-gold/25">
               {[
-                [CheckCircle2, "Curated & Verified Resources", "Backed by real legal sources"],
+                [CheckCircle2, "Source-aware Resources", "Authority and verification status stay visible"],
                 [Rocket, "Instant Digital Access", "Delivered straight to you"],
                 [Users, "Tools for Real People", "Individuals. Families. Creators. Businesses."],
               ].map(([Icon, t, d], i) => {
@@ -541,7 +541,7 @@ function TruthWeaverModule() {\n  return (
           </p>
         </section>
 
-        <LegalNavigator />\n\n        <section className="mx-auto max-w-[96rem] px-5 py-12 sm:px-6">\n          <JurisprudenceCrossReferenceSection />\n        </section>\n      </SiteChrome>
+        <LegalNavigator />\n\n        <section className="mx-auto max-w-[96rem] px-5 py-10 text-xs leading-5 text-parchment/55 sm:px-6">\n          Historical and secondary legal materials are surfaced only when their provenance, edition/version, and authority role can be shown. Static demo passages are not used as governing law.\n        </section>\n      </SiteChrome>
     </div>
   );
 }
