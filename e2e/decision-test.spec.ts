@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("decision stress-test produces a non-authorizing bounded receipt", async ({ page }) => {
+test("legal navigator fails closed when the jurisdiction is too broad", async ({ page }) => {
   const pageErrors: string[] = [];
   const consoleErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
@@ -11,28 +11,18 @@ test("decision stress-test produces a non-authorizing bounded receipt", async ({
   await page.goto("/");
   await expect(page.locator('[data-fcr-module="truth-weaver"]')).toBeVisible();
   await expect(page.getByRole("heading", { name: /Understand the law/i, level: 1 })).toBeVisible();
+  await expect(page.locator("[data-legal-navigator]")).toBeVisible();
+  await expect(page.locator("[data-external-tester-loop]")).toHaveCount(0);
 
-  const values = {
-    decision: "Publish a legal claim as current law",
-    evidence: "Official statute text located for the named jurisdiction",
-    inference: "The statute applies unchanged to this exact situation",
-    challenge: "The statute may be amended, superseded, or subject to an exception",
-    boundedTest: "Check the current official source and one contrary-authority search before relying on the claim",
-    successCondition: "Current official text and jurisdiction-specific authority support the same rule",
-    stopCondition: "Stop if currentness, jurisdiction, authenticity, or contrary authority remains unresolved",
-  };
+  await page.getByTestId("legal-question").fill("Rent to own");
+  await page.getByTestId("legal-place").fill("Africa");
+  await page.getByTestId("research-law").click();
 
-  for (const [field, value] of Object.entries(values)) {
-    await page.locator(`textarea[name="${field}"]`).fill(value);
-  }
-
-  await page.locator("[data-generate-receipt]").click();
-  const receipt = page.locator("[data-completion-receipt]");
-  await expect(receipt).toBeVisible();
-  await expect(receipt).toContainText(values.boundedTest);
-  await expect(receipt).toContainText(values.successCondition);
-  await expect(receipt).toContainText(values.stopCondition);
-  await expect(receipt).toContainText("non-authorizing");
+  const result = page.getByTestId("legal-research-result");
+  await expect(result).toBeVisible();
+  await expect(result).toContainText("JURISDICTION UNKNOWN");
+  await expect(result).toContainText(/too broad|country/i);
+  await expect(result).toContainText("EVIDENCE_ONLY");
 
   expect(pageErrors).toEqual([]);
   expect(consoleErrors).toEqual([]);
