@@ -1,4 +1,4 @@
-import { createFileRoute, useHydrated } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import {
@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 import heroImg from "@/assets/hero-sanctum.jpg";
-import { SiteChrome } from "@/components/storefront/site-chrome";
+import { SiteChrome } from "@/components/storefront/site-chrome";\nimport { LegalNavigator } from "@/components/legal-navigator";
 
 export const Route = createFileRoute("/")({
   component: TruthWeaverModule,
@@ -26,33 +26,6 @@ export const Route = createFileRoute("/")({
   }),
 });
 
-type Draft = {
-  decision: string;
-  evidence: string;
-  inference: string;
-  challenge: string;
-  boundedTest: string;
-  successCondition: string;
-  stopCondition: string;
-};
-
-type Receipt = Draft & {
-  schema: "fcr.truth-weaver.external-test.v1";
-  module: "truth-weaver";
-  createdAt: string;
-  authority: "non-authorizing";
-};
-
-const STORAGE_KEY = "fcr.truth-weaver.external-tester.v1";
-const EMPTY_DRAFT: Draft = {
-  decision: "",
-  evidence: "",
-  inference: "",
-  challenge: "",
-  boundedTest: "",
-  successCondition: "",
-  stopCondition: "",
-};
 const LEGAL_AREAS = [
   ["Housing & Real Estate", "Renting, ownership, eviction, local rules", Home],
   ["Credit & Debt", "Reports, disputes, collections, consumer rights", CreditCard],
@@ -452,95 +425,7 @@ export function JurisprudenceCrossReferenceSection() {
 
 const BOOKS = ["Constitutions", "Statutes", "Case Law", "Regulations", "Local Codes", "International Law"] as const;
 
-function TruthWeaverModule() {
-  const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
-  const [receipt, setReceipt] = useState<Receipt | null>(null);
-  const [copyState, setCopyState] = useState("Copy receipt");
-
-  const hydrated = useHydrated();
-  const formRef = useRef<HTMLFormElement>(null);
-  const loadedRef = useRef(false);
-
-  useEffect(() => {
-    const fields = Object.keys(EMPTY_DRAFT) as (keyof Draft)[];
-    const fromDom = { ...EMPTY_DRAFT };
-    const form = formRef.current;
-    if (form) {
-      const data = new FormData(form);
-      for (const f of fields) fromDom[f] = String(data.get(f) ?? "");
-    }
-    if (fields.some((f) => fromDom[f].length > 0)) {
-      setDraft(fromDom);
-    } else {
-      try {
-        const saved = window.localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-          const value = JSON.parse(saved) as Partial<Draft>;
-          const next = { ...EMPTY_DRAFT };
-          for (const f of fields) next[f] = value[f] ?? "";
-          setDraft(next);
-        }
-      } catch {
-        window.localStorage.removeItem(STORAGE_KEY);
-      }
-    }
-    loadedRef.current = true;
-  }, []);
-
-  useEffect(() => {
-    if (!loadedRef.current) return;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
-  }, [draft]);
-
-  function updateDraft(field: keyof Draft, value: string) {
-    setDraft((current) => ({ ...current, [field]: value }));
-  }
-
-  function generateReceipt(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const submitted: Draft = {
-      decision: String(form.get("decision") ?? "").trim(),
-      evidence: String(form.get("evidence") ?? "").trim(),
-      inference: String(form.get("inference") ?? "").trim(),
-      challenge: String(form.get("challenge") ?? "").trim(),
-      boundedTest: String(form.get("boundedTest") ?? "").trim(),
-      successCondition: String(form.get("successCondition") ?? "").trim(),
-      stopCondition: String(form.get("stopCondition") ?? "").trim(),
-    };
-
-    if (Object.values(submitted).some((value) => value.length === 0)) return;
-
-    setDraft(submitted);
-    setReceipt({
-      schema: "fcr.truth-weaver.external-test.v1",
-      module: "truth-weaver",
-      createdAt: new Date().toISOString(),
-      ...submitted,
-      authority: "non-authorizing",
-    });
-  }
-
-  async function copyReceipt() {
-    if (!receipt) return;
-    await navigator.clipboard.writeText(JSON.stringify(receipt, null, 2));
-    setCopyState("Copied");
-    window.setTimeout(() => setCopyState("Copy receipt"), 1400);
-  }
-
-  function downloadReceipt() {
-    if (!receipt) return;
-    const blob = new Blob([JSON.stringify(receipt, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `truth-weaver-receipt-${Date.now()}.json`;
-    anchor.click();
-    URL.revokeObjectURL(url);
-  }
-  return (
+function TruthWeaverModule() {\n  return (
     <div data-fcr-module="truth-weaver">
       <SiteChrome>
         {/* HERO */}
@@ -565,7 +450,7 @@ function TruthWeaverModule() {
                 {[
                   [BookOpen, "Accurate", "Legal Information"],
                   [ShieldCheck, "Practical", "Tools & Templates"],
-                  [Globe2, "Global", "Coverage"],
+                  [Globe2, "Jurisdiction-aware", "Research"],
                 ].map(([Icon, a1, a2]) => {
                   const I = Icon as typeof BookOpen;
                   return (
@@ -617,7 +502,7 @@ function TruthWeaverModule() {
                   <h3 className="mt-3 flex min-h-[2.5rem] items-center text-sm leading-tight text-parchment">{title}</h3>
                   <div className="mt-2 flex items-center gap-2 text-xs">
                     <a href={`/shop?area=${encodeURIComponent(title)}`} className="font-semibold text-gold-soft hover:text-gold">Shop →</a>
-                    <a href="#decision-test" className="text-parchment/50 hover:text-parchment">Research</a>
+                    <a href="#legal-research" className="text-parchment/50 hover:text-parchment">Research</a>
                   </div>
                 </article>
               ))}
@@ -656,64 +541,7 @@ function TruthWeaverModule() {
           </p>
         </section>
 
-        {/* DECISION TEST */}
-        <section id="decision-test" className="border-t border-gold/15 bg-forest-deep/40 py-16 lg:py-24">
-          <div className="mx-auto max-w-7xl px-5 sm:px-6">
-            <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
-              <div className="lg:sticky lg:top-28">
-                <p className="text-xs font-bold uppercase tracking-[0.35em] text-gold">Free decision test</p>
-                <h2 className="mt-4 font-serif text-4xl font-semibold leading-[1.02] text-parchment sm:text-5xl">
-                  Turn a decision into one test you can actually learn from.
-                </h2>
-                <p className="mt-5 max-w-xl text-base leading-7 text-parchment/70">
-                  Keep facts separate from guesses, attack the weak point, then define the smallest reversible test. The receipt proves only what you entered and what this browser produced.
-                </p>
-                <div className="mt-6 rounded-2xl border border-ok/25 bg-ok/10 p-4 text-sm leading-6 text-parchment/85">
-                  <strong>Local-first:</strong> your draft stays in this browser. The completion receipt contains only what you type here and remains non-authorizing.
-                </div>
-                <div className="mt-4 rounded-2xl border border-gold/25 bg-gold/5 p-4 text-sm leading-6 text-parchment/80">
-                  <strong>Not legal representation:</strong> use this to structure research and decisions. For legal advice about your situation, consult a qualified lawyer in the relevant jurisdiction.
-                </div>
-              </div>
-
-              <form ref={formRef} method="post" action="" className="grid gap-4" data-external-tester-loop onSubmit={generateReceipt}>
-                <Field field="decision" number="1" label="Decision or hypothesis" value={draft.decision} onChange={updateDraft} placeholder="What are you considering doing?" />
-                <Field field="evidence" number="2" label="Verified evidence" value={draft.evidence} onChange={updateDraft} placeholder="What do you actually know, observe, or have a receipt for?" />
-                <Field field="inference" number="3" label="Inference" value={draft.inference} onChange={updateDraft} placeholder="What are you assuming or interpreting?" />
-                <Field field="challenge" number="4" label="Red-team challenge" value={draft.challenge} onChange={updateDraft} placeholder="What would make this idea fail or prove the reasoning weak?" />
-                <Field field="boundedTest" number="5" label="Smallest reversible test" value={draft.boundedTest} onChange={updateDraft} placeholder="What is the smallest action that can produce useful evidence?" />
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Field field="successCondition" number="6" label="Success condition" value={draft.successCondition} onChange={updateDraft} placeholder="What result counts as a real signal?" />
-                  <Field field="stopCondition" number="7" label="Stop condition" value={draft.stopCondition} onChange={updateDraft} placeholder="What result means stop, revise, or roll back?" />
-                </div>
-                <button type="submit" data-generate-receipt disabled={!hydrated} aria-disabled={!hydrated} className="rounded-xl bg-gold px-5 py-3 font-bold text-ink transition hover:bg-gold-soft disabled:cursor-wait disabled:opacity-60">
-                  Produce completion receipt
-                </button>
-                {receipt ? (
-                  <section className="rounded-2xl border border-gold/30 bg-gold/5 p-5" data-completion-receipt>
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-[0.18em] text-gold">Receipt produced</p>
-                        <h3 className="mt-1 font-serif text-2xl text-parchment">One bounded next test</h3>
-                      </div>
-                      <span className="rounded-full border border-parchment/15 px-3 py-1 text-xs text-parchment/70">non-authorizing</span>
-                    </div>
-                    <p className="mt-4 text-sm leading-6 text-parchment/90">{receipt.boundedTest}</p>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                      <div className="rounded-xl bg-ink/40 p-3"><span className="text-xs uppercase tracking-wider text-parchment/50">Success</span><p className="mt-1 text-sm">{receipt.successCondition}</p></div>
-                      <div className="rounded-xl bg-ink/40 p-3"><span className="text-xs uppercase tracking-wider text-parchment/50">Stop / rollback</span><p className="mt-1 text-sm">{receipt.stopCondition}</p></div>
-                    </div>
-                    <div className="mt-5 flex flex-wrap gap-2">
-                      <button type="button" onClick={copyReceipt} className="rounded-lg border border-parchment/15 px-3 py-2 text-sm font-bold hover:bg-parchment/5">{copyState}</button>
-                      <button type="button" onClick={downloadReceipt} className="rounded-lg border border-parchment/15 px-3 py-2 text-sm font-bold hover:bg-parchment/5">Download receipt</button>
-                    </div>
-                  </section>
-                ) : null}
-              </form>
-            </div>
-          </div>
-        </section>
-      </SiteChrome>
+        <LegalNavigator />\n\n        <section className="mx-auto max-w-[96rem] px-5 py-12 sm:px-6">\n          <JurisprudenceCrossReferenceSection />\n        </section>\n      </SiteChrome>
     </div>
   );
 }
@@ -751,6 +579,4 @@ function Field({
       />
     </label>
   );
-}<JurisprudenceCrossReferenceSection />
-
-        
+}\n
