@@ -561,11 +561,11 @@ function Field({
   onChange,
   placeholder,
 }: {
-  field: keyof Draft;
+  field: string;
   number: string;
   label: string;
   value: string;
-  onChange: (field: keyof Draft, value: string) => void;
+  onChange: (field: string, value: string) => void;
   placeholder: string;
 }) {
   return (
