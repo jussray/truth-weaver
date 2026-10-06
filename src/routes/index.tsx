@@ -426,7 +426,8 @@ export function JurisprudenceCrossReferenceSection() {
 
 const BOOKS = ["Constitutions", "Statutes", "Case Law", "Regulations", "Local Codes", "International Law"] as const;
 
-function TruthWeaverModule() {\n  return (
+function TruthWeaverModule() {
+  return (
     <div data-fcr-module="truth-weaver">
       <SiteChrome>
         {/* HERO */}
@@ -542,7 +543,12 @@ function TruthWeaverModule() {\n  return (
           </p>
         </section>
 
-        <LegalNavigator />\n\n        <section className="mx-auto max-w-[96rem] px-5 py-10 text-xs leading-5 text-parchment/55 sm:px-6">\n          Historical and secondary legal materials are surfaced only when their provenance, edition/version, and authority role can be shown. Static demo passages are not used as governing law.\n        </section>\n      </SiteChrome>
+        <LegalNavigator />
+
+        <section className="mx-auto max-w-[96rem] px-5 py-10 text-xs leading-5 text-parchment/55 sm:px-6">
+          Historical and secondary legal materials are surfaced only when their provenance, edition/version, and authority role can be shown. Static demo passages are not used as governing law.
+        </section>
+      </SiteChrome>
     </div>
   );
 }
@@ -580,4 +586,4 @@ function Field({
       />
     </label>
   );
-}\n
+}
