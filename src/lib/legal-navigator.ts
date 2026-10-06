@@ -6,6 +6,7 @@ export const legalNavigatorInputSchema = z.object({
   eventDate: z.string().trim().max(40).optional().default(""),
   asOfDate: z.string().trim().max(40).optional().default(""),
   facts: z.string().trim().max(12_000).optional().default(""),
+  predecessorFingerprint: z.string().regex(/^[a-f0-9]{64}$/).optional().default(""),
 });
 
 export type LegalNavigatorInput = z.infer<typeof legalNavigatorInputSchema>;
