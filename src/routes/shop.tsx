@@ -48,11 +48,11 @@ function ShopPage() {
             <p className="font-serif text-2xl text-parchment">Our store isn’t connected yet.</p>
             <p className="mt-2">
               Products appear here once the Shopify store is linked. We don’t show sample products or prices that
-              aren’t real. In the meantime you can explore legal areas and use the free decision test.
+              aren’t real. In the meantime you can explore legal areas and use the free legal research tool.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <a href="/#legal-areas" className="rounded-full bg-gold px-5 py-2.5 text-sm font-bold text-ink">Explore by legal area</a>
-              <a href="/#decision-test" className="rounded-full border border-gold/40 px-5 py-2.5 text-sm font-bold text-gold-soft">Try the decision test</a>
+              <a href="/#legal-research" className="rounded-full border border-gold/40 px-5 py-2.5 text-sm font-bold text-gold-soft">Try legal research</a>
             </div>
           </div>
         ) : (
