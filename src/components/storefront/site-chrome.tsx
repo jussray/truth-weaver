@@ -82,7 +82,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
             <a href="/shop" className="hover:text-gold">Shop</a>
             <a href="/notice-analyzer" className="hover:text-gold">Notice Analyzer</a>
             <a href="/connectors" className="hover:text-gold">Source Center</a>
-            <a href="/#decision-test" className="hover:text-gold">Decision Test</a>
+            <a href="/#legal-research" className="hover:text-gold">Legal Research</a>
           </div>
         </div>
       </footer>
