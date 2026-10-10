@@ -18,7 +18,7 @@
 - [x] Reference-matched homepage visuals + animations
 - [x] Responsive on mobile/tablet/desktop (this app only; other apps out of scope)
 - [ ] Connect Shopify store; real products on Shop + legal area pages with checkout
-- [ ] AI Gateway legal issue triage (issue + jurisdiction -> legal area + next steps, non-authorizing)
+- [x] Hero triage banner: problem text -> up to 3 of the 11 legal areas (keyword match, non-authorizing)
 - [ ] GitHub: connect project to GitHub. Blocked: the founder has to approve this in the editor (+ menu → GitHub → Connect project)
 - [x] Notice analyzer: upload/paste notice + jurisdiction → dates, obligations, questions for counsel (AI Gateway, non-authorizing) at /notice-analyzer
 - [x] index.tsx import check: no malformed import found; typecheck + production build pass

@@ -10,6 +10,7 @@ import {
 import heroImg from "@/assets/hero-sanctum.jpg";
 import { SiteChrome } from "@/components/storefront/site-chrome";
 import { LegalNavigator } from "@/components/legal-navigator";
+import { IssueTriageBanner } from "@/components/storefront/issue-triage";
 
 export const Route = createFileRoute("/")({
   component: TruthWeaverModule,
@@ -471,6 +472,7 @@ function TruthWeaverModule() {
                   Explore by Legal Area
                 </a>
               </div>
+              <IssueTriageBanner />
               <p className="mt-7 font-script text-4xl text-gold-soft sm:text-5xl">Knowledge Protects. People Thrive.</p>
             </div>
 
