@@ -1,6 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
-import { Globe, Landmark, Menu, Search, ShoppingBag, X } from "lucide-react";
+import { Globe, Landmark, Menu, Search, X } from "lucide-react";
+
+import { CartDrawer } from "./cart-drawer";
 
 const NAV: { label: string; href: string }[] = [
   { label: "Shop", href: "/shop" },
@@ -31,7 +33,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
             <a href="/connectors#search" className="flex items-center gap-1.5 hover:text-gold" aria-label="Search sources"><Search className="h-4 w-4" aria-hidden /> Search</a>
             <span className="text-parchment/30" aria-hidden>|</span>
             <span className="text-parchment/50" title="Sign-in not required to browse">Account</span>
-            <a href="/shop" className="flex items-center gap-1.5 hover:text-gold" aria-label="Cart"><ShoppingBag className="h-4 w-4" aria-hidden /> Cart</a>
+            <CartDrawer />
           </div>
         </div>
       </div>
@@ -52,7 +54,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
           </nav>
           <div className="ml-auto flex items-center gap-1 md:hidden">
             <a href="/connectors#search" className="rounded-full p-2 text-parchment/75 hover:text-gold" aria-label="Search sources"><Search className="h-5 w-5" /></a>
-            <a href="/shop" className="rounded-full p-2 text-parchment/75 hover:text-gold" aria-label="Cart"><ShoppingBag className="h-5 w-5" /></a>
+            <CartDrawer compact />
           </div>
           <button className="rounded-full p-2 text-parchment lg:hidden" aria-expanded={open} aria-controls="mobile-nav" aria-label="Menu" onClick={() => setOpen((v) => !v)}>
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}

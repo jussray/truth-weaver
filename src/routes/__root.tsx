@@ -1,3 +1,5 @@
+import { Toaster } from "@/components/ui/sonner";
+import { useCartSync } from "@/stores/cart-store";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -117,6 +119,11 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function CartSync() {
+  useCartSync();
+  return null;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
@@ -124,6 +131,8 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <CartSync />
+      <Toaster position="top-center" />
     </QueryClientProvider>
   );
 }
