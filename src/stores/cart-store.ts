@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
@@ -131,5 +132,13 @@ export const useCartStore = create<CartStore>()(
 );
 
 export function useCartSync() {
-  // imported lazily by components to keep hook usage explicit
+  const syncCart = useCartStore((s) => s.syncCart);
+  useEffect(() => {
+    syncCart();
+    const onVis = () => {
+      if (document.visibilityState === "visible") syncCart();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, [syncCart]);
 }
