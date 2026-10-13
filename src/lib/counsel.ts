@@ -34,20 +34,23 @@ export async function listIssues() {
   return unwrap(await supabase.from("issues").select("*").order("created_at", { ascending: false }));
 }
 
-export async function getIssue(id: string) {
-  return unwrap(await supabase.from("issues").select("*").eq("id", id).maybeSingle());
+export async function getIssue(id: string): Promise<Issue | null> {
+  const { data, error } = await supabase.from("issues").select("*").eq("id", id).maybeSingle();
+  if (error) throw new Error(error.message);
+  return data as Issue | null;
 }
 
-export async function createIssue(input: Omit<Tables["issues"]["Insert"], "user_id">) {
+export async function createIssue(input: Omit<Tables["issues"]["Insert"], "user_id">): Promise<Issue> {
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) throw new Error("Sign in to create a matter.");
-  return unwrap(
-    await supabase
-      .from("issues")
-      .insert({ ...input, user_id: auth.user.id })
-      .select()
-      .single(),
-  );
+  const { data, error } = await supabase
+    .from("issues")
+    .insert({ ...input, user_id: auth.user.id })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Issue was not saved.");
+  return data as Issue;
 }
 
 export async function updateIssue(id: string, patch: Tables["issues"]["Update"]) {
