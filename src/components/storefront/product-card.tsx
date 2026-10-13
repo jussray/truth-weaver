@@ -14,8 +14,9 @@ export function ProductCard({ product }: { product: ShopifyProduct }) {
 
   const add = async () => {
     if (!variant) return;
-    await addItem({ product, variantId: variant.id, variantTitle: variant.title, price: variant.price, quantity: 1, selectedOptions: variant.selectedOptions });
-    toast.success(`${p.title} added to cart`, { position: "top-center" });
+    const ok = await addItem({ product, variantId: variant.id, variantTitle: variant.title, price: variant.price, quantity: 1, selectedOptions: variant.selectedOptions });
+    if (ok) toast.success(`${p.title} added to cart`, { position: "top-center" });
+    else toast.error(`Couldn't add ${p.title}. Please try again.`, { position: "top-center" });
   };
 
   return (
