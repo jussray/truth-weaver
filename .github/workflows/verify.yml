@@ -2,7 +2,7 @@ name: verify
 
 on:
   push:
-    branches: [main]
+    branches: [main, fix/truthweaver-product-art-20261013]
   pull_request:
 
 permissions:
