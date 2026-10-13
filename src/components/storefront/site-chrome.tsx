@@ -5,13 +5,12 @@ import { Globe, Landmark, Menu, Search, X } from "lucide-react";
 import { CartDrawer } from "./cart-drawer";
 
 const NAV: { label: string; href: string }[] = [
+  { label: "Research", href: "/#legal-research" },
   { label: "Shop", href: "/shop" },
   { label: "Notice Analyzer", href: "/notice-analyzer" },
-  { label: "Legal Areas", href: "/#legal-areas" },
-  { label: "Guides", href: "/shop?category=guides" },
-  { label: "Templates", href: "/shop?category=templates" },
-  { label: "Courses", href: "/shop?category=courses" },
-  { label: "Bundles", href: "/shop?category=bundles" },
+  { label: "My workspace", href: "/dashboard" },
+  { label: "Sources", href: "/sources" },
+  { label: "Legal library", href: "/legal-library" },
   { label: "About", href: "/#about" },
 ];
 
@@ -32,7 +31,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
             <span className="text-parchment/30" aria-hidden>|</span>
             <a href="/connectors#search" className="flex items-center gap-1.5 hover:text-gold" aria-label="Search sources"><Search className="h-4 w-4" aria-hidden /> Search</a>
             <span className="text-parchment/30" aria-hidden>|</span>
-            <span className="text-parchment/50" title="Sign-in not required to browse">Account</span>
+            <a href="/account" className="text-parchment/75 hover:text-gold" aria-label="Your Truth Weaver account">Account</a>
             <CartDrawer />
           </div>
         </div>
