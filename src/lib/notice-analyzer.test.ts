@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   NOTICE_AUTHORITY,
   noticeAnalyzerInputSchema,
+  enforceNoticeSourceState,
   parseNoticeAnalyzerModelText,
 } from "./notice-analyzer";
 
@@ -15,6 +16,28 @@ describe("notice analyzer contracts", () => {
     });
 
     expect(parsed.success).toBe(false);
+  });
+
+  it("requires the user to choose a jurisdiction and a valid date", () => {
+    const base = {
+      noticeText: "This is a sufficiently long sample notice used only to validate the input contract.",
+      jurisdictionType: "",
+      jurisdictionDetail: "",
+      receivedDate: "",
+    };
+    expect(noticeAnalyzerInputSchema.safeParse(base).success).toBe(false);
+    expect(noticeAnalyzerInputSchema.safeParse({ ...base, jurisdictionType: "federal", receivedDate: "2026-02-30" }).success).toBe(false);
+    expect(noticeAnalyzerInputSchema.safeParse({ ...base, jurisdictionType: "state", jurisdictionDetail: "Pennsylvania", receivedDate: "2026-10-13" }).success).toBe(true);
+  });
+
+  it("never upgrades claims in a notice into verified law", () => {
+    const result = enforceNoticeSourceState({
+      criticalDeadlines: [{ date: "2026-10-20", label: "Sender requests response", urgency: "soon", evidence: "Respond by 10/20", needsVerification: false }],
+      obligations: [{ action: "Reply", claimedBy: "Sender", evidence: "Reply required", needsVerification: false }],
+      questionsForCounsel: [], uncertainties: [],
+    });
+    expect(result.criticalDeadlines[0]?.needsVerification).toBe(true);
+    expect(result.obligations[0]?.needsVerification).toBe(true);
   });
 
   it("accepts valid source-bound structured output", () => {

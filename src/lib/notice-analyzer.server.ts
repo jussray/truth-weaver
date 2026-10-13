@@ -4,6 +4,7 @@ import { streamText } from "ai";
 import { createLovableAiGatewayRunIdFetch } from "./ai-run-id.server";
 import {
   NOTICE_AUTHORITY,
+  enforceNoticeSourceState,
   parseNoticeAnalyzerModelText,
   type NoticeAnalyzerInput,
   type NoticeAnalyzerResult,
@@ -75,7 +76,7 @@ export async function analyzeLegalNoticeOnServer(input: NoticeAnalyzerInput): Pr
   }
 
   return {
-    ...parsed,
+    ...enforceNoticeSourceState(parsed),
     authority: NOTICE_AUTHORITY,
     generatedAt: new Date().toISOString(),
     model: MODEL,

@@ -5,15 +5,26 @@ export const NOTICE_TEXT_MAX = 25_000;
 export const noticeAnalyzerInputSchema = z
   .object({
     noticeText: z.string().trim().min(40, "Paste at least 40 characters from the notice.").max(NOTICE_TEXT_MAX),
-    jurisdictionType: z.enum(["federal", "state", "international"]),
+    jurisdictionType: z.enum(["", "federal", "state", "international"]),
     jurisdictionDetail: z.string().trim().max(120).optional().default(""),
     documentTitle: z.string().trim().max(160).optional().default(""),
     documentType: z.string().trim().max(120).optional().default(""),
     issuer: z.string().trim().max(160).optional().default(""),
-    receivedDate: z.string().trim().max(40).optional().default(""),
+    receivedDate: z.string().trim().refine((value) => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+      const parsed = new Date(value + "T00:00:00.000Z");
+      return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+    }, "Choose a valid relevant notice date (YYYY-MM-DD)."),
   })
   .superRefine((value, ctx) => {
-    if (value.jurisdictionType !== "federal" && !value.jurisdictionDetail) {
+    if (value.jurisdictionType === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["jurisdictionType"],
+        message: "Choose the jurisdiction layer before analysis.",
+      });
+    }
+    if (value.jurisdictionType !== "" && value.jurisdictionType !== "federal" && !value.jurisdictionDetail) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["jurisdictionDetail"],
@@ -77,4 +88,13 @@ export function parseNoticeAnalyzerModelText(text: string): NoticeAnalyzerModelO
   }
   const parsed = JSON.parse(withoutFence.slice(start, end + 1));
   return noticeAnalyzerModelOutputSchema.parse(parsed);
+}
+
+/** Notice text cannot establish governing law. Force every claimed date and duty to unverified. */
+export function enforceNoticeSourceState(output: NoticeAnalyzerModelOutput): NoticeAnalyzerModelOutput {
+  return {
+    ...output,
+    criticalDeadlines: output.criticalDeadlines.map((item) => ({ ...item, needsVerification: true })),
+    obligations: output.obligations.map((item) => ({ ...item, needsVerification: true })),
+  };
 }

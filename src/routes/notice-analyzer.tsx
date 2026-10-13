@@ -39,7 +39,7 @@ type FormState = NoticeAnalyzerInput;
 
 const INITIAL_FORM: FormState = {
   noticeText: "",
-  jurisdictionType: "federal",
+  jurisdictionType: "",
   jurisdictionDetail: "",
   documentTitle: "",
   documentType: "",
@@ -53,6 +53,7 @@ function NoticeAnalyzerPage() {
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
   const [fileMessage, setFileMessage] = useState("");
+  const [consent, setConsent] = useState(false);
 
   function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -60,6 +61,9 @@ function NoticeAnalyzerPage() {
 
   async function handleNoticeFile(event: ChangeEvent<HTMLInputElement>) {
     setFileMessage("");
+    setResult(null);
+    setConsent(false);
+    updateField("noticeText", "");
     const file = event.currentTarget.files?.[0];
     event.currentTarget.value = "";
     if (!file) return;
@@ -91,6 +95,10 @@ function NoticeAnalyzerPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!consent) {
+      setError("Consent to sending the reviewed notice text for analysis is required.");
+      return;
+    }
     setPending(true);
     setError("");
     setResult(null);
@@ -107,7 +115,7 @@ function NoticeAnalyzerPage() {
     }
   }
 
-  const detailRequired = form.jurisdictionType !== "federal";
+  const detailRequired = form.jurisdictionType !== "" && form.jurisdictionType !== "federal";
 
   return (
     <SiteChrome>
@@ -154,6 +162,7 @@ function NoticeAnalyzerPage() {
                     onChange={(event) => updateField("jurisdictionType", event.currentTarget.value as FormState["jurisdictionType"])}
                     className="rounded-xl border border-parchment/15 bg-ink px-3 py-3 text-parchment outline-none focus:border-gold/60"
                   >
+                    <option value="" disabled>Choose jurisdiction layer *</option>
                     <option value="federal">U.S. Federal</option>
                     <option value="state">U.S. State / Territory</option>
                     <option value="international">International / Supranational</option>
@@ -179,7 +188,17 @@ function NoticeAnalyzerPage() {
                 <MetadataField label="Document title" value={form.documentTitle} onChange={(value) => updateField("documentTitle", value)} placeholder="Notice title" />
                 <MetadataField label="Document type" value={form.documentType} onChange={(value) => updateField("documentType", value)} placeholder="Demand, hearing notice, cure notice..." />
                 <MetadataField label="Issuer / sender" value={form.issuer} onChange={(value) => updateField("issuer", value)} placeholder="Agency, court, landlord, company..." />
-                <MetadataField label="Received date" value={form.receivedDate} onChange={(value) => updateField("receivedDate", value)} placeholder="YYYY-MM-DD or as known" />
+                <label className="grid gap-2 text-sm text-parchment/80">
+                  Relevant notice date (received or event) *
+                  <input
+                    data-testid="notice-relevant-date"
+                    type="date"
+                    required
+                    value={form.receivedDate}
+                    onChange={(event) => updateField("receivedDate", event.currentTarget.value)}
+                    className="rounded-xl border border-parchment/15 bg-ink px-3 py-3 text-parchment outline-none focus:border-gold/60"
+                  />
+                </label>
               </div>
             </div>
 
@@ -194,7 +213,7 @@ function NoticeAnalyzerPage() {
               <p className="mt-2 text-xs leading-5 text-parchment/55">
                 Selectable-text PDFs (up to 5 MB and 15 pages) and .txt are processed locally first. Image-only scans and photos need OCR, which is not enabled. Review extracted text; it is sent to the server only when you choose Analyze.
               </p>
-              {fileMessage ? <p className="mt-2 text-xs text-gold-soft">{fileMessage}</p> : null}
+              {fileMessage ? <p data-testid="notice-file-status" role="status" className="mt-2 text-xs text-gold-soft">{fileMessage}</p> : null}
               <textarea
                 data-testid="notice-text"
                 required
@@ -212,10 +231,20 @@ function NoticeAnalyzerPage() {
               </div>
             </div>
 
+            <label className="flex items-start gap-3 text-sm leading-6 text-parchment/75">
+              <input
+                data-testid="notice-consent"
+                type="checkbox"
+                checked={consent}
+                onChange={(event) => setConsent(event.currentTarget.checked)}
+                className="mt-1 accent-gold"
+              />
+              I reviewed the extracted notice text and consent to sending only that text and supplied context to the analysis server. Remove private details that are not needed.
+            </label>
             <button
               data-testid="analyze-notice"
               type="submit"
-              disabled={pending}
+              disabled={pending || !consent}
               className="foil-surface inline-flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 font-bold text-ink disabled:cursor-wait disabled:opacity-60"
             >
               {pending ? <LoaderCircle className="h-5 w-5 animate-spin" aria-hidden /> : <FileSearch className="h-5 w-5" aria-hidden />}
@@ -301,8 +330,9 @@ function AnalysisResult({ result }: { result: NoticeAnalyzerResult }) {
               <span className="rounded-full border border-gold/30 px-2 py-1 text-[10px] uppercase tracking-wider text-gold">{item.urgency}</span>
             </div>
             <p className="mt-2 text-sm text-gold-soft">{item.date ?? "No explicit date extracted"}</p>
-            <p className="mt-2 text-xs leading-5 text-parchment/60">Evidence: {item.evidence}</p>
-            {item.needsVerification ? <p className="mt-2 text-[11px] font-semibold text-warn">Needs official verification</p> : null}
+            <p className="mt-2 text-xs leading-5 text-parchment/60">Evidence from supplied notice: {item.evidence}</p>
+            <p className="mt-2 text-[11px] font-semibold text-gold">SOURCE: USER-SUPPLIED NOTICE · LAW STATUS: UNVERIFIED</p>
+            <p className="mt-2 text-[11px] font-semibold text-warn">Needs official verification</p>
           </article>
         )) : <p className="text-sm text-parchment/55">No explicit deadlines were extracted from the supplied text.</p>}
       </ResultSection>

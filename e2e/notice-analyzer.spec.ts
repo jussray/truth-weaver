@@ -20,6 +20,9 @@ test("legal notice analyzer is source-bound and does not fabricate a result befo
     "Sample notice for automated testing only. A written response is requested by October 20, 2026. Contact the sender with any questions about the stated request.",
   );
 
+  await expect(page.getByTestId("analyze-notice")).toBeDisabled();
+  await page.getByTestId("notice-relevant-date").fill("2026-10-13");
+  await page.getByTestId("notice-consent").check();
   await expect(page.getByTestId("analyze-notice")).toBeEnabled();
   await expect(page.getByTestId("analysis-empty")).toBeVisible();
   await expect(page.getByTestId("analysis-result")).toHaveCount(0);
@@ -58,7 +61,8 @@ test("extracts a real text PDF before analysis, without sending or inventing leg
     mimeType: "application/pdf",
     buffer: textPdf("NOTICE RECEIVED OCTOBER 20 2026 PLEASE RESPOND BY NOVEMBER 1 2026"),
   });
-  await expect(page.getByTestId("notice-text")).toHaveValue(/NOTICE RECEIVED OCTOBER 20 2026/, { timeout: 20000 });
+  await expect(page.getByTestId("notice-file-status")).toContainText("Loaded notice.pdf", { timeout: 20000 });
+  await expect(page.getByTestId("notice-text")).toHaveValue(/NOTICE RECEIVED OCTOBER 20 2026/);
   await expect(page.getByText(/Loaded notice.pdf/)).toBeVisible();
   await expect(page.getByTestId("analysis-result")).toHaveCount(0);
 });
@@ -70,6 +74,6 @@ test("image-only PDF does not pretend to have been transcribed", async ({ page }
     mimeType: "application/pdf",
     buffer: textPdf(""),
   });
-  await expect(page.getByText(/No sufficient selectable text found/i)).toBeVisible({ timeout: 20000 });
+  await expect(page.getByTestId("notice-file-status")).toContainText(/No sufficient selectable text found/i, { timeout: 20000 });
   await expect(page.getByTestId("notice-text")).toHaveValue("");
 });
