@@ -127,7 +127,6 @@ export interface FileRoutesByFullPath {
   '/account': typeof AuthenticatedAccountRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/fulfillment': typeof AuthenticatedFulfillmentRoute
-  '/fulfillment': typeof AuthenticatedFulfillmentRoute
   '/product/$handle': typeof ProductHandleRoute
   '/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/issues/new': typeof AuthenticatedIssuesNewRoute
@@ -145,6 +144,7 @@ export interface FileRoutesByTo {
   '/sources': typeof SourcesRoute
   '/account': typeof AuthenticatedAccountRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/fulfillment': typeof AuthenticatedFulfillmentRoute
   '/product/$handle': typeof ProductHandleRoute
   '/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/issues/new': typeof AuthenticatedIssuesNewRoute
@@ -185,7 +185,6 @@ export interface FileRouteTypes {
     | '/account'
     | '/dashboard'
     | '/fulfillment'
-    | '/fulfillment'
     | '/product/$handle'
     | '/issues/$issueId'
     | '/issues/new'
@@ -203,6 +202,7 @@ export interface FileRouteTypes {
     | '/sources'
     | '/account'
     | '/dashboard'
+    | '/fulfillment'
     | '/product/$handle'
     | '/issues/$issueId'
     | '/issues/new'
