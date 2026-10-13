@@ -49,6 +49,7 @@ function NewIssue() {
         issue_area: f.issue_area || null,
         parties: f.parties || null,
       });
+      if (!row) throw new Error("Issue was not saved.");
       navigate({ to: "/issues/$issueId", params: { issueId: row.id } });
     } catch (err) {
       setError((err as Error).message);
