@@ -5,6 +5,7 @@ import { z } from "zod";
 import { ProductCard } from "@/components/storefront/product-card";
 import { SiteChrome } from "@/components/storefront/site-chrome";
 import { fetchProducts } from "@/lib/shopify";
+import { NOTICE_OFFERS } from "@/lib/notice-offers";
 
 const searchSchema = z.object({
   category: z.string().optional(),
@@ -75,6 +76,26 @@ function ShopPage() {
             {products.map((p) => <ProductCard key={p.node.id} product={p} />)}
           </div>
         )}
+
+        {!q.isLoading && products.length === 0 ? (
+          <section data-testid="notice-offer-previews" aria-label="Planned notice products" className="mt-10">
+            <h2 className="font-serif text-2xl text-parchment">Notice tools in preparation</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-parchment/65">
+              These are planned prices, not active offers. Purchases will open only when
+              report delivery, access controls, and end-to-end payments have been verified.
+            </p>
+            <div className="mt-5 grid gap-4 sm:grid-cols-3">
+              {Object.values(NOTICE_OFFERS).map((offer) => (
+                <article key={offer.sku} data-testid="notice-offer-preview" className="rounded-2xl border border-gold/25 bg-forest-deep/40 p-5">
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-gold">In development · Not for sale</p>
+                  <h3 className="mt-3 font-serif text-xl text-parchment">{offer.label}</h3>
+                  <p className="mt-2 text-2xl font-bold text-gold-soft">${offer.priceUsd} planned</p>
+                  <p className="mt-3 text-sm leading-6 text-parchment/70">{offer.description}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         <p className="mt-12 max-w-3xl text-xs leading-5 text-parchment/50">
           Store products are educational tools. They are not legal advice, do not create a lawyer–client relationship,
