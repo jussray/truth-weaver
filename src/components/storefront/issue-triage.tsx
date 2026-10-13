@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { ArrowRight, Compass } from "lucide-react";
 
+import { triageIssueWithAi } from "@/lib/issue-triage.functions";
+
 // Deterministic keyword routing only. This suggests where to start browsing;
 // it never states which law applies.
 const AREA_KEYWORDS: [string, string[]][] = [
@@ -27,7 +29,9 @@ export function triageIssue(text: string): { area: string; hits: string[] }[] {
 
 export function IssueTriageBanner() {
   const [text, setText] = useState("");
-  const [results, setResults] = useState<{ area: string; hits: string[] }[] | null>(null);
+  const [results, setResults] = useState<{ area: string; hits: string[]; reason?: string }[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<"ai" | "keyword">("ai");
 
   return (
     <div data-issue-triage className="mt-8 max-w-xl rounded-2xl border border-gold/35 bg-ink/70 p-4 backdrop-blur sm:p-5">
@@ -36,9 +40,20 @@ export function IssueTriageBanner() {
       </p>
       <form
         className="mt-3 flex flex-col gap-2 sm:flex-row"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
-          setResults(triageIssue(text));
+          if (text.trim().length < 3) return setResults([]);
+          setLoading(true);
+          try {
+            const ai = await triageIssueWithAi({ data: { text } });
+            setMode("ai");
+            setResults(ai.map((a) => ({ area: a.area, hits: [], reason: a.reason })));
+          } catch {
+            setMode("keyword");
+            setResults(triageIssue(text));
+          } finally {
+            setLoading(false);
+          }
         }}
       >
         <label htmlFor="triage-input" className="sr-only">Describe your problem</label>
@@ -50,8 +65,8 @@ export function IssueTriageBanner() {
           placeholder="e.g. My landlord kept my deposit"
           className="min-w-0 flex-1 rounded-full border border-parchment/15 bg-ink px-4 py-2.5 text-sm text-parchment outline-none placeholder:text-parchment/35 focus:border-gold/60"
         />
-        <button type="submit" data-testid="triage-submit" className="rounded-full bg-gold px-5 py-2.5 text-sm font-bold text-ink">
-          Find my area
+        <button type="submit" disabled={loading} data-testid="triage-submit" className="rounded-full bg-gold px-5 py-2.5 text-sm font-bold text-ink disabled:opacity-60">
+          {loading ? "Thinking…" : "Find my area"}
         </button>
       </form>
       {results ? (
@@ -59,18 +74,19 @@ export function IssueTriageBanner() {
           {results.length === 0 ? (
             <p>No clear match. Try a few more words, or <a href="#legal-areas" className="text-gold underline">browse all 11 areas</a>.</p>
           ) : (
-            <ul className="flex flex-wrap gap-2">
+            <ul className="flex flex-col gap-2">
               {results.map((r) => (
                 <li key={r.area}>
                   <a href={`/shop?area=${encodeURIComponent(r.area)}`} className="inline-flex items-center gap-1.5 rounded-full border border-gold/50 px-3 py-1.5 text-gold-soft hover:bg-gold/10">
                     {r.area} <ArrowRight className="h-3.5 w-3.5" aria-hidden />
                   </a>
+                  {r.reason ? <p className="mt-1 pl-3 text-xs text-parchment/60">{r.reason}</p> : null}
                 </li>
               ))}
             </ul>
           )}
           <p className="mt-2 text-[11px] leading-4 text-parchment/50">
-            Keyword match only. This is a starting point, not a legal conclusion. Governing law is the authority.{" "}
+            {mode === "ai" ? "AI suggestion (inferred, non-authorizing)." : "AI unavailable — keyword match shown."} A starting point, not a legal conclusion. Governing law is the authority.{" "}
             <a href="#legal-research" className="text-gold underline">Research the law for your place</a>.
           </p>
         </div>
