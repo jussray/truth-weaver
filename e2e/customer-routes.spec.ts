@@ -36,3 +36,10 @@ test("navigation surfaces the customer workspace and public sources", async ({ p
   await expect(sourceLinks.first()).toBeAttached();
   await expect(workspaceLinks.first()).toBeAttached();
 });
+
+
+test("fulfillment cannot reveal any order to an unauthenticated visitor", async ({ page }) => {
+  await page.goto("/fulfillment", { waitUntil: "domcontentloaded" });
+  await expect(page).toHaveURL(/\/login(?:\?|$)/, { timeout: 15000 });
+  await expect(page.getByRole("heading", { name: "Sign in", level: 1 })).toBeVisible();
+});

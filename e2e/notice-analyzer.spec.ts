@@ -56,6 +56,7 @@ function textPdf(message: string): Buffer {
 
 test("extracts a real text PDF before analysis, without sending or inventing legal conclusions", async ({ page }) => {
   await page.goto("/notice-analyzer");
+  await expect(page.locator('input[type="file"]')).toBeEnabled();
   await page.locator('input[type="file"]').setInputFiles({
     name: "notice.pdf",
     mimeType: "application/pdf",
@@ -69,6 +70,7 @@ test("extracts a real text PDF before analysis, without sending or inventing leg
 
 test("image-only PDF does not pretend to have been transcribed", async ({ page }) => {
   await page.goto("/notice-analyzer");
+  await expect(page.locator('input[type="file"]')).toBeEnabled();
   await page.locator('input[type="file"]').setInputFiles({
     name: "blank.pdf",
     mimeType: "application/pdf",

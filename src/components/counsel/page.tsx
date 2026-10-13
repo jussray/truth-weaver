@@ -67,6 +67,7 @@ export function WorkspaceNav() {
     ["/sources", "Sources"],
     ["/legal-library", "Legal library"],
     ["/account", "Account"],
+    ["/fulfillment", "Orders and fulfillment"],
   ] as const;
   return (
     <nav aria-label="Workspace" className="mb-6 flex flex-wrap gap-2">

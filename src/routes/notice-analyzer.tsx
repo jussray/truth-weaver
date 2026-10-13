@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import {
   AlertTriangle,
@@ -54,6 +54,10 @@ function NoticeAnalyzerPage() {
   const [pending, setPending] = useState(false);
   const [fileMessage, setFileMessage] = useState("");
   const [consent, setConsent] = useState(false);
+  // Hydration gate: a file picked before React attaches its input handler can
+  // be silently dropped on SSR pages. Accept uploads only after mount.
+  const [uploadReady, setUploadReady] = useState(false);
+  useEffect(() => setUploadReady(true), []);
 
   function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -207,13 +211,15 @@ function NoticeAnalyzerPage() {
                 <h2 className="font-serif text-2xl text-parchment">3. Notice text</h2>
                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-gold/35 px-3 py-2 text-xs font-bold text-gold hover:bg-gold/10">
                   <Upload className="h-4 w-4" aria-hidden /> Load PDF / .txt
-                  <input type="file" accept=".pdf,application/pdf,.txt,text/plain" onChange={handleNoticeFile} className="sr-only" />
+                  <input type="file" accept=".pdf,application/pdf,.txt,text/plain" disabled={!uploadReady} onChange={handleNoticeFile} className="sr-only" />
                 </label>
               </div>
               <p className="mt-2 text-xs leading-5 text-parchment/55">
                 Selectable-text PDFs (up to 5 MB and 15 pages) and .txt are processed locally first. Image-only scans and photos need OCR, which is not enabled. Review extracted text; it is sent to the server only when you choose Analyze.
               </p>
-              {fileMessage ? <p data-testid="notice-file-status" role="status" className="mt-2 text-xs text-gold-soft">{fileMessage}</p> : null}
+              <p data-testid="notice-file-status" role="status" className="mt-2 min-h-5 text-xs text-gold-soft">
+                {fileMessage || (uploadReady ? "No document loaded. You can also paste text below." : "Preparing document upload...")}
+              </p>
               <textarea
                 data-testid="notice-text"
                 required
