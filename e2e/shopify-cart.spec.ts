@@ -127,3 +127,24 @@ test("failed Shopify cart creation never reports a successful add", async ({ pag
   await expect(page.getByText("Couldn't add Simulated Playwright Product (not for sale). Please try again.")).toBeVisible();
   await expect(page.locator('[data-testid="cart-button"]:visible').first()).not.toContainText("1");
 });
+
+test("shows planned preview prices without enabling a purchase", async ({ page }) => {
+  await page.route(apiUrl, async (route) => {
+    await route.fulfill({
+      status: 200,
+      headers: {
+        "access-control-allow-origin": "*",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ data: { products: { edges: [] } } }),
+    });
+  });
+  await page.goto("/shop");
+  const previews = page.getByTestId("notice-offer-preview");
+  await expect(previews).toHaveCount(3);
+  await expect(previews.nth(0)).toContainText("$10 planned");
+  await expect(previews.nth(1)).toContainText("$29 planned");
+  await expect(previews.nth(2)).toContainText("$49 planned");
+  await expect(page.getByTestId("notice-offer-previews")).toContainText("Not for sale");
+  await expect(page.getByTestId("notice-offer-previews").getByRole("button")).toHaveCount(0);
+});
