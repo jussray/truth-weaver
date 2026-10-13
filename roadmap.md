@@ -28,3 +28,6 @@
 - [ ] First product (blocked: needs founder name, price, deliverable, fulfillment)
 - [ ] Publish after checks
 
+- [x] Snapshot entitlement decision seam (pure, fail-closed, revocable) + tests
+- [ ] Snapshot production delivery. Blocked: Admin token secret, server-side customer binding store, entitlement table, secure report download route
+- [ ] Fulfillment/status page, product images, live tests, publish. On hold per founder (no publication/sale; drafts kept)
