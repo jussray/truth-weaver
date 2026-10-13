@@ -43,3 +43,10 @@ test("fulfillment cannot reveal any order to an unauthenticated visitor", async 
   await expect(page).toHaveURL(/\/login(?:\?|$)/, { timeout: 15000 });
   await expect(page.getByRole("heading", { name: "Sign in", level: 1 })).toBeVisible();
 });
+
+
+test("new legal issue form does not open without a verified auth session", async ({ page }) => {
+  await page.goto("/issues/new", { waitUntil: "domcontentloaded" });
+  await expect(page).toHaveURL(/\/login(?:\?|$)/, { timeout: 15000 });
+  await expect(page.getByRole("heading", { name: "Sign in", level: 1 })).toBeVisible();
+});

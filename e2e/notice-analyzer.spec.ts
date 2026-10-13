@@ -8,6 +8,8 @@ test("legal notice analyzer is source-bound and does not fabricate a result befo
   });
 
   await page.goto("/notice-analyzer");
+  // The SSR form is inert until its React input handlers are attached.
+  await expect(page.locator('input[type="file"]')).toBeEnabled();
 
   await expect(page.getByRole("heading", { level: 1, name: /Pull the signal out of a legal notice/i })).toBeVisible();
   await expect(page.getByTestId("notice-authority")).toContainText("NON-AUTHORIZING");
