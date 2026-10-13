@@ -52,7 +52,7 @@ export async function storefrontApiRequest(query: string, variables: Record<stri
     toast.error("Shopify: Payment required", {
       description: "Shopify API access requires an active Shopify billing plan. Visit https://admin.shopify.com to upgrade.",
     });
-    return undefined;
+    throw new Error("Shopify payment required (402)");
   }
   if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
   const data = await response.json();
@@ -84,13 +84,17 @@ const CART_LINES_REMOVE_MUTATION = `mutation cartLinesRemove($cartId: ID!, $line
 
 type UserError = { field: string[] | null; message: string };
 
-function formatCheckoutUrl(checkoutUrl: string): string {
+// Preserve Shopify's returned checkoutUrl; only add channel param. Reject non-HTTPS / non-Shopify hosts.
+export function formatCheckoutUrl(checkoutUrl: string): string | null {
   try {
     const url = new URL(checkoutUrl);
+    if (url.protocol !== "https:") return null;
+    const h = url.hostname;
+    if (!(h.endsWith(".myshopify.com") || h.endsWith(".shopify.com") || h === SHOPIFY_STORE_PERMANENT_DOMAIN)) return null;
     url.searchParams.set("channel", "online_store");
     return url.toString();
   } catch {
-    return checkoutUrl;
+    return null;
   }
 }
 
@@ -98,9 +102,35 @@ function isCartNotFoundError(errs: UserError[]) {
   return errs.some((e) => /cart not found|does not exist/i.test(e.message));
 }
 
-export async function cartExists(cartId: string): Promise<boolean | undefined> {
+const CART_FULL_QUERY = `query cart($id: ID!) { cart(id: $id) { id totalQuantity checkoutUrl lines(first: 100) { edges { node { id quantity merchandise { ... on ProductVariant { id price { amount currencyCode } } } } } } } }`;
+
+export type LiveCart = {
+  checkoutUrl: string;
+  totalQuantity: number;
+  lines: { lineId: string; variantId: string; quantity: number; price: { amount: string; currencyCode: string } }[];
+} | null;
+
+// null = cart gone/empty. Throws on API failure.
+export async function fetchLiveCart(cartId: string): Promise<LiveCart> {
+  const data = await storefrontApiRequest(CART_FULL_QUERY, { id: cartId });
+  const cart = data?.data?.cart;
+  if (!cart || cart.totalQuantity === 0) return null;
+  const checkoutUrl = formatCheckoutUrl(cart.checkoutUrl);
+  if (!checkoutUrl) throw new Error("Unsafe checkout URL from Shopify");
+  return {
+    checkoutUrl,
+    totalQuantity: cart.totalQuantity,
+    lines: cart.lines.edges.map((e: { node: { id: string; quantity: number; merchandise: { id: string; price: { amount: string; currencyCode: string } } } }) => ({
+      lineId: e.node.id,
+      variantId: e.node.merchandise.id,
+      quantity: e.node.quantity,
+      price: e.node.merchandise.price,
+    })),
+  };
+}
+
+export async function cartExists(cartId: string): Promise<boolean> {
   const data = await storefrontApiRequest(CART_QUERY, { id: cartId });
-  if (!data) return undefined;
   const cart = data?.data?.cart;
   return !!cart && cart.totalQuantity > 0;
 }
@@ -114,8 +144,9 @@ export async function createShopifyCart(variantId: string, quantity: number) {
   }
   const cart = data?.data?.cartCreate?.cart;
   const lineId = cart?.lines?.edges?.[0]?.node?.id;
-  if (!cart?.checkoutUrl || !lineId) return null;
-  return { cartId: cart.id as string, checkoutUrl: formatCheckoutUrl(cart.checkoutUrl), lineId: lineId as string };
+  const checkoutUrl = cart?.checkoutUrl ? formatCheckoutUrl(cart.checkoutUrl) : null;
+  if (!checkoutUrl || !lineId) return null;
+  return { cartId: cart.id as string, checkoutUrl, lineId: lineId as string };
 }
 
 export async function addLineToShopifyCart(cartId: string, variantId: string, quantity: number) {
