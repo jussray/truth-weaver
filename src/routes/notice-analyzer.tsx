@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { SiteChrome } from "@/components/storefront/site-chrome";
+import { extractNoticePdfText } from "@/lib/extract-notice-pdf";
 import { analyzeLegalNotice } from "@/lib/notice-analyzer.functions";
 import {
   NOTICE_TEXT_MAX,
@@ -57,33 +58,35 @@ function NoticeAnalyzerPage() {
     setForm((current) => ({ ...current, [key]: value }));
   }
 
-  async function handleTextFile(event: ChangeEvent<HTMLInputElement>) {
+  async function handleNoticeFile(event: ChangeEvent<HTMLInputElement>) {
     setFileMessage("");
     const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = "";
     if (!file) return;
 
-    const isPlainText = file.type === "text/plain" || file.name.toLowerCase().endsWith(".txt");
-    if (!isPlainText) {
-      setFileMessage("Only .txt files are supported in this verified pass. Paste extracted PDF or image text instead.");
-      event.currentTarget.value = "";
+    const isPlainText = file.type === "text/plain" || /\\.txt$/i.test(file.name);
+    const isPdf = file.type === "application/pdf" || /\\.pdf$/i.test(file.name);
+    if (!isPlainText && !isPdf) {
+      setFileMessage("Only selectable-text PDFs and .txt files are supported. For images or scanned PDFs, paste reliably extracted text.");
       return;
     }
 
-    if (file.size > 100_000) {
-      setFileMessage("That text file is too large. Paste the relevant notice text instead.");
-      event.currentTarget.value = "";
-      return;
+    try {
+      if (isPlainText) {
+        if (file.size > 100_000) throw new Error("Text file is too large (100 KB maximum).");
+        const text = await file.text();
+        if (text.length > NOTICE_TEXT_MAX) throw new Error("Notice text is over the 25,000-character limit.");
+        updateField("noticeText", text);
+        setFileMessage(`Loaded ${file.name}. Review the text before analysis.`);
+      } else {
+        setFileMessage("Extracting selectable text locally. No notice has been submitted.");
+        const { text, pages } = await extractNoticePdfText(file);
+        updateField("noticeText", text);
+        setFileMessage(`Loaded ${file.name} (${pages} page${pages === 1 ? "" : "s"}). Review the text before analysis.`);
+      }
+    } catch (cause) {
+      setFileMessage(cause instanceof Error ? cause.message : "The document could not be read. Paste the text instead.");
     }
-
-    const text = await file.text();
-    if (text.length > NOTICE_TEXT_MAX) {
-      setFileMessage(`Notice text must be ${NOTICE_TEXT_MAX.toLocaleString()} characters or fewer.`);
-      event.currentTarget.value = "";
-      return;
-    }
-
-    updateField("noticeText", text);
-    setFileMessage(`Loaded ${file.name}. Review the text before analysis.`);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -184,12 +187,12 @@ function NoticeAnalyzerPage() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className="font-serif text-2xl text-parchment">3. Notice text</h2>
                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-gold/35 px-3 py-2 text-xs font-bold text-gold hover:bg-gold/10">
-                  <Upload className="h-4 w-4" aria-hidden /> Load .txt
-                  <input type="file" accept=".txt,text/plain" onChange={handleTextFile} className="sr-only" />
+                  <Upload className="h-4 w-4" aria-hidden /> Load PDF / .txt
+                  <input type="file" accept=".pdf,application/pdf,.txt,text/plain" onChange={handleNoticeFile} className="sr-only" />
                 </label>
               </div>
               <p className="mt-2 text-xs leading-5 text-parchment/55">
-                PDF and image extraction are not enabled in this verified pass. Paste extracted text instead. Notice text is sent to the server only when you choose Analyze.
+                Selectable-text PDFs (up to 5 MB and 15 pages) and .txt are processed locally first. Image-only scans and photos need OCR, which is not enabled. Review extracted text; it is sent to the server only when you choose Analyze.
               </p>
               {fileMessage ? <p className="mt-2 text-xs text-gold-soft">{fileMessage}</p> : null}
               <textarea
