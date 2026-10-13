@@ -1,0 +1,634 @@
+{
+  "meta": {
+    "name": "Truth Weaver",
+    "package": "@ws-0dfe240cdcdbfcf99736/8ef43cd3-8d93-4494-a685-59ce0f795614",
+    "version": "1.0.0",
+    "framework": "react",
+    "css_framework": "tailwind",
+    "starter_template": "custom_design_system_tailwind",
+    "theme_files": [
+      "src/styles.css"
+    ],
+    "source_type": "local",
+    "source_manifest": {
+      "#enrichment": "76e27adbc8ae1f3788db2a57c883d80018665a4d272fd11c7f3b4e23f6b1a7d4",
+      ".control-room/agent-contract.v1.json": "928cbc16c6e872f6768fa8bbfbeb7f4f",
+      ".github/workflows/agent-contract-v1.yml": "2f95c5eff6660a2982719b43fdbf80bd",
+      ".github/workflows/verify.yml": "a77d9e251d54d2474efdc03232e608ee",
+      ".gitignore": "6d9e901a692b46a83707c245fb03bc91",
+      ".lovable/plan.md": "c4c1b41854f37230a12a5fb8c91c575e",
+      ".lovable/project.json": "0d13739ea141bcde251eb54ed872cb3e",
+      ".prettierignore": "7279a476f196a2da5f7edd18db568dc6",
+      ".prettierrc": "185ef0234746ab738ac1ab6cec5e2bd9",
+      "AGENTS.md": "720047bccce091862b998692fdd4209b",
+      "AGENTS_FOUNDER_INTELLIGENCE.md": "f03a0aa96d586d120c7a75833111f119",
+      "README.md": "50789d7911db493da94ed32254a49c7a",
+      "bunfig.toml": "89115995d9de72fdfc894e16b1e75297",
+      "components.json": "30d3d035361ce807021f5c54620962e9",
+      "e2e/connectors.spec.ts": "7e20cccbd3188aef83de9b567e189899",
+      "e2e/customer-routes.spec.ts": "f291008666773cd241a8908332cf4c3f",
+      "e2e/decision-test.spec.ts": "d9348c6c92c559cfa35b52c4a399b76b",
+      "e2e/home.spec.ts": "da4824aa6de42307114daa7335033cb2",
+      "e2e/live-launch.spec.ts": "386101cf942729efb2541c2e53a53b69",
+      "e2e/notice-analyzer.spec.ts": "4b1c1d3ebcd955033e4f4bdb23789520",
+      "e2e/shopify-cart.spec.ts": "bb261944f80434a74bb2467f85770617",
+      "eslint.config.js": "d7ed73654ac1bcd4665fcc81e541f6a3",
+      "package.json": "62ab7e48501497a4e5768f3cfe162215",
+      "playwright.config.ts": "c398841f4ca1b3a85c5e31adf104bdaf",
+      "public/favicon.ico": "9f504444f85a5af2eef9264b02ae40be",
+      "public/robots.txt": "f9dff89adf98833e676de2205921996a",
+      "roadmap.md": "2a582facb36ca612009250e8f7dda0f1",
+      "scripts/verify-founder-intelligence.mjs": "fbfb5e694f5e69c29c9215ee6456ce8d",
+      "src/assets/hero-sanctum.jpg": "dd7cff9c6d6a2921378a9a7c30afa80a",
+      "src/components/counsel/app-shell.tsx": "d6720efe1805514997f9c0bcf1d40bcd",
+      "src/components/counsel/page.tsx": "c3043b4efb7e2bd6f192c93b89373aeb",
+      "src/components/counsel/ui-bits.tsx": "13d0fd2bfb9aa195e25849b49e6abf01",
+      "src/components/legal-navigator.tsx": "e1e47355aa1115e2d2452e7d342e5a98",
+      "src/components/storefront/cart-drawer.tsx": "fc8d91fa3616d8e03c34283e05e774e8",
+      "src/components/storefront/issue-triage.tsx": "5e71a44c274eae2b73ad7cd6001b5363",
+      "src/components/storefront/product-card.tsx": "6c93796753f9d1d8272b80aafb23604d",
+      "src/components/storefront/site-chrome.tsx": "5feb87fb23b1c9e7f812d627af079c29",
+      "src/components/ui/accordion.tsx": "55f9dda62b4e3913c9b23e5015a86aef",
+      "src/components/ui/alert-dialog.tsx": "96350e949e9b7b674545430a410ab89c",
+      "src/components/ui/alert.tsx": "f993d7e96b1e25ce50e68ed97e11d2a8",
+      "src/components/ui/aspect-ratio.tsx": "c5c364545e1b25a94e9e752cd67ad048",
+      "src/components/ui/avatar.tsx": "72989cd32f72c4122802540ef32525a5",
+      "src/components/ui/badge.tsx": "81cade001fc4260f9943e18dcd79449b",
+      "src/components/ui/breadcrumb.tsx": "bb9ac254f12662b20d5d50b84308bf3a",
+      "src/components/ui/button.tsx": "7d07d520f486b12bd47373d694ecd2ee",
+      "src/components/ui/calendar.tsx": "d849cc610e2683271f3f1c47d093cf30",
+      "src/components/ui/card.tsx": "d6c48ea36221b9cdc3576d305d12d5d5",
+      "src/components/ui/carousel.tsx": "e324c68ae00cd5aed49317638abd429a",
+      "src/components/ui/chart.tsx": "6a3baf94f2e89f1f97d4d7a28f3622d2",
+      "src/components/ui/checkbox.tsx": "f78aac270ca482c8c2cb907ef6260462",
+      "src/components/ui/collapsible.tsx": "767631bbc344945c236f185f4078d71d",
+      "src/components/ui/command.tsx": "014782599cc838b021ec68b07ad4ea02",
+      "src/components/ui/context-menu.tsx": "3ba8244ea23df34a1dba92f3a1230dad",
+      "src/components/ui/dialog.tsx": "ef4fe8e7de8675730afe3d633b260e09",
+      "src/components/ui/drawer.tsx": "8be333e8fd8e42576b1b5f72f07f4337",
+      "src/components/ui/dropdown-menu.tsx": "28d6e98d3c7811fc0514bfa69416f087",
+      "src/components/ui/form.tsx": "1b0aa6302b9017ea2a1307c22a1d2983",
+      "src/components/ui/hover-card.tsx": "1442794c5ca2a78d69e4e613b315ed3d",
+      "src/components/ui/input-otp.tsx": "65625f2f1c4d731a760aeed7b54459d1",
+      "src/components/ui/input.tsx": "1d4cc52a4cd8afb3e18e45bda942bb8a",
+      "src/components/ui/label.tsx": "7e35df4ca8edd0835efd97ca7937ef92",
+      "src/components/ui/menubar.tsx": "3c4121a1e78d3f424a7295381a8997d3",
+      "src/components/ui/navigation-menu.tsx": "e85351147a02b29577ff83d188b63c24",
+      "src/components/ui/pagination.tsx": "fac6cdbb4bbf78b273d85cd36d6cbb49",
+      "src/components/ui/popover.tsx": "f18aa1da2144f25ee60795c539c51bcd",
+      "src/components/ui/progress.tsx": "55c462e5c9dd678dcf2c0c510b014ac4",
+      "src/components/ui/radio-group.tsx": "0e1ace237a5da3197e3eb1e6683faba9",
+      "src/components/ui/resizable.tsx": "d9fcb9203c749fcab4e125a99bb12a86",
+      "src/components/ui/scroll-area.tsx": "87b65d3eb26f2b02ff35a7acea585ba5",
+      "src/components/ui/select.tsx": "31ea1bbd6671833b010b2e852c8a55d0",
+      "src/components/ui/separator.tsx": "433d163c4ffa00b59398a0c293198b5e",
+      "src/components/ui/sheet.tsx": "0221fbf97b69611b47fcbc10bb27669a",
+      "src/components/ui/sidebar.tsx": "83c1623eb50ebc370d7b1b84a542e369",
+      "src/components/ui/skeleton.tsx": "41b182e6e2fc3805960d41e767d4a972",
+      "src/components/ui/slider.tsx": "4752f1bfa26426988d325599e01c335b",
+      "src/components/ui/sonner.tsx": "97f59f60be3413196d095fcbf7383216",
+      "src/components/ui/switch.tsx": "82f5d8b0c59bb7ff305caa9f502e79ff",
+      "src/components/ui/table.tsx": "7cc889989d53894b659903c73aded96e",
+      "src/components/ui/tabs.tsx": "56e725558c2ce72c18243bf51717f385",
+      "src/components/ui/textarea.tsx": "c7aad96fb9545210d53135a96c76ed6b",
+      "src/components/ui/toggle-group.tsx": "ac26383acf721d116ca8e3ab5c5355d5",
+      "src/components/ui/toggle.tsx": "ee8c5adac74e7242b85b544db1a8fbad",
+      "src/components/ui/tooltip.tsx": "67d71db5a1ab935695d1def497f5b8a6",
+      "src/domain/law.test.ts": "90bbcd38441530a7bad9154ef5d90383",
+      "src/domain/law.ts": "4a463b8059fe201e2019a30576817707",
+      "src/hooks/use-mobile.tsx": "c0a0bdd4638c391a1dd06ac82074e60b",
+      "src/hooks/use-session.ts": "4010edf122b0831160705aeb260d511a",
+      "src/integrations/supabase/auth-middleware.ts": "eabaf8c8ba32205717921ce5f255185e",
+      "src/integrations/supabase/client.server.ts": "23f838ab7633e0a97e695f3c500d91aa",
+      "src/integrations/supabase/client.ts": "8af43e12f1332b440278c7ea7e4cb1e8",
+      "src/integrations/supabase/previewAuthStorage.ts": "0a2d63e049bc63135b19c8e21cc0b1aa",
+      "src/integrations/supabase/types.ts": "ecc5cb8e5e731e81b64a6bad7234f36e",
+      "src/lib/ai-run-id.server.ts": "498c3a0e3871a6cae4658e9cee604b50",
+      "src/lib/commerce/shopify-order-proof.test.ts": "5cf8e01d7c7e86cc834bdf9125446234",
+      "src/lib/commerce/shopify-order-proof.ts": "714ce3ac47971926b6f8fd70b532eeac",
+      "src/lib/commerce/shopify-order.server.ts": "1e00b8775f3313d01ddda9a6b95291ae",
+      "src/lib/commerce/snapshot-entitlement.test.ts": "2e211f510649b0773492f27b317e393a",
+      "src/lib/commerce/snapshot-entitlement.ts": "af0e05f6c1ec869e116c711f1f36c193",
+      "src/lib/connectors/connectors.test.ts": "90f7cc77dcb268b64d7372e333d5aa23",
+      "src/lib/connectors/custody-ledger.server.ts": "f7da0cc0e65fd7a920e80b231866579f",
+      "src/lib/connectors/custody.test.ts": "4190f489f5b6ed33cf0d1ffb77809bb8",
+      "src/lib/connectors/custody.ts": "9e751bd0d019f10ff5c8349064e4131e",
+      "src/lib/connectors/health.ts": "bd96e712d24babd69a3ed51f2540461f",
+      "src/lib/connectors/linear-witness.functions.ts": "e0241710a379cfc9837e00fc374c216c",
+      "src/lib/connectors/linear-witness.server.ts": "cbd238a8967b7e306e12f5325a89fcc6",
+      "src/lib/connectors/provenance.ts": "7fd02bb9c5958a34a334a4e1a15f7b6b",
+      "src/lib/connectors/registry.ts": "cf3906dd8420e7545b8e80dded0ee7a3",
+      "src/lib/connectors/status.functions.ts": "22b6ec0c895e86948a91d5f4b84f519b",
+      "src/lib/connectors/use-connector-status.ts": "08356957c9f6bb73f2d1b7b27c20a679",
+      "src/lib/continuity.test.ts": "4120c611e698b88edb57fac324004c89",
+      "src/lib/continuity.ts": "94c272355831dc1b00d1828986acbe02",
+      "src/lib/counsel.ts": "b423945ca2f75dcd76f3e327e9860ee7",
+      "src/lib/error-capture.ts": "f630d9686a9a989170f22eff4de7b30d",
+      "src/lib/error-page.ts": "8da0ddd7569bac2676b9a5c8edff8a36",
+      "src/lib/extract-notice-pdf.ts": "8e940d8eb448e284129c4e45679c28c2",
+      "src/lib/issue-research.test.ts": "a69531c7dac8fa59ac6fd29e8885a941",
+      "src/lib/issue-research.ts": "e8ec18028b0972facdb8f4992516a525",
+      "src/lib/issue-triage.functions.ts": "cd889e9c777657bd09ee4ef82f9eb30a",
+      "src/lib/issue-triage.test.ts": "707fc4a7d2651fe82a6bea4ff3ea8ea6",
+      "src/lib/legal-books.ts": "27a7c07cac2ed0eaa0226b4b1922b2e3",
+      "src/lib/legal-navigator.functions.ts": "a31a559b23cdb798c1b1220c13690a1d",
+      "src/lib/legal-navigator.server.ts": "23a1af0a9b1ac36883e3a1b3e9606945",
+      "src/lib/legal-navigator.test.ts": "90eeccb675bcadc5948cf49ed45bd3cb",
+      "src/lib/legal-navigator.ts": "2b1c966c4e296d2a7cfe4318a7380053",
+      "src/lib/lovable-error-reporting.ts": "0367e03b7d71917510e4dc1cdae172ec",
+      "src/lib/notice-analyzer.functions.ts": "1e71eea9a582ab0825c2c79b45e9b459",
+      "src/lib/notice-analyzer.server.ts": "2ae72a8ef46ac3434a85bf48f88479c7",
+      "src/lib/notice-analyzer.test.ts": "769e9864c59d62f56207556307afc0c4",
+      "src/lib/notice-analyzer.ts": "5468948b713ec29d0917e99765661ad2",
+      "src/lib/notice-offers.test.ts": "20ceb982fdc7920b0b5d9bd71db29645",
+      "src/lib/notice-offers.ts": "702002bce56ffcaeb77f71ff0bb54eef",
+      "src/lib/notice-report.test.ts": "72e9029eeed5df18418f5354be64fd64",
+      "src/lib/notice-report.ts": "c33c37f075c5537e9ab261435f9dd4b9",
+      "src/lib/shopify.test.ts": "ae32190b010e25518af2339554cedbbe",
+      "src/lib/shopify.ts": "ff5f033f331aafbbe502c399655de2d1",
+      "src/lib/utils.ts": "d9837f38cc05303254571985e3164050",
+      "src/routeTree.gen.ts": "a752a198ab8c74accc6e39718e156c25",
+      "src/router.tsx": "8f905e713b0eba7fa8148b7995a708c9",
+      "src/routes/README.md": "b3a2f259b66fd1a11f54b6d5ac83bf57",
+      "src/routes/__root.tsx": "d7452ad84f498d34b996439c19185141",
+      "src/routes/_authenticated/account.tsx": "9e699b66fc46c4e3b9f0d188851d42e1",
+      "src/routes/_authenticated/dashboard.tsx": "40dbae0af18be54ea3fdcaa8a26472fc",
+      "src/routes/_authenticated/fulfillment.tsx": "715be8c893389a996b89a853b29b0f5e",
+      "src/routes/_authenticated/issues.$issueId.tsx": "f9cc9d659d3db8fb0cd068cd9351956d",
+      "src/routes/_authenticated/issues.new.tsx": "ebfe52267f210e45751d33b9dfa36bf5",
+      "src/routes/_authenticated/route.tsx": "dfbb6b58841ee2f39b945b892f82a0b2",
+      "src/routes/connectors.tsx": "902c3e64f0e402a1b66f88c73871c98a",
+      "src/routes/forgot-password.tsx": "d8482e8a85c10b6b4b547c154d1f68f9",
+      "src/routes/index.tsx": "b738cb910f70c89f2116510a0133da72",
+      "src/routes/legal-library.tsx": "538226696719bfcc546776d6eaac5787",
+      "src/routes/login.tsx": "22163caf4cdeefcfbc7aca3ec349120a",
+      "src/routes/notice-analyzer.tsx": "de43fa431a63d26eef7b841f1865e3f0",
+      "src/routes/product.$handle.tsx": "5a6808597251fd81c2ef27565d834819",
+      "src/routes/reset-password.tsx": "92727968ff6aff7a3fb26d19ce9f63cb",
+      "src/routes/shop.tsx": "6ef8a2b2f793bf533008652538d8d3c0",
+      "src/routes/signup.tsx": "b066ef427f03b318f912e5d94d8aff78",
+      "src/routes/sources.tsx": "6a97a22beaef9ce2b71683ecbecdc5e7",
+      "src/server.ts": "c7bbc49bb70e318af618d92775ee0f27",
+      "src/start.ts": "0502f82c58afce5012b4c102e6fe2437",
+      "src/stores/cart-store.ts": "bb5094074b19481629b0db7b7634bec4",
+      "src/styles.css": "32b9c6f74f8d9cfce5d12ec98ed5cc19",
+      "supabase/config.toml": "04871d4291cd10ccc7500b83e725b367",
+      "supabase/migrations/20260922000622_e2456554-4164-4269-ae72-14eeb75135e0.sql": "32d29cc3ee99dc5b8152dcd209f6e2b7",
+      "supabase/migrations/20261002055200_custody_events.sql": "217ffb2e37868b1f600f4610e6cd4090",
+      "supabase/migrations/20261006070000_truth_weaver_source_registry.sql": "6318614d1e662f091d8cdf9d5e5949f3",
+      "tsconfig.json": "e84e5c7fe88e3c5a4d54f55a816d42c1",
+      "vite.config.ts": "d67e8217e5f31b87c276b6357c9aedcf"
+    },
+    "pipeline_version": 8
+  },
+  "tokens": {
+    "color": [
+      {
+        "name": "--background",
+        "raw": "oklch(0.17 0.015 250)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--foreground",
+        "raw": "oklch(0.93 0.01 250)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--card",
+        "raw": "oklch(0.21 0.016 250)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--card-foreground",
+        "raw": "oklch(0.94 0.008 250)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--popover",
+        "raw": "oklch(0.2 0.016 250)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--popover-foreground",
+        "raw": "oklch(0.94 0.008 250)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--primary",
+        "raw": "oklch(0.78 0.13 84)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--primary-foreground",
+        "raw": "oklch(0.2 0.03 84)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--secondary",
+        "raw": "oklch(0.27 0.02 250)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--secondary-foreground",
+        "raw": "oklch(0.93 0.01 250)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--muted",
+        "raw": "oklch(0.25 0.018 250)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--muted-foreground",
+        "raw": "oklch(0.7 0.02 250)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--accent",
+        "raw": "oklch(0.3 0.03 230)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--accent-foreground",
+        "raw": "oklch(0.95 0.01 250)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--destructive",
+        "raw": "oklch(0.62 0.19 25)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--destructive-foreground",
+        "raw": "oklch(0.97 0.01 25)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--border",
+        "raw": "oklch(0.31 0.02 250)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--input",
+        "raw": "oklch(0.31 0.02 250)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--ring",
+        "raw": "oklch(0.78 0.13 84)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--law",
+        "raw": "oklch(0.78 0.13 84)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--law-foreground",
+        "raw": "oklch(0.2 0.03 84)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--supported",
+        "raw": "oklch(0.72 0.12 200)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--unknown",
+        "raw": "oklch(0.62 0.02 250)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--warn",
+        "raw": "oklch(0.76 0.14 60)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--danger",
+        "raw": "oklch(0.65 0.18 25)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--ok",
+        "raw": "oklch(0.72 0.13 155)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--surface-raised",
+        "raw": "oklch(0.24 0.018 250)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--ink",
+        "raw": "oklch(0.13 0.012 250)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--forest",
+        "raw": "oklch(0.24 0.05 160)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--forest-deep",
+        "raw": "oklch(0.17 0.035 165)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--gold",
+        "raw": "oklch(0.8 0.13 80)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--gold-soft",
+        "raw": "oklch(0.88 0.07 85)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--parchment",
+        "raw": "oklch(0.95 0.02 85)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--violet-accent",
+        "raw": "oklch(0.6 0.16 300)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--chart-1",
+        "raw": "oklch(0.78 0.13 84)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--chart-2",
+        "raw": "oklch(0.72 0.12 200)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--chart-3",
+        "raw": "oklch(0.72 0.13 155)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--chart-4",
+        "raw": "oklch(0.65 0.18 25)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--chart-5",
+        "raw": "oklch(0.62 0.02 250)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--sidebar",
+        "raw": "oklch(0.19 0.016 250)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--sidebar-foreground",
+        "raw": "oklch(0.9 0.01 250)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--sidebar-primary",
+        "raw": "oklch(0.78 0.13 84)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--sidebar-primary-foreground",
+        "raw": "oklch(0.2 0.03 84)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--sidebar-accent",
+        "raw": "oklch(0.26 0.02 250)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--sidebar-accent-foreground",
+        "raw": "oklch(0.93 0.01 250)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--sidebar-border",
+        "raw": "oklch(0.3 0.02 250)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--sidebar-ring",
+        "raw": "oklch(0.78 0.13 84)",
+        "source": "src/styles.css"
+      }
+    ],
+    "typography": [
+      {
+        "name": "--font-sans",
+        "raw": "\"Inter Tight\", ui-sans-serif, system-ui, sans-serif",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--font-serif",
+        "raw": "\"Cormorant Garamond\", \"Source Serif 4\", ui-serif, Georgia, serif",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--font-mono",
+        "raw": "\"IBM Plex Mono\", ui-monospace, SFMono-Regular, monospace",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--font-script",
+        "raw": "\"Great Vibes\", cursive",
+        "source": "src/styles.css"
+      }
+    ],
+    "radius": [
+      {
+        "name": "--radius-sm",
+        "raw": "calc(var(--radius) - 4px)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--radius-md",
+        "raw": "calc(var(--radius) - 2px)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--radius-xl",
+        "raw": "calc(var(--radius) + 4px)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--radius-2xl",
+        "raw": "calc(var(--radius) + 8px)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--radius-3xl",
+        "raw": "calc(var(--radius) + 12px)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--radius-4xl",
+        "raw": "calc(var(--radius) + 16px)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--radius",
+        "raw": "0.375rem",
+        "source": "src/styles.css"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "AppShell",
+      "file": "src/components/counsel/app-shell",
+      "import_path": ""
+    },
+    {
+      "name": "CounselPage",
+      "file": "src/components/counsel/page",
+      "import_path": ""
+    },
+    {
+      "name": "StateBox",
+      "file": "src/components/counsel/page",
+      "import_path": ""
+    },
+    {
+      "name": "WorkspaceNav",
+      "file": "src/components/counsel/page",
+      "import_path": ""
+    },
+    {
+      "name": "TruthBadge",
+      "file": "src/components/counsel/ui-bits",
+      "import_path": ""
+    },
+    {
+      "name": "AuthorityChip",
+      "file": "src/components/counsel/ui-bits",
+      "import_path": ""
+    },
+    {
+      "name": "IntegrationBadge",
+      "file": "src/components/counsel/ui-bits",
+      "import_path": ""
+    },
+    {
+      "name": "Panel",
+      "file": "src/components/counsel/ui-bits",
+      "import_path": ""
+    },
+    {
+      "name": "Field",
+      "file": "src/components/counsel/ui-bits",
+      "import_path": ""
+    },
+    {
+      "name": "LegalNavigator",
+      "file": "src/components/legal-navigator",
+      "import_path": ""
+    },
+    {
+      "name": "CartDrawer",
+      "file": "src/components/storefront/cart-drawer",
+      "import_path": ""
+    },
+    {
+      "name": "IssueTriageBanner",
+      "file": "src/components/storefront/issue-triage",
+      "import_path": ""
+    },
+    {
+      "name": "ProductCard",
+      "file": "src/components/storefront/product-card",
+      "import_path": ""
+    },
+    {
+      "name": "SiteChrome",
+      "file": "src/components/storefront/site-chrome",
+      "import_path": ""
+    },
+    {
+      "name": "StatusPill",
+      "file": "src/components/storefront/site-chrome",
+      "import_path": ""
+    },
+    {
+      "name": "Sheet",
+      "file": "src/components/ui/sheet",
+      "import_path": "",
+      "props": [
+        {
+          "name": "side",
+          "type": "enum",
+          "values": [
+            "top",
+            "bottom",
+            "left",
+            "right"
+          ],
+          "default": "right"
+        }
+      ]
+    },
+    {
+      "name": "SheetPortal",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "SheetOverlay",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "SheetTrigger",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "SheetClose",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "SheetContent",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "SheetHeader",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "SheetFooter",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "SheetTitle",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "SheetDescription",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "Constants",
+      "file": "src/integrations/supabase/types",
+      "import_path": ""
+    }
+  ],
+  "assets": [
+    {
+      "file": "src/assets/hero-sanctum.jpg",
+      "kind": "image",
+      "format": "jpg"
+    }
+  ]
+}
