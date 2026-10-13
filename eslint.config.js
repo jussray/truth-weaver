@@ -36,5 +36,11 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
     },
   },
+  // Lovable generates preview auth storage; keep source regeneration-safe.
+  // The generated timer is assigned after callback definition by design.
+  {
+    files: ["src/integrations/supabase/previewAuthStorage.ts"],
+    rules: { "prefer-const": "off" },
+  },
   eslintConfigPrettier,
 );
