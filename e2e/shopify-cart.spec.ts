@@ -147,12 +147,18 @@ test("shows planned preview prices without enabling a purchase", async ({ page }
     });
   });
   await page.goto("/shop");
-  await expect(page.locator("[data-shop-unavailable]")).toContainText("No products found");
+  await expect(page.locator("[data-shop-unavailable]")).toContainText("No products available yet");
   const previews = page.getByTestId("notice-offer-preview");
   await expect(previews).toHaveCount(3);
   await expect(previews.nth(0)).toContainText("$10 planned");
   await expect(previews.nth(1)).toContainText("$29 planned");
   await expect(previews.nth(2)).toContainText("$49 planned");
+  // Approved Shopify-hosted images must appear on every preview without enabling checkout.
+  for (const preview of await previews.all()) {
+    const image = preview.getByTestId("notice-offer-image");
+    await expect(image).toHaveAttribute("src", /^https:\/\/cdn\.shopify\.com\/s\/files\//);
+    await expect(image).toHaveAttribute("alt", /^Truth Weaver Counsel Notice /);
+  }
   await expect(page.getByTestId("notice-offer-previews")).toContainText("Not for sale");
   await expect(page.getByTestId("notice-offer-previews").getByRole("button")).toHaveCount(0);
 });

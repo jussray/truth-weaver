@@ -24,8 +24,16 @@ test.describe("Truth Weaver live domain (read-only)", () => {
     await expect(catalog).toBeVisible({ timeout: 30_000 });
     if (await page.locator("[data-shop-unavailable]").isVisible()) {
       // An empty catalog is acceptable before launch; a failed API is not.
-      await expect(page.locator("[data-shop-unavailable]")).toContainText("No products found");
+      await expect(page.locator("[data-shop-unavailable]")).toContainText("No products available yet");
     }
+  });
+
+
+  test("never serves a 404 for gated fulfillment on the attached production domain", async ({ page }) => {
+    await page.goto(new URL("/fulfillment", liveUrl).href, { waitUntil: "domcontentloaded" });
+    expect(permittedHosts.has(new URL(page.url()).hostname)).toBe(true);
+    await expect(page).toHaveURL(/\/login(?:\?|$)/, { timeout: 15_000 });
+    await expect(page.getByRole("heading", { name: "Sign in", level: 1 })).toBeVisible();
   });
 
   test("serves Notice Analyzer with a usable input, without submitting private data", async ({ page }) => {

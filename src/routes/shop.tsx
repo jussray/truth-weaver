@@ -64,8 +64,8 @@ function ShopPage() {
           <p data-shop-unavailable className="mt-10 text-parchment/70">The store couldn't be reached right now. Please try again shortly.</p>
         ) : products.length === 0 ? (
           <div data-shop-unavailable className="mt-10 max-w-2xl rounded-2xl border border-gold/25 bg-forest-deep/60 p-6 leading-7 text-parchment/80">
-            <p className="font-serif text-2xl text-parchment">No products found</p>
-            <p className="mt-2">Nothing is listed here yet. Meanwhile you can explore legal areas or try the free legal research tool.</p>
+            <p className="font-serif text-2xl text-parchment">No products available yet</p>
+            <p className="mt-2">The notice products shown below are still in preparation. Purchases will open after checkout, access and delivery are verified. You can still explore legal areas and try free research.</p>
             <div className="mt-5 flex flex-wrap gap-3">
               <a href="/#legal-areas" className="rounded-full bg-gold px-5 py-2.5 text-sm font-bold text-ink">Explore by legal area</a>
               <a href="/#legal-research" className="rounded-full border border-gold/40 px-5 py-2.5 text-sm font-bold text-gold-soft">Try legal research</a>
