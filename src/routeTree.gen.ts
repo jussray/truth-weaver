@@ -22,6 +22,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SourcesRouteImport } from './routes/sources'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedFulfillmentRouteImport } from './routes/_authenticated/fulfillment'
 import { Route as ProductHandleRouteImport } from './routes/product.$handle'
 import { Route as AuthenticatedIssuesIssueIdRouteImport } from './routes/_authenticated/issues.$issueId'
 import { Route as AuthenticatedIssuesNewRouteImport } from './routes/_authenticated/issues.new'
@@ -90,6 +91,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedFulfillmentRoute = AuthenticatedFulfillmentRouteImport.update({
+  id: '/fulfillment',
+  path: '/fulfillment',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const ProductHandleRoute = ProductHandleRouteImport.update({
   id: '/product/$handle',
   path: '/product/$handle',
@@ -120,6 +126,8 @@ export interface FileRoutesByFullPath {
   '/sources': typeof SourcesRoute
   '/account': typeof AuthenticatedAccountRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/fulfillment': typeof AuthenticatedFulfillmentRoute
+  '/fulfillment': typeof AuthenticatedFulfillmentRoute
   '/product/$handle': typeof ProductHandleRoute
   '/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/issues/new': typeof AuthenticatedIssuesNewRoute
@@ -156,6 +164,7 @@ export interface FileRoutesById {
   '/sources': typeof SourcesRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/fulfillment': typeof AuthenticatedFulfillmentRoute
   '/product/$handle': typeof ProductHandleRoute
   '/_authenticated/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/_authenticated/issues/new': typeof AuthenticatedIssuesNewRoute
@@ -175,6 +184,8 @@ export interface FileRouteTypes {
     | '/sources'
     | '/account'
     | '/dashboard'
+    | '/fulfillment'
+    | '/fulfillment'
     | '/product/$handle'
     | '/issues/$issueId'
     | '/issues/new'
@@ -210,6 +221,7 @@ export interface FileRouteTypes {
     | '/sources'
     | '/_authenticated/account'
     | '/_authenticated/dashboard'
+    | '/_authenticated/fulfillment'
     | '/product/$handle'
     | '/_authenticated/issues/$issueId'
     | '/_authenticated/issues/new'
@@ -323,6 +335,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/fulfillment': {
+      id: '/_authenticated/fulfillment'
+      path: '/fulfillment'
+      fullPath: '/fulfillment'
+      preLoaderRoute: typeof AuthenticatedFulfillmentRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/product/$handle': {
       id: '/product/$handle'
       path: '/product/$handle'
@@ -350,6 +369,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedFulfillmentRoute: typeof AuthenticatedFulfillmentRoute
   AuthenticatedIssuesIssueIdRoute: typeof AuthenticatedIssuesIssueIdRoute
   AuthenticatedIssuesNewRoute: typeof AuthenticatedIssuesNewRoute
 }
@@ -357,6 +377,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedFulfillmentRoute: AuthenticatedFulfillmentRoute,
   AuthenticatedIssuesIssueIdRoute: AuthenticatedIssuesIssueIdRoute,
   AuthenticatedIssuesNewRoute: AuthenticatedIssuesNewRoute,
 }
