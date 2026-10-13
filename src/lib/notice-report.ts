@@ -12,11 +12,11 @@ export type NoticeSnapshotReport = {
 };
 
 function singleLine(text: string | null | undefined): string {
-  return (text ?? "").replace(/[\u0000-\u001f\u007f]+/g, " ").trim() || "Not supplied";
+  return (text ?? "").replace(/\p{Cc}+/gu, " ").trim() || "Not supplied";
 }
 
 function block(text: string | null | undefined): string {
-  return (text ?? "").replace(/\r\n?/g, "\n").replace(/\u0000/g, "").trim() || "Not supplied";
+  return (text ?? "").replace(/\r\n?/g, "\n").replace(/\p{Cc}/gu, (character) => character === "\n" ? "\n" : "").trim() || "Not supplied";
 }
 
 function numbered(lines: readonly string[]): string {
