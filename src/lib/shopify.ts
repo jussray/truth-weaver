@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 
-const SHOPIFY_API_VERSION = "2025-07";
+const SHOPIFY_API_VERSION = "2026-10";
 const SHOPIFY_STORE_PERMANENT_DOMAIN = "fcr-truth-weaver-esimv-203acj81.myshopify.com";
 const SHOPIFY_STOREFRONT_URL = `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`;
 // Storefront tokens are publishable (read-only, client-safe).
@@ -84,14 +84,13 @@ const CART_LINES_REMOVE_MUTATION = `mutation cartLinesRemove($cartId: ID!, $line
 
 type UserError = { field: string[] | null; message: string };
 
-// Preserve Shopify's returned checkoutUrl; only add channel param. Reject non-HTTPS / non-Shopify hosts.
+// Use Shopify's freshly returned checkoutUrl without modification. Reject non-HTTPS / non-Shopify hosts.
 export function formatCheckoutUrl(checkoutUrl: string): string | null {
   try {
     const url = new URL(checkoutUrl);
     if (url.protocol !== "https:") return null;
     const h = url.hostname;
     if (!(h.endsWith(".myshopify.com") || h.endsWith(".shopify.com") || h === SHOPIFY_STORE_PERMANENT_DOMAIN)) return null;
-    url.searchParams.set("channel", "online_store");
     return url.toString();
   } catch {
     return null;
