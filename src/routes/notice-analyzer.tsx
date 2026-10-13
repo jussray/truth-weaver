@@ -64,8 +64,8 @@ function NoticeAnalyzerPage() {
     event.currentTarget.value = "";
     if (!file) return;
 
-    const isPlainText = file.type === "text/plain" || /\\.txt$/i.test(file.name);
-    const isPdf = file.type === "application/pdf" || /\\.pdf$/i.test(file.name);
+    const isPlainText = file.type === "text/plain" || /\.txt$/i.test(file.name);
+    const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
     if (!isPlainText && !isPdf) {
       setFileMessage("Only selectable-text PDFs and .txt files are supported. For images or scanned PDFs, paste reliably extracted text.");
       return;
