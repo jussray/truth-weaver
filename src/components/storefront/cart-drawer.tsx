@@ -18,20 +18,16 @@ export function CartDrawer({ compact = false }: { compact?: boolean }) {
   }, [open, syncCart]);
 
   const checkout = async () => {
-    // Open synchronously to avoid popup blockers, then point it at the refreshed Shopify checkout.
-    const win = window.open("", "_blank");
     try {
       const url = await prepareCheckout();
       if (!url) {
-        win?.close();
         toast.error("Your cart expired. Please add items again.");
         return;
       }
-      if (win) win.location.href = url;
-      else window.open(url, "_blank");
-      setOpen(false);
+      // Use the validated, freshly returned Shopify URL in the same tab.
+      // A pre-opened blank popup can strand shoppers if checkout fails or is blocked.
+      window.location.assign(url);
     } catch {
-      win?.close();
       toast.error("Couldn't reach Shopify checkout. Please try again.");
     }
   };
