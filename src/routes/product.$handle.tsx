@@ -56,8 +56,9 @@ function ProductPage() {
                 disabled={isLoading || !variant?.availableForSale}
                 onClick={async () => {
                   if (!variant || !q.data) return;
-                  await addItem({ product: q.data, variantId: variant.id, variantTitle: variant.title, price: variant.price, quantity: 1, selectedOptions: variant.selectedOptions });
-                  toast.success(`${p.title} added to cart`, { position: "top-center" });
+                  const ok = await addItem({ product: q.data, variantId: variant.id, variantTitle: variant.title, price: variant.price, quantity: 1, selectedOptions: variant.selectedOptions });
+                  if (ok) toast.success(`${p.title} added to cart`, { position: "top-center" });
+                  else toast.error(`Couldn't add ${p.title}. Please try again.`, { position: "top-center" });
                 }}
                 className="mt-7 rounded-full bg-gold px-8 py-3 font-bold text-ink disabled:opacity-60"
               >
