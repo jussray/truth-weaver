@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { TruthBadge } from "@/components/counsel/ui-bits";
+import { LegalNavigator } from "@/components/legal-navigator";
+import { issueResearchPrefill } from "@/lib/issue-research";
 import { CounselPage, StateBox, WorkspaceNav, tw } from "@/components/counsel/page";
 import { getIssue, listFindings } from "@/lib/counsel";
 
@@ -37,6 +39,16 @@ function IssuePage() {
             <p className={tw.label}>Jurisdiction · dates</p>
             <p className="mt-1 text-sm">{i.jurisdiction_note || (i.jurisdiction_id ? "Registered jurisdiction" : "JURISDICTION UNKNOWN")} · event {i.event_date ?? "not set"} · law as of {i.as_of_date ?? "not set"}</p>
             {i.facts && <p className="mt-3 whitespace-pre-wrap text-sm text-parchment/80">{i.facts}</p>}
+          </section>
+          <section aria-label="Research this saved issue" className="overflow-hidden rounded-2xl border border-gold/20">
+            <div className="bg-ink p-5">
+              <h2 className="font-serif text-2xl text-parchment">Research this saved issue</h2>
+              <p className="mt-2 text-sm text-parchment/65">
+                We prefill your saved facts, place and dates in the existing source-aware legal navigator.
+                Research results are shown in this session only and are not automatically recorded as verified findings.
+              </p>
+            </div>
+            <LegalNavigator key={i.id} initialValues={issueResearchPrefill(i)} />
           </section>
           <section className={tw.card}>
             <h2 className="font-serif text-xl">Findings</h2>

@@ -67,9 +67,11 @@ function StateBadge({ state }: { state: string }) {
   );
 }
 
-export function LegalNavigator() {
+export type LegalNavigatorInitialValues = Partial<FormState>;
+
+export function LegalNavigator({ initialValues }: { initialValues?: LegalNavigatorInitialValues }) {
   const hydrated = useHydrated();
-  const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [form, setForm] = useState<FormState>(() => ({ ...EMPTY_FORM, ...initialValues }));
   const [result, setResult] = useState<ResearchResult | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
