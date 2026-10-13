@@ -91,7 +91,7 @@ export function formatCheckoutUrl(checkoutUrl: string): string | null {
     const url = new URL(checkoutUrl);
     if (url.protocol !== "https:" || url.username || url.password || url.port) return null;
     if (url.hostname !== SHOPIFY_STORE_PERMANENT_DOMAIN) return null;
-    if (!/^\\/(?:checkouts?\\/|cart\\/c\\/)/.test(url.pathname)) return null;
+    if (!/^\/(?:checkouts?\/|cart\/c\/)/.test(url.pathname)) return null;
     // Preserve Shopify's cart token and existing query parameters verbatim.
     return url.toString();
   } catch {
