@@ -2,6 +2,8 @@
 export const NOTICE_OFFERS = {
   snapshot: {
     sku: "TW-SNAPSHOT-ONE",
+    imageUrl: "https://cdn.shopify.com/s/files/1/0859/7386/0573/files/truth-weaver-snapshot.png?v=1791928380",
+    imageAlt: "Truth Weaver Counsel Notice Snapshot illustrated legal notice",
     priceUsd: 10,
     label: "Notice Snapshot",
     description: "Downloadable source-bound notice summary",
@@ -11,6 +13,8 @@ export const NOTICE_OFFERS = {
   },
   deepDive: {
     sku: "TW-DEEPDIVE-ONE",
+    imageUrl: "https://cdn.shopify.com/s/files/1/0859/7386/0573/files/truth-weaver-deepDive.png?v=1791928387",
+    imageAlt: "Truth Weaver Counsel Notice Deep Dive illustrated legal source analysis",
     priceUsd: 29,
     label: "Notice Deep Dive",
     description: "Expanded interactive notice review and verified source trail when available",
@@ -20,6 +24,8 @@ export const NOTICE_OFFERS = {
   },
   premium: {
     sku: "TW-PREMIUM-ONE",
+    imageUrl: "https://cdn.shopify.com/s/files/1/0859/7386/0573/files/truth-weaver-premium.png?v=1791928392",
+    imageAlt: "Truth Weaver Counsel Notice Premium illustrated research packet",
     priceUsd: 49,
     label: "Notice Premium",
     description: "Multi-round research packet with revised downloadable report",

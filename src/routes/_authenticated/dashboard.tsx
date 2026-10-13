@@ -57,6 +57,7 @@ function Dashboard() {
               <div className="mt-4 grid gap-3 sm:grid-cols-3">
                 {Object.values(NOTICE_OFFERS).map((offer) => (
                   <article key={offer.sku} className="rounded-xl border border-gold/20 p-4">
+                    <img src={offer.imageUrl} alt={offer.imageAlt} className="mb-3 aspect-[4/3] w-full rounded-lg object-cover" loading="lazy" />
                     <p className={tw.label}>Not yet for sale</p>
                     <h3 className="mt-2 font-serif text-lg">{offer.label}</h3>
                     <p className="mt-1 text-gold-soft">${offer.priceUsd} planned</p>

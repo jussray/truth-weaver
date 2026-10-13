@@ -87,6 +87,7 @@ function ShopPage() {
             <div className="mt-5 grid gap-4 sm:grid-cols-3">
               {Object.values(NOTICE_OFFERS).map((offer) => (
                 <article key={offer.sku} data-testid="notice-offer-preview" className="rounded-2xl border border-gold/25 bg-forest-deep/40 p-5">
+                  <img data-testid="notice-offer-image" src={offer.imageUrl} alt={offer.imageAlt} className="mb-4 aspect-[4/3] w-full rounded-xl object-cover" loading="lazy" />
                   <p className="text-xs font-bold uppercase tracking-[0.16em] text-gold">In development · Not for sale</p>
                   <h3 className="mt-3 font-serif text-xl text-parchment">{offer.label}</h3>
                   <p className="mt-2 text-2xl font-bold text-gold-soft">${offer.priceUsd} planned</p>
