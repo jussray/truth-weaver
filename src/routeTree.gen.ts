@@ -13,13 +13,17 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as ConnectorsRouteImport } from './routes/connectors'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as LegalLibraryRouteImport } from './routes/legal-library'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as NoticeAnalyzerRouteImport } from './routes/notice-analyzer'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as SourcesRouteImport } from './routes/sources'
+import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as ProductHandleRouteImport } from './routes/product.$handle'
+import { Route as AuthenticatedIssuesIssueIdRouteImport } from './routes/_authenticated/issues.$issueId'
 import { Route as AuthenticatedIssuesNewRouteImport } from './routes/_authenticated/issues.new'
 
 const IndexRoute = IndexRouteImport.update({
@@ -39,6 +43,11 @@ const ConnectorsRoute = ConnectorsRouteImport.update({
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalLibraryRoute = LegalLibraryRouteImport.update({
+  id: '/legal-library',
+  path: '/legal-library',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -66,6 +75,16 @@ const SignupRoute = SignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SourcesRoute = SourcesRouteImport.update({
+  id: '/sources',
+  path: '/sources',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -76,6 +95,12 @@ const ProductHandleRoute = ProductHandleRouteImport.update({
   path: '/product/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedIssuesIssueIdRoute =
+  AuthenticatedIssuesIssueIdRouteImport.update({
+    id: '/issues/$issueId',
+    path: '/issues/$issueId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedIssuesNewRoute = AuthenticatedIssuesNewRouteImport.update({
   id: '/issues/new',
   path: '/issues/new',
@@ -86,26 +111,34 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/connectors': typeof ConnectorsRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/legal-library': typeof LegalLibraryRoute
   '/login': typeof LoginRoute
   '/notice-analyzer': typeof NoticeAnalyzerRoute
   '/reset-password': typeof ResetPasswordRoute
   '/shop': typeof ShopRoute
   '/signup': typeof SignupRoute
+  '/sources': typeof SourcesRoute
+  '/account': typeof AuthenticatedAccountRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/product/$handle': typeof ProductHandleRoute
+  '/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/issues/new': typeof AuthenticatedIssuesNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/connectors': typeof ConnectorsRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/legal-library': typeof LegalLibraryRoute
   '/login': typeof LoginRoute
   '/notice-analyzer': typeof NoticeAnalyzerRoute
   '/reset-password': typeof ResetPasswordRoute
   '/shop': typeof ShopRoute
   '/signup': typeof SignupRoute
+  '/sources': typeof SourcesRoute
+  '/account': typeof AuthenticatedAccountRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/product/$handle': typeof ProductHandleRoute
+  '/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/issues/new': typeof AuthenticatedIssuesNewRoute
 }
 export interface FileRoutesById {
@@ -114,13 +147,17 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/connectors': typeof ConnectorsRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/legal-library': typeof LegalLibraryRoute
   '/login': typeof LoginRoute
   '/notice-analyzer': typeof NoticeAnalyzerRoute
   '/reset-password': typeof ResetPasswordRoute
   '/shop': typeof ShopRoute
   '/signup': typeof SignupRoute
+  '/sources': typeof SourcesRoute
+  '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/product/$handle': typeof ProductHandleRoute
+  '/_authenticated/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/_authenticated/issues/new': typeof AuthenticatedIssuesNewRoute
 }
 export interface FileRouteTypes {
@@ -129,26 +166,34 @@ export interface FileRouteTypes {
     | '/'
     | '/connectors'
     | '/forgot-password'
+    | '/legal-library'
     | '/login'
     | '/notice-analyzer'
     | '/reset-password'
     | '/shop'
     | '/signup'
+    | '/sources'
+    | '/account'
     | '/dashboard'
     | '/product/$handle'
+    | '/issues/$issueId'
     | '/issues/new'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/connectors'
     | '/forgot-password'
+    | '/legal-library'
     | '/login'
     | '/notice-analyzer'
     | '/reset-password'
     | '/shop'
     | '/signup'
+    | '/sources'
+    | '/account'
     | '/dashboard'
     | '/product/$handle'
+    | '/issues/$issueId'
     | '/issues/new'
   id:
     | '__root__'
@@ -156,13 +201,17 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/connectors'
     | '/forgot-password'
+    | '/legal-library'
     | '/login'
     | '/notice-analyzer'
     | '/reset-password'
     | '/shop'
     | '/signup'
+    | '/sources'
+    | '/_authenticated/account'
     | '/_authenticated/dashboard'
     | '/product/$handle'
+    | '/_authenticated/issues/$issueId'
     | '/_authenticated/issues/new'
   fileRoutesById: FileRoutesById
 }
@@ -171,11 +220,13 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   ConnectorsRoute: typeof ConnectorsRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  LegalLibraryRoute: typeof LegalLibraryRoute
   LoginRoute: typeof LoginRoute
   NoticeAnalyzerRoute: typeof NoticeAnalyzerRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ShopRoute: typeof ShopRoute
   SignupRoute: typeof SignupRoute
+  SourcesRoute: typeof SourcesRoute
   ProductHandleRoute: typeof ProductHandleRoute
 }
 
@@ -207,6 +258,13 @@ declare module '@tanstack/react-router' {
       path: '/forgot-password'
       fullPath: '/forgot-password'
       preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal-library': {
+      id: '/legal-library'
+      path: '/legal-library'
+      fullPath: '/legal-library'
+      preLoaderRoute: typeof LegalLibraryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -244,6 +302,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sources': {
+      id: '/sources'
+      path: '/sources'
+      fullPath: '/sources'
+      preLoaderRoute: typeof SourcesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/account': {
+      id: '/_authenticated/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AuthenticatedAccountRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -258,6 +330,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/issues/$issueId': {
+      id: '/_authenticated/issues/$issueId'
+      path: '/issues/$issueId'
+      fullPath: '/issues/$issueId'
+      preLoaderRoute: typeof AuthenticatedIssuesIssueIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/issues/new': {
       id: '/_authenticated/issues/new'
       path: '/issues/new'
@@ -269,12 +348,16 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedIssuesIssueIdRoute: typeof AuthenticatedIssuesIssueIdRoute
   AuthenticatedIssuesNewRoute: typeof AuthenticatedIssuesNewRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAccountRoute: AuthenticatedAccountRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedIssuesIssueIdRoute: AuthenticatedIssuesIssueIdRoute,
   AuthenticatedIssuesNewRoute: AuthenticatedIssuesNewRoute,
 }
 
@@ -286,11 +369,13 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   ConnectorsRoute: ConnectorsRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
+  LegalLibraryRoute: LegalLibraryRoute,
   LoginRoute: LoginRoute,
   NoticeAnalyzerRoute: NoticeAnalyzerRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ShopRoute: ShopRoute,
   SignupRoute: SignupRoute,
+  SourcesRoute: SourcesRoute,
   ProductHandleRoute: ProductHandleRoute,
 }
 export const routeTree = rootRouteImport
