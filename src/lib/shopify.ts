@@ -84,13 +84,15 @@ const CART_LINES_REMOVE_MUTATION = `mutation cartLinesRemove($cartId: ID!, $line
 
 type UserError = { field: string[] | null; message: string };
 
-// Use Shopify's freshly returned checkoutUrl without modification. Reject non-HTTPS / non-Shopify hosts.
+// Accept only checkout links for THIS Shopify store. A legitimate Shopify
+// response must not send a buyer to a different merchant's checkout.
 export function formatCheckoutUrl(checkoutUrl: string): string | null {
   try {
     const url = new URL(checkoutUrl);
-    if (url.protocol !== "https:") return null;
-    const h = url.hostname;
-    if (!(h.endsWith(".myshopify.com") || h.endsWith(".shopify.com") || h === SHOPIFY_STORE_PERMANENT_DOMAIN)) return null;
+    if (url.protocol !== "https:" || url.username || url.password || url.port) return null;
+    if (url.hostname !== SHOPIFY_STORE_PERMANENT_DOMAIN) return null;
+    if (!/^\\/(?:checkouts?\\/|cart\\/c\\/)/.test(url.pathname)) return null;
+    // Preserve Shopify's cart token and existing query parameters verbatim.
     return url.toString();
   } catch {
     return null;
