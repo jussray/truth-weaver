@@ -49,12 +49,29 @@ export const triageIssueWithAi = createServerFn({ method: "POST" })
         },
       },
     });
-    const text = await result.text;
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("AI triage returned no result.");
-    const parsed = JSON.parse(match[0]) as { areas?: { area: string; reason: string }[] };
-    return (parsed.areas ?? [])
-      .filter((a) => (LEGAL_AREAS as readonly string[]).includes(a.area))
-      .slice(0, 3)
-      .map((a) => ({ area: a.area, reason: String(a.reason ?? "").slice(0, 200) }));
+    return parseTriageText(await result.text);
   });
+
+export function parseTriageText(text: string): AiTriageResult {
+  const match = text.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error("AI triage returned no result.");
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(match[0]);
+  } catch {
+    throw new Error("AI triage output was malformed.");
+  }
+  const areas = (parsed as { areas?: unknown }).areas;
+  if (!Array.isArray(areas)) throw new Error("AI triage output was malformed.");
+  const seen = new Set<string>();
+  const out: AiTriageResult = [];
+  for (const a of areas) {
+    const area = typeof a?.area === "string" ? a.area : "";
+    const reason = typeof a?.reason === "string" ? a.reason.trim() : "";
+    if (!(LEGAL_AREAS as readonly string[]).includes(area) || !reason || seen.has(area)) continue;
+    seen.add(area);
+    out.push({ area, reason: reason.slice(0, 200) });
+    if (out.length === 3) break;
+  }
+  return out;
+}

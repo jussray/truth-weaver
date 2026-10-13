@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ExternalLink, Loader2, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { formatPrice } from "@/lib/shopify";
@@ -7,7 +8,7 @@ import { useCartStore } from "@/stores/cart-store";
 
 export function CartDrawer({ compact = false }: { compact?: boolean }) {
   const [open, setOpen] = useState(false);
-  const { items, isLoading, isSyncing, updateQuantity, removeItem, getCheckoutUrl, syncCart } = useCartStore();
+  const { items, isLoading, isSyncing, updateQuantity, removeItem, prepareCheckout, syncCart } = useCartStore();
   const totalItems = items.reduce((s, i) => s + i.quantity, 0);
   const total = items.reduce((s, i) => s + parseFloat(i.price.amount) * i.quantity, 0);
   const currency = items[0]?.price.currencyCode ?? "USD";
@@ -16,11 +17,22 @@ export function CartDrawer({ compact = false }: { compact?: boolean }) {
     if (open) syncCart();
   }, [open, syncCart]);
 
-  const checkout = () => {
-    const url = getCheckoutUrl();
-    if (url) {
-      window.open(url, "_blank");
+  const checkout = async () => {
+    // Open synchronously to avoid popup blockers, then point it at the refreshed Shopify checkout.
+    const win = window.open("", "_blank");
+    try {
+      const url = await prepareCheckout();
+      if (!url) {
+        win?.close();
+        toast.error("Your cart expired. Please add items again.");
+        return;
+      }
+      if (win) win.location.href = url;
+      else window.open(url, "_blank");
       setOpen(false);
+    } catch {
+      win?.close();
+      toast.error("Couldn't reach Shopify checkout. Please try again.");
     }
   };
 

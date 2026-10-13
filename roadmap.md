@@ -22,4 +22,9 @@
 - [ ] GitHub: connect project to GitHub. Blocked: the founder has to approve this in the editor (+ menu → GitHub → Connect project)
 - [x] Notice analyzer: upload/paste notice + jurisdiction → dates, obligations, questions for counsel (AI Gateway, non-authorizing) at /notice-analyzer
 - [x] index.tsx import check: no malformed import found; typecheck + production build pass
+- [ ] AI-only semantic triage (no keyword fallback, honest error, validated/deduped, stale-safe)
+- [ ] Harden Shopify cart: errors throw (incl 402), validate HTTPS checkout host, refresh cart before redirect
+- [ ] Claim store (blocked: needs founder to click Claim in Shopify menu)
+- [ ] First product (blocked: needs founder name, price, deliverable, fulfillment)
+- [ ] Publish after checks
 

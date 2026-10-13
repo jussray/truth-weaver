@@ -5,6 +5,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import {
   addLineToShopifyCart,
   cartExists,
+  fetchLiveCart,
   createShopifyCart,
   removeLineFromShopifyCart,
   updateShopifyCartLine,
@@ -27,12 +28,13 @@ interface CartStore {
   checkoutUrl: string | null;
   isLoading: boolean;
   isSyncing: boolean;
-  addItem: (item: Omit<CartItem, "lineId">) => Promise<void>;
+  addItem: (item: Omit<CartItem, "lineId">) => Promise<boolean>;
   updateQuantity: (variantId: string, quantity: number) => Promise<void>;
   removeItem: (variantId: string) => Promise<void>;
   clearCart: () => void;
   syncCart: () => Promise<void>;
   getCheckoutUrl: () => string | null;
+  prepareCheckout: () => Promise<string | null>;
 }
 
 export const useCartStore = create<CartStore>()(
@@ -44,6 +46,7 @@ export const useCartStore = create<CartStore>()(
       isLoading: false,
       isSyncing: false,
 
+      // Returns true only when Shopify confirmed the line.
       addItem: async (item) => {
         const { items, cartId, clearCart } = get();
         const existing = items.find((i) => i.variantId === item.variantId);
@@ -51,20 +54,33 @@ export const useCartStore = create<CartStore>()(
         try {
           if (!cartId) {
             const r = await createShopifyCart(item.variantId, item.quantity);
-            if (r) set({ cartId: r.cartId, checkoutUrl: r.checkoutUrl, items: [{ ...item, lineId: r.lineId }] });
-          } else if (existing) {
-            if (!existing.lineId) return;
+            if (!r) return false;
+            set({ cartId: r.cartId, checkoutUrl: r.checkoutUrl, items: [{ ...item, lineId: r.lineId }] });
+            return true;
+          }
+          if (existing?.lineId) {
             const q = existing.quantity + item.quantity;
             const r = await updateShopifyCartLine(cartId, existing.lineId, q);
-            if (r.success) set({ items: get().items.map((i) => (i.variantId === item.variantId ? { ...i, quantity: q } : i)) });
-            else if (r.cartNotFound) clearCart();
-          } else {
-            const r = await addLineToShopifyCart(cartId, item.variantId, item.quantity);
-            if (r.success) set({ items: [...get().items, { ...item, lineId: r.lineId ?? null }] });
-            else if (r.cartNotFound) clearCart();
+            if (r.success) {
+              set({ items: get().items.map((i) => (i.variantId === item.variantId ? { ...i, quantity: q } : i)) });
+              return true;
+            }
+            if (r.cartNotFound) clearCart();
+            return false;
           }
+          const r = await addLineToShopifyCart(cartId, item.variantId, item.quantity);
+          if (r.success && r.lineId) {
+            set({ items: [...get().items.filter((i) => i.variantId !== item.variantId), { ...item, lineId: r.lineId }] });
+            return true;
+          }
+          if (r.cartNotFound) {
+            clearCart();
+            return get().addItem(item);
+          }
+          return false;
         } catch (e) {
           console.error("Failed to add item:", e);
+          return false;
         } finally {
           set({ isLoading: false });
         }
@@ -109,13 +125,40 @@ export const useCartStore = create<CartStore>()(
       clearCart: () => set({ items: [], cartId: null, checkoutUrl: null }),
       getCheckoutUrl: () => get().checkoutUrl,
 
+      // Re-read the real Shopify cart, reconcile lines/prices/quantities, return its checkoutUrl.
+      prepareCheckout: async () => {
+        const { cartId, clearCart } = get();
+        if (!cartId) return null;
+        set({ isSyncing: true });
+        try {
+          const live = await fetchLiveCart(cartId);
+          if (!live) {
+            clearCart();
+            return null;
+          }
+          const byVariant = new Map(live.lines.map((l) => [l.variantId, l]));
+          set({
+            checkoutUrl: live.checkoutUrl,
+            items: get().items
+              .filter((i) => byVariant.has(i.variantId))
+              .map((i) => {
+                const l = byVariant.get(i.variantId)!;
+                return { ...i, lineId: l.lineId, quantity: l.quantity, price: l.price };
+              }),
+          });
+          return live.checkoutUrl;
+        } finally {
+          set({ isSyncing: false });
+        }
+      },
+
       syncCart: async () => {
         const { cartId, isSyncing, clearCart } = get();
         if (!cartId || isSyncing) return;
         set({ isSyncing: true });
         try {
           const ok = await cartExists(cartId);
-          if (ok === false) clearCart();
+          if (!ok) clearCart();
         } catch (e) {
           console.error("Failed to sync cart with Shopify:", e);
         } finally {
