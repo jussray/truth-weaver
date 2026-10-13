@@ -27,7 +27,9 @@ export function triageIssue(text: string): { area: string; hits: string[] }[] {
 
 export function IssueTriageBanner() {
   const [text, setText] = useState("");
-  const [results, setResults] = useState<{ area: string; hits: string[] }[] | null>(null);
+  const [results, setResults] = useState<{ area: string; hits: string[]; reason?: string }[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<"ai" | "keyword">("ai");
 
   return (
     <div data-issue-triage className="mt-8 max-w-xl rounded-2xl border border-gold/35 bg-ink/70 p-4 backdrop-blur sm:p-5">
@@ -36,9 +38,20 @@ export function IssueTriageBanner() {
       </p>
       <form
         className="mt-3 flex flex-col gap-2 sm:flex-row"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
-          setResults(triageIssue(text));
+          if (text.trim().length < 3) return setResults([]);
+          setLoading(true);
+          try {
+            const ai = await triageIssueWithAi({ data: { text } });
+            setMode("ai");
+            setResults(ai.map((a) => ({ area: a.area, hits: [], reason: a.reason })));
+          } catch {
+            setMode("keyword");
+            setResults(triageIssue(text));
+          } finally {
+            setLoading(false);
+          }
         }}
       >
         <label htmlFor="triage-input" className="sr-only">Describe your problem</label>
