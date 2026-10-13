@@ -130,16 +130,24 @@ test("failed Shopify cart creation never reports a successful add", async ({ pag
 
 test("shows planned preview prices without enabling a purchase", async ({ page }) => {
   await page.route(apiUrl, async (route) => {
+    const headers = {
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "POST, OPTIONS",
+      "access-control-allow-headers": "content-type,x-shopify-storefront-access-token",
+      "content-type": "application/json",
+    };
+    if (route.request().method() === "OPTIONS") {
+      await route.fulfill({ status: 204, headers });
+      return;
+    }
     await route.fulfill({
       status: 200,
-      headers: {
-        "access-control-allow-origin": "*",
-        "content-type": "application/json",
-      },
+      headers,
       body: JSON.stringify({ data: { products: { edges: [] } } }),
     });
   });
   await page.goto("/shop");
+  await expect(page.locator("[data-shop-unavailable]")).toContainText("No products found");
   const previews = page.getByTestId("notice-offer-preview");
   await expect(previews).toHaveCount(3);
   await expect(previews.nth(0)).toContainText("$10 planned");
