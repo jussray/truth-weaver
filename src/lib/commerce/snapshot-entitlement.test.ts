@@ -38,5 +38,8 @@ describe("Snapshot checkout-to-report safety", () => {
     expect(sql).not.toMatch(/GRANT (?:INSERT|UPDATE|DELETE|ALL) ON public.tw_snapshot_entitlements TO authenticated/);
     expect(sql).not.toMatch(/CREATE POLICY \w+ ON public.tw_snapshot_report_locations/);
     expect(sql).toContain("FOR SELECT TO authenticated USING (auth.uid() = auth_user_id)");
+    expect(sql).toContain("CONSTRAINT tw_snapshot_order_owner_unique UNIQUE (order_gid, auth_user_id)");
+    expect(sql).toContain("CONSTRAINT tw_snapshot_report_owner_fk FOREIGN KEY (order_gid, auth_user_id)");
+
   });
 });

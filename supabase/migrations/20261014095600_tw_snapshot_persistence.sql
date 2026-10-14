@@ -25,7 +25,8 @@ CREATE TABLE public.tw_snapshot_entitlements (
   revoked_at timestamptz,
   expires_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT tw_snapshot_expiry_after_grant CHECK (expires_at IS NULL OR expires_at > granted_at)
+  CONSTRAINT tw_snapshot_expiry_after_grant CHECK (expires_at IS NULL OR expires_at > granted_at),
+  CONSTRAINT tw_snapshot_order_owner_unique UNIQUE (order_gid, auth_user_id)
 );
 CREATE INDEX tw_snapshot_entitlements_owner_idx ON public.tw_snapshot_entitlements (auth_user_id);
 ALTER TABLE public.tw_snapshot_entitlements ENABLE ROW LEVEL SECURITY;
@@ -37,8 +38,10 @@ CREATE POLICY tw_snapshot_read_own_entitlements ON public.tw_snapshot_entitlemen
 -- Authenticated clients cannot insert, modify or delete grants, including their own.
 
 CREATE TABLE public.tw_snapshot_report_locations (
-  order_gid text PRIMARY KEY REFERENCES public.tw_snapshot_entitlements(order_gid) ON DELETE CASCADE,
-  auth_user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  order_gid text PRIMARY KEY,
+  auth_user_id uuid NOT NULL,
+  CONSTRAINT tw_snapshot_report_owner_fk FOREIGN KEY (order_gid, auth_user_id)
+    REFERENCES public.tw_snapshot_entitlements (order_gid, auth_user_id) ON DELETE CASCADE,
   private_storage_key text NOT NULL UNIQUE CHECK (char_length(private_storage_key) BETWEEN 12 AND 512),
   media_type text NOT NULL CHECK (media_type IN ('application/pdf', 'text/plain;charset=utf-8')),
   created_at timestamptz NOT NULL DEFAULT now()
