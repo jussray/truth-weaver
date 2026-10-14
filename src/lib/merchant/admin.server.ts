@@ -2,7 +2,7 @@ import { TRUTH_WEAVER_SHOPIFY_DOMAIN } from "../commerce/shopify-order-proof";
 
 /** Server-only Shopify Admin GraphQL. Token is read per-call and never returned. */
 export async function adminGraphql<T>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
-  const token = process.env["SHOPIFY_ACCESS_TOKEN"];
+  const token = process.env["SHOPIFY_ADMIN_ACCESS_TOKEN"];
   if (!token) throw new Error("Shopify Admin is not connected.");
   const res = await fetch(`https://${TRUTH_WEAVER_SHOPIFY_DOMAIN}/admin/api/2026-10/graphql.json`, {
     method: "POST",
