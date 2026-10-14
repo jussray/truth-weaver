@@ -679,6 +679,30 @@ export type Database = {
           },
         ]
       }
+      tw_shopify_customer_bindings: {
+        Row: {
+          auth_user_id: string
+          shopify_customer_gid: string
+          verification_method: string
+          verified_at: string
+          created_at: string
+        }
+        Insert: {
+          auth_user_id: string
+          shopify_customer_gid: string
+          verification_method: string
+          verified_at: string
+          created_at?: string
+        }
+        Update: {
+          auth_user_id?: string
+          shopify_customer_gid?: string
+          verification_method?: string
+          verified_at?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
