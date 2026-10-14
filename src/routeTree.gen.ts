@@ -91,11 +91,12 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedFulfillmentRoute = AuthenticatedFulfillmentRouteImport.update({
-  id: '/fulfillment',
-  path: '/fulfillment',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
+const AuthenticatedFulfillmentRoute =
+  AuthenticatedFulfillmentRouteImport.update({
+    id: '/fulfillment',
+    path: '/fulfillment',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ProductHandleRoute = ProductHandleRouteImport.update({
   id: '/product/$handle',
   path: '/product/$handle',
