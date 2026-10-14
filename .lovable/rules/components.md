@@ -134,6 +134,12 @@ import { SheetTitle } from "@ws-0dfe240cdcdbfcf99736/8ef43cd3-8d93-4494-a685-59c
 import { SheetTrigger } from "@ws-0dfe240cdcdbfcf99736/8ef43cd3-8d93-4494-a685-59ce0f795614"
 ```
 
+### ShopifyCustomerConnect
+
+```ts
+import { ShopifyCustomerConnect } from "@ws-0dfe240cdcdbfcf99736/8ef43cd3-8d93-4494-a685-59ce0f795614"
+```
+
 ### SiteChrome
 
 ```ts
