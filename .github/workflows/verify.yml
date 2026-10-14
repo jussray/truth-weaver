@@ -2,7 +2,7 @@ name: verify
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'fix/tw-snapshot-private-delivery-20261014']
   pull_request:
 
 permissions:
