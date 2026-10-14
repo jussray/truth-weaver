@@ -57,7 +57,7 @@ describe("Truth Weaver merchant isolation", () => {
 
   it("requires a confirmation tied to the exact product and value", async () => {
     merchantSession();
-    await expect(updateMerchantProductStatus("valid", productId, "ARCHIVED", "STATUS 999 ARCHIVED"))
+    await expect(updateMerchantProductStatus("valid", productId, "ARCHIVED", "STATUS 999 ARCHIVED", "DRAFT"))
       .rejects.toThrow("Exact product-status confirmation");
     expect(mocks.graphql).not.toHaveBeenCalled();
   });
@@ -72,6 +72,7 @@ describe("Truth Weaver merchant isolation", () => {
     } });
     await expect(updateMerchantProductStatus(
       "valid", productId, "ACTIVE", confirmationPhrase("status", productId, "ACTIVE"),
+      "DRAFT",
     )).rejects.toThrow("launch hold");
     expect(mocks.graphql).toHaveBeenCalledTimes(1);
     expect(mocks.auditInsert).not.toHaveBeenCalled();
@@ -85,6 +86,7 @@ describe("Truth Weaver merchant isolation", () => {
     } });
     await expect(updateMerchantProductStatus(
       "valid", productId, "ACTIVE", confirmationPhrase("status", productId, "ACTIVE"),
+      "DRAFT",
     )).rejects.toThrow("could not be verified");
     expect(mocks.auditInsert).not.toHaveBeenCalled();
   });
@@ -97,7 +99,7 @@ describe("Truth Weaver merchant isolation", () => {
     } });
     await expect(updateMerchantVariantPrice(
       "valid", productId, variantId, "22.00",
-      confirmationPhrase("price", variantId, "22.00"),
+      confirmationPhrase("price", variantId, "22.00"), "20.00",
     )).rejects.toThrow("does not belong");
     expect(mocks.auditInsert).not.toHaveBeenCalled();
   });
@@ -113,7 +115,7 @@ describe("Truth Weaver merchant isolation", () => {
     } });
     const result = await updateMerchantVariantPrice(
       "valid", productId, variantId, "22.00",
-      confirmationPhrase("price", variantId, "22.00"),
+      confirmationPhrase("price", variantId, "22.00"), "20.00",
     );
     expect(result).toEqual({ verified: true, unchanged: false, price: "22.00" });
     expect(mocks.graphql).toHaveBeenCalledTimes(3);
@@ -121,6 +123,32 @@ describe("Truth Weaver merchant isolation", () => {
     expect(mocks.auditInsert).toHaveBeenCalledTimes(2);
     expect(mocks.auditInsert.mock.calls[0]?.[0]?.outcome).toBe("attempted");
     expect(mocks.auditInsert.mock.calls[1]?.[0]?.outcome).toBe("succeeded");
+  });
+
+  it("blocks stale Shopify status overwrite before audit or mutation", async () => {
+    merchantSession();
+    mocks.graphql.mockResolvedValueOnce({ product: {
+      id: productId, title: "Ordinary product", status: "ARCHIVED",
+      variants: { pageInfo: { hasNextPage: false }, nodes: [{ id: variantId, sku: "OTHER", price: "20.00" }] },
+    } });
+    await expect(updateMerchantProductStatus(
+      "valid", productId, "ACTIVE", confirmationPhrase("status", productId, "ACTIVE"), "DRAFT",
+    )).rejects.toThrow("Shopify status changed");
+    expect(mocks.graphql).toHaveBeenCalledTimes(1);
+    expect(mocks.auditInsert).not.toHaveBeenCalled();
+  });
+
+  it("blocks stale Shopify price overwrite before audit or mutation", async () => {
+    merchantSession();
+    mocks.graphql.mockResolvedValueOnce({ productVariant: {
+      id: variantId, sku: "OTHER", price: "21.00", product: { id: productId },
+    } });
+    await expect(updateMerchantVariantPrice(
+      "valid", productId, variantId, "22.00",
+      confirmationPhrase("price", variantId, "22.00"), "20.00",
+    )).rejects.toThrow("Shopify price changed");
+    expect(mocks.graphql).toHaveBeenCalledTimes(1);
+    expect(mocks.auditInsert).not.toHaveBeenCalled();
   });
 
   it("does not equate an order permission error with no orders", async () => {
