@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { CounselPage, StateBox, WorkspaceNav, tw } from "@/components/counsel/page";
+import { SnapshotDownloadPanel } from "@/components/commerce/snapshot-download-panel";
 
 // Read back from the connected Truth Weaver Shopify Admin account on 2026-10-13.
 // Shopify's Customer Accounts owns actual order identities and order data.
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/_authenticated/fulfillment")({
 });
 
 function FulfillmentPage() {
+  const { user } = Route.useRouteContext();
   return (
     <CounselPage title="Orders & fulfillment" eyebrow="Customer purchases" back={{ to: "/dashboard", label: "Dashboard" }}>
       <WorkspaceNav />
@@ -53,6 +55,7 @@ function FulfillmentPage() {
           </StateBox></div>
         </section>
       </div>
+      <div className="mt-5"><SnapshotDownloadPanel userId={user.id} /></div>
       <p className="mt-5 text-sm text-parchment/70">
         Looking to purchase a tool? <Link to="/shop" className="text-gold underline">Open the live catalog</Link>.
         Draft Snapshot, Deep Dive and Premium offers are still held from sale.
