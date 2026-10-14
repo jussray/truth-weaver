@@ -74,10 +74,12 @@ function NoticeAnalyzerPage() {
 
     const isPlainText = file.type === "text/plain" || /\.txt$/i.test(file.name);
     const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
-    if (!isPlainText && !isPdf) {
-      setFileMessage("Only selectable-text PDFs and .txt files are supported. For images or scanned PDFs, paste reliably extracted text.");
+    const isImage = /^image\/(png|jpeg|webp)$/.test(file.type) || /\.(png|jpe?g|webp)$/i.test(file.name);
+    if (!isPlainText && !isPdf && !isImage) {
+      setFileMessage("Supported: PDF, photo (PNG/JPG/WebP), or .txt.");
       return;
     }
+    const ocrNote = "Machine-read (OCR) — check every date, name and amount against the original before analysis.";
 
     try {
       if (isPlainText) {
@@ -86,11 +88,24 @@ function NoticeAnalyzerPage() {
         if (text.length > NOTICE_TEXT_MAX) throw new Error("Notice text is over the 25,000-character limit.");
         updateField("noticeText", text);
         setFileMessage(`Loaded ${file.name}. Review the text before analysis.`);
+      } else if (isImage) {
+        const { ocrNoticeImage } = await import("@/lib/ocr-notice");
+        const text = await ocrNoticeImage(file, setFileMessage);
+        updateField("noticeText", text);
+        setFileMessage(`Scanned ${file.name}. ${ocrNote}`);
       } else {
         setFileMessage("Extracting selectable text locally. No notice has been submitted.");
-        const { text, pages } = await extractNoticePdfText(file);
-        updateField("noticeText", text);
-        setFileMessage(`Loaded ${file.name} (${pages} page${pages === 1 ? "" : "s"}). Review the text before analysis.`);
+        try {
+          const { text, pages } = await extractNoticePdfText(file);
+          updateField("noticeText", text);
+          setFileMessage(`Loaded ${file.name} (${pages} page${pages === 1 ? "" : "s"}). Review the text before analysis.`);
+        } catch (cause) {
+          if (!(cause instanceof Error) || !cause.message.startsWith("No sufficient selectable text")) throw cause;
+          const { ocrNoticePdf } = await import("@/lib/ocr-notice");
+          const text = await ocrNoticePdf(file, setFileMessage);
+          updateField("noticeText", text);
+          setFileMessage(`Scanned ${file.name}. ${ocrNote}`);
+        }
       }
     } catch (cause) {
       setFileMessage(cause instanceof Error ? cause.message : "The document could not be read. Paste the text instead.");
@@ -215,7 +230,7 @@ function NoticeAnalyzerPage() {
                 </label>
               </div>
               <p className="mt-2 text-xs leading-5 text-parchment/55">
-                Selectable-text PDFs (up to 5 MB and 15 pages) and .txt are processed locally first. Image-only scans and photos need OCR, which is not enabled. Review extracted text; it is sent to the server only when you choose Analyze.
+                PDFs (up to 5 MB), photos and .txt are processed on your device first. Scanned PDFs (up to 6 pages) and photos are read with OCR, which can misread text. Review extracted text; it is sent to the server only when you choose Analyze.
               </p>
               <p data-testid="notice-file-status" role="status" className="mt-2 min-h-5 text-xs text-gold-soft">
                 {fileMessage || (uploadReady ? "No document loaded. You can also paste text below." : "Preparing document upload...")}
