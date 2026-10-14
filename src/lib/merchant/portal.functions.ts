@@ -19,12 +19,13 @@ export const changeMerchantProductStatus = createServerFn({ method: "POST" })
   .validator(auth.extend({
     productId: productGid,
     nextStatus: z.enum(["ACTIVE", "DRAFT", "ARCHIVED"]),
+    expectedCurrentStatus: z.enum(["ACTIVE", "DRAFT", "ARCHIVED"]),
     confirmation: z.string().min(1).max(128),
   }))
   .handler(async ({ data }) => {
     const { updateMerchantProductStatus } = await import("./portal.server");
     return updateMerchantProductStatus(
-      data.authAccessToken, data.productId, data.nextStatus, data.confirmation,
+      data.authAccessToken, data.productId, data.nextStatus, data.confirmation, data.expectedCurrentStatus,
     );
   });
 
@@ -33,11 +34,12 @@ export const changeMerchantVariantPrice = createServerFn({ method: "POST" })
     productId: productGid,
     variantId: variantGid,
     price: z.string().regex(/^(?:0|[1-9][0-9]{0,5})\.[0-9]{2}$/),
+    expectedCurrentPrice: z.string().regex(/^(?:0|[1-9][0-9]{0,5})\.[0-9]{2}$/),
     confirmation: z.string().min(1).max(128),
   }))
   .handler(async ({ data }) => {
     const { updateMerchantVariantPrice } = await import("./portal.server");
     return updateMerchantVariantPrice(
-      data.authAccessToken, data.productId, data.variantId, data.price, data.confirmation,
+      data.authAccessToken, data.productId, data.variantId, data.price, data.confirmation, data.expectedCurrentPrice,
     );
   });
