@@ -7,7 +7,6 @@ import { requestSnapshotDownload } from "@/lib/commerce/snapshot-download.functi
 /** A buyer sees only their own entitlement rows via Supabase RLS. */
 export function SnapshotDownloadPanel({ userId }: { userId: string }) {
   const [pending, setPending] = useState<string | null>(null);
-  const [viewTime] = useState(() => Date.now());
   const [error, setError] = useState<string | null>(null);
   const q = useQuery({
     queryKey: ["tw-snapshot-entitlements", userId],
@@ -51,8 +50,8 @@ export function SnapshotDownloadPanel({ userId }: { userId: string }) {
         <p className="mt-3 text-sm text-parchment/70">No verified Snapshot purchases appear in this account yet. Draft offers remain unavailable for sale.</p>
       )}
       {q.data?.map(record => {
-        const inactive = !!record.revoked_at ||
-          (!!record.expires_at && (Date.parse(record.expires_at) || 0) <= viewTime);
+        // Only the authoritative server can decide expiry; a device clock is not proof.
+        const inactive = !!record.revoked_at;
         return (
           <div key={record.order_gid} className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gold/15 p-3">
             <div>
