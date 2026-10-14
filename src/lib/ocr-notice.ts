@@ -15,12 +15,16 @@ async function recognize(images: Array<Blob | HTMLCanvasElement>, onProgress: Oc
   const worker = await createWorker("eng");
   try {
     const parts: string[] = [];
+    const confidence: number[] = [];
     for (let i = 0; i < images.length; i++) {
       onProgress(`Reading page ${i + 1} of ${images.length} on your device…`);
       const { data } = await worker.recognize(images[i]!);
       parts.push(data.text.trim());
+      confidence.push(data.confidence);
     }
-    return parts.join("\n\n").trim();
+    const text = parts.join("\n\n").trim();
+    const averageConfidence = confidence.reduce((sum, value) => sum + value, 0) / confidence.length;
+    return { text, averageConfidence };
   } finally {
     await worker.terminate();
   }
@@ -34,7 +38,8 @@ function checkText(text: string) {
 
 export async function ocrNoticeImage(file: File, onProgress: OcrProgress) {
   if (file.size === 0 || file.size > MAX_IMAGE_BYTES) throw new Error("Image must be nonempty and no larger than 8 MB.");
-  return checkText(await recognize([file], onProgress));
+  const result = await recognize([file], onProgress);
+  return { ...result, text: checkText(result.text) };
 }
 
 export async function ocrNoticePdf(file: File, onProgress: OcrProgress) {
@@ -57,7 +62,8 @@ export async function ocrNoticePdf(file: File, onProgress: OcrProgress) {
       await page.render({ canvas, viewport }).promise;
       canvases.push(canvas);
     }
-    return checkText(await recognize(canvases, onProgress));
+    const result = await recognize(canvases, onProgress);
+    return { ...result, text: checkText(result.text) };
   } finally {
     await doc.destroy();
   }

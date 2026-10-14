@@ -90,9 +90,9 @@ function NoticeAnalyzerPage() {
         setFileMessage(`Loaded ${file.name}. Review the text before analysis.`);
       } else if (isImage) {
         const { ocrNoticeImage } = await import("@/lib/ocr-notice");
-        const text = await ocrNoticeImage(file, setFileMessage);
+        const { text, averageConfidence } = await ocrNoticeImage(file, setFileMessage);
         updateField("noticeText", text);
-        setFileMessage(`Scanned ${file.name}. ${ocrNote}`);
+        setFileMessage(`Scanned ${file.name}. OCR confidence approximately ${Math.round(averageConfidence)}%. ${ocrNote}`);
       } else {
         setFileMessage("Extracting selectable text locally. No notice has been submitted.");
         try {
@@ -102,9 +102,9 @@ function NoticeAnalyzerPage() {
         } catch (cause) {
           if (!(cause instanceof Error) || !cause.message.startsWith("No sufficient selectable text")) throw cause;
           const { ocrNoticePdf } = await import("@/lib/ocr-notice");
-          const text = await ocrNoticePdf(file, setFileMessage);
+          const { text, averageConfidence } = await ocrNoticePdf(file, setFileMessage);
           updateField("noticeText", text);
-          setFileMessage(`Scanned ${file.name}. ${ocrNote}`);
+          setFileMessage(`Scanned ${file.name}. OCR confidence approximately ${Math.round(averageConfidence)}%. ${ocrNote}`);
         }
       }
     } catch (cause) {
@@ -225,13 +225,14 @@ function NoticeAnalyzerPage() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className="font-serif text-2xl text-parchment">3. Notice text</h2>
                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-gold/35 px-3 py-2 text-xs font-bold text-gold hover:bg-gold/10">
-                  <Upload className="h-4 w-4" aria-hidden /> Load PDF / .txt
-                  <input type="file" accept=".pdf,application/pdf,.txt,text/plain" disabled={!uploadReady} onChange={handleNoticeFile} className="sr-only" />
+                  <Upload className="h-4 w-4" aria-hidden /> Load PDF / photo / .txt
+                  <input type="file" accept=".pdf,application/pdf,.txt,text/plain,.png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" disabled={!uploadReady} onChange={handleNoticeFile} className="sr-only" />
                 </label>
               </div>
               <p className="mt-2 text-xs leading-5 text-parchment/55">
                 PDFs (up to 5 MB), photos and .txt are processed on your device first. Scanned PDFs (up to 6 pages) and photos are read with OCR, which can misread text. Review extracted text; it is sent to the server only when you choose Analyze.
               </p>
+              <p role="alert" className="mt-2 text-xs leading-5 text-warn">OCR is machine reading, not verification. Low confidence, missing words and misread dates are possible even when a confidence score looks high. Compare every deadline, amount and name with the original before consenting.</p>
               <p data-testid="notice-file-status" role="status" className="mt-2 min-h-5 text-xs text-gold-soft">
                 {fileMessage || (uploadReady ? "No document loaded. You can also paste text below." : "Preparing document upload...")}
               </p>

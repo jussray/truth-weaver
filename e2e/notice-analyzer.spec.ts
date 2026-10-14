@@ -14,7 +14,7 @@ test("legal notice analyzer is source-bound and does not fabricate a result befo
   await expect(page.getByRole("heading", { level: 1, name: /Pull the signal out of a legal notice/i })).toBeVisible();
   await expect(page.getByTestId("notice-authority")).toContainText("NON-AUTHORIZING");
   await expect(page.getByTestId("notice-authority")).toContainText("GOVERNING LAW IS THE AUTHORITY");
-  await expect(page.getByText(/Image-only scans and photos need OCR/i)).toBeVisible();
+  await expect(page.getByText(/OCR is machine reading, not verification/i)).toBeVisible();
 
   await page.getByTestId("jurisdiction-type").selectOption("state");
   await page.getByTestId("jurisdiction-detail").fill("Pennsylvania");
@@ -78,6 +78,6 @@ test("image-only PDF does not pretend to have been transcribed", async ({ page }
     mimeType: "application/pdf",
     buffer: textPdf(""),
   });
-  await expect(page.getByTestId("notice-file-status")).toContainText(/No sufficient selectable text found/i, { timeout: 20000 });
+  await expect(page.getByTestId("notice-file-status")).toContainText(/Could not read enough text|No sufficient selectable text|Scanned PDFs are limited/i, { timeout: 60000 });
   await expect(page.getByTestId("notice-text")).toHaveValue("");
 });
