@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { CounselPage, StateBox, WorkspaceNav, tw } from "@/components/counsel/page";
+import { CounselPage, WorkspaceNav, tw } from "@/components/counsel/page";
 import { SnapshotDownloadPanel } from "@/components/commerce/snapshot-download-panel";
 
 // Read back from the connected Truth Weaver Shopify Admin account on 2026-10-13.
@@ -45,14 +45,13 @@ function FulfillmentPage() {
           <p className="mt-3 text-sm leading-6 text-parchment/70">
             Physical deliveries may have carrier tracking. Downloadable products normally do not have
             shipping tracking numbers. Shopify will show return or refund actions only when offered
-            for that particular order. Product-specific digital access remains unavailable until a
-            verified paid-order entitlement and actual report delivery are implemented.
+            for that particular order. Any available Snapshot report is listed below and is
+            checked against current payment and entitlement records before download.
           </p>
-          <div className="mt-4"><StateBox kind="empty">
-            Truth Weaver has not connected your Supabase user to a Shopify customer or imported
-            verified order records. No paid, shipped, delivered, refunded, or returned state is
-            asserted inside this application.
-          </StateBox></div>
+          <p className="mt-4 text-sm text-parchment/70">
+            The Snapshot panel below displays only your own recorded entitlements. For other purchases,
+            Shopify remains the source of truth for order and fulfillment status.
+          </p>
         </section>
       </div>
       <div className="mt-5"><SnapshotDownloadPanel userId={user.id} /></div>
