@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 const mocks = vi.hoisted(() => ({
   getUser: vi.fn(),
@@ -129,4 +131,15 @@ describe("Truth Weaver merchant isolation", () => {
     expect(result.ordersUnavailable).toBe(true);
     expect(result.orders).toEqual([]);
   });
+  it("requires the reviewed audit migration to disable browser-generated success receipts", () => {
+    const sql = readFileSync(
+      resolve(process.cwd(), "supabase/migrations/20261014151500_tw_merchant_audit_server_only.sql"),
+      "utf8",
+    );
+    expect(sql).toContain('DROP POLICY IF EXISTS "merchants append own audit"');
+    expect(sql).toMatch(/REVOKE INSERT, UPDATE, DELETE ON public\.merchant_audit_log FROM PUBLIC, anon, authenticated/i);
+    expect(sql).toContain("GRANT ALL ON public.merchant_audit_log TO service_role");
+    expect(sql).toContain("_user_id = auth.uid()");
+  });
+
 });
