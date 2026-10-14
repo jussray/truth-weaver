@@ -1,0 +1,132 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const mocks = vi.hoisted(() => ({
+  getUser: vi.fn(),
+  from: vi.fn(),
+  graphql: vi.fn(),
+  auditInsert: vi.fn(),
+}));
+vi.mock("@/integrations/supabase/client.server", () => ({
+  supabaseAdmin: { auth: { getUser: mocks.getUser }, from: mocks.from },
+}));
+vi.mock("./admin.server", () => ({ adminGraphql: mocks.graphql }));
+
+import {
+  readMerchantDashboard, updateMerchantProductStatus, updateMerchantVariantPrice,
+} from "./portal.server";
+import { confirmationPhrase } from "./policy";
+
+const userId = "11111111-1111-4111-8111-111111111111";
+const productId = "gid://shopify/Product/123";
+const variantId = "gid://shopify/ProductVariant/456";
+
+function merchantSession(allowed = true) {
+  mocks.getUser.mockResolvedValue({ data: { user: { id: userId } }, error: null });
+  const roles = {
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    maybeSingle: vi.fn().mockResolvedValue({
+      data: allowed ? { role: "merchant" } : null,
+      error: null,
+    }),
+  };
+  mocks.auditInsert.mockResolvedValue({ error: null });
+  mocks.from.mockImplementation((table: string) =>
+    table === "user_roles" ? roles : { insert: mocks.auditInsert });
+}
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
+describe("Truth Weaver merchant isolation", () => {
+  it("refuses an invalid Supabase session before Shopify calls", async () => {
+    mocks.getUser.mockResolvedValue({ data: { user: null }, error: { message: "Invalid" } });
+    await expect(readMerchantDashboard("invalid")).rejects.toThrow("Merchant authorization required");
+    expect(mocks.graphql).not.toHaveBeenCalled();
+  });
+
+  it("refuses a signed-in non-merchant before Shopify calls", async () => {
+    merchantSession(false);
+    await expect(readMerchantDashboard("valid-token")).rejects.toThrow("Merchant authorization required");
+    expect(mocks.graphql).not.toHaveBeenCalled();
+    expect(mocks.auditInsert).not.toHaveBeenCalled();
+  });
+
+  it("requires a confirmation tied to the exact product and value", async () => {
+    merchantSession();
+    await expect(updateMerchantProductStatus("valid", productId, "ARCHIVED", "STATUS 999 ARCHIVED"))
+      .rejects.toThrow("Exact product-status confirmation");
+    expect(mocks.graphql).not.toHaveBeenCalled();
+  });
+
+  it("cannot publish a draft Snapshot even when the caller has merchant role", async () => {
+    merchantSession();
+    mocks.graphql.mockResolvedValueOnce({ product: {
+      id: productId, title: "Notice Snapshot", status: "DRAFT",
+      variants: { pageInfo: { hasNextPage: false }, nodes: [
+        { id: variantId, sku: "TW-SNAPSHOT-ONE", price: "10.00" },
+      ] },
+    } });
+    await expect(updateMerchantProductStatus(
+      "valid", productId, "ACTIVE", confirmationPhrase("status", productId, "ACTIVE"),
+    )).rejects.toThrow("launch hold");
+    expect(mocks.graphql).toHaveBeenCalledTimes(1);
+    expect(mocks.auditInsert).not.toHaveBeenCalled();
+  });
+
+  it("fails closed if SKU coverage cannot be fully enumerated", async () => {
+    merchantSession();
+    mocks.graphql.mockResolvedValueOnce({ product: {
+      id: productId, title: "Many variants", status: "DRAFT",
+      variants: { pageInfo: { hasNextPage: true }, nodes: [] },
+    } });
+    await expect(updateMerchantProductStatus(
+      "valid", productId, "ACTIVE", confirmationPhrase("status", productId, "ACTIVE"),
+    )).rejects.toThrow("could not be verified");
+    expect(mocks.auditInsert).not.toHaveBeenCalled();
+  });
+
+  it("rejects price changes when the variant belongs to another product", async () => {
+    merchantSession();
+    mocks.graphql.mockResolvedValueOnce({ productVariant: {
+      id: variantId, sku: "OTHER", price: "20.00",
+      product: { id: "gid://shopify/Product/999" },
+    } });
+    await expect(updateMerchantVariantPrice(
+      "valid", productId, variantId, "22.00",
+      confirmationPhrase("price", variantId, "22.00"),
+    )).rejects.toThrow("does not belong");
+    expect(mocks.auditInsert).not.toHaveBeenCalled();
+  });
+
+  it("requires an audit attempt, Shopify mutation, fresh readback, and success receipt", async () => {
+    merchantSession();
+    mocks.graphql.mockResolvedValueOnce({ productVariant: {
+      id: variantId, sku: "OTHER", price: "20.00", product: { id: productId },
+    } }).mockResolvedValueOnce({ productVariantsBulkUpdate: {
+      productVariants: [{ id: variantId, price: "22.00" }], userErrors: [],
+    } }).mockResolvedValueOnce({ productVariant: {
+      id: variantId, sku: "OTHER", price: "22.00", product: { id: productId },
+    } });
+    const result = await updateMerchantVariantPrice(
+      "valid", productId, variantId, "22.00",
+      confirmationPhrase("price", variantId, "22.00"),
+    );
+    expect(result).toEqual({ verified: true, unchanged: false, price: "22.00" });
+    expect(mocks.graphql).toHaveBeenCalledTimes(3);
+    expect(mocks.graphql.mock.calls[1]?.[0]).toContain("productVariantsBulkUpdate");
+    expect(mocks.auditInsert).toHaveBeenCalledTimes(2);
+    expect(mocks.auditInsert.mock.calls[0]?.[0]?.outcome).toBe("attempted");
+    expect(mocks.auditInsert.mock.calls[1]?.[0]?.outcome).toBe("succeeded");
+  });
+
+  it("does not equate an order permission error with no orders", async () => {
+    merchantSession();
+    mocks.graphql.mockResolvedValueOnce({ products: { pageInfo: { hasNextPage: false }, nodes: [] } })
+      .mockRejectedValueOnce(new Error("read_orders scope missing"));
+    const result = await readMerchantDashboard("valid");
+    expect(result.ordersUnavailable).toBe(true);
+    expect(result.orders).toEqual([]);
+  });
+});
