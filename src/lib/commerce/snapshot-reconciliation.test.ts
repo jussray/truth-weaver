@@ -47,7 +47,7 @@ describe("Shopify Snapshot purchase reconciliation", () => {
   });
   it("rejects a $9.99 line for a $10 Snapshot", () => {
     const underpaid = paidOrder("gid://shopify/Order/111");
-    underpaid.lineItems!.edges[0].node.discountedUnitPriceAfterAllDiscountsSet!.shopMoney.amount = "9.99";
+    underpaid.lineItems!.edges[0]!.node.discountedUnitPriceAfterAllDiscountsSet!.shopMoney.amount = "9.99";
     expect(selectPaidSnapshots(page([underpaid]), customerId))
       .toEqual({ valid: true, paidSnapshotOrderIds: [] });
   });

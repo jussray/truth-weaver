@@ -703,6 +703,66 @@ export type Database = {
         }
         Relationships: []
       }
+      tw_snapshot_entitlements: {
+        Row: {
+          order_gid: string
+          auth_user_id: string
+          variant_gid: string
+          offer: string
+          shopify_verified_at: string
+          granted_at: string
+          revoked_at: string | null
+          expires_at: string | null
+          created_at: string
+        }
+        Insert: {
+          order_gid: string
+          auth_user_id: string
+          variant_gid: string
+          offer?: string
+          shopify_verified_at: string
+          granted_at?: string
+          revoked_at?: string | null
+          expires_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          order_gid?: string
+          auth_user_id?: string
+          variant_gid?: string
+          offer?: string
+          shopify_verified_at?: string
+          granted_at?: string
+          revoked_at?: string | null
+          expires_at?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      tw_snapshot_report_locations: {
+        Row: {
+          order_gid: string
+          auth_user_id: string
+          private_storage_key: string
+          media_type: string
+          created_at: string
+        }
+        Insert: {
+          order_gid: string
+          auth_user_id: string
+          private_storage_key: string
+          media_type: string
+          created_at?: string
+        }
+        Update: {
+          order_gid?: string
+          auth_user_id?: string
+          private_storage_key?: string
+          media_type?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
