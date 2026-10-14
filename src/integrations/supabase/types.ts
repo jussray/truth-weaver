@@ -789,6 +789,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      tw_reserve_snapshot_generation: {
+        Args: { p_auth_user_id: string; p_order_gid: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
