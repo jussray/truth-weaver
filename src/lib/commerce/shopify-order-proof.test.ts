@@ -1,6 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { NOTICE_VARIANTS, evaluatePaidNoticeOrder, usdCents, type ShopifyOrderForProof } from "./shopify-order-proof";
 import { verifyFreshTruthWeaverPurchase } from "./shopify-order.server";
+import { shopifyAdminAccessToken } from "../merchant/admin.server";
+
+afterEach(() => vi.unstubAllEnvs());
 
 const customerId = "gid://shopify/Customer/12345";
 const orderId = "gid://shopify/Order/67890";
@@ -77,6 +80,38 @@ describe("Shopify order proof (no buyer download is unlocked)", () => {
     for (const amount of ["-1", "0.001", "1e6", "NaN", " 29.00 ", "999999999999999999999"]) {
       expect(usdCents(amount)).toBeNull();
     }
+  });
+});
+
+describe("Shopify Admin credential compatibility", () => {
+  it("uses the same server-only token for purchase proof and merchant access", async () => {
+    vi.stubEnv("SHOPIFY_ADMIN_ACCESS_TOKEN", "");
+    vi.stubEnv("SHOPIFY_ACCESS_TOKEN", "legacy-token");
+
+    let expectedToken = "legacy-token";
+    let reads = 0;
+    const request: typeof fetch = async (_url, init) => {
+      reads++;
+      expect(new Headers(init?.headers).get("X-Shopify-Access-Token")).toBe(expectedToken);
+      return new Response(JSON.stringify({ data: { order } }), { status: 200 });
+    };
+
+    expect(shopifyAdminAccessToken()).toBe(expectedToken);
+    expect(await verifyFreshTruthWeaverPurchase(orderId, "snapshot", customerId, { request }))
+      .toMatchObject({ granted: true });
+
+    expectedToken = "canonical-token";
+    vi.stubEnv("SHOPIFY_ADMIN_ACCESS_TOKEN", expectedToken);
+    expect(shopifyAdminAccessToken()).toBe(expectedToken);
+    expect(await verifyFreshTruthWeaverPurchase(orderId, "snapshot", customerId, { request }))
+      .toMatchObject({ granted: true });
+
+    vi.stubEnv("SHOPIFY_ADMIN_ACCESS_TOKEN", "");
+    vi.stubEnv("SHOPIFY_ACCESS_TOKEN", "");
+    expect(shopifyAdminAccessToken()).toBeUndefined();
+    expect(await verifyFreshTruthWeaverPurchase(orderId, "snapshot", customerId, { request }))
+      .toEqual({ granted: false, reason: "missing_proof" });
+    expect(reads).toBe(2);
   });
 });
 
