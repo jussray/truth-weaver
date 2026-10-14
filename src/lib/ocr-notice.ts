@@ -17,7 +17,7 @@ async function recognize(images: Array<Blob | HTMLCanvasElement>, onProgress: Oc
     const parts: string[] = [];
     for (let i = 0; i < images.length; i++) {
       onProgress(`Reading page ${i + 1} of ${images.length} on your device…`);
-      const { data } = await worker.recognize(images[i]);
+      const { data } = await worker.recognize(images[i]!);
       parts.push(data.text.trim());
     }
     return parts.join("\n\n").trim();
