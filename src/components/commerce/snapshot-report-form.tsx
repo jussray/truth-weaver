@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { generateMyVerifiedSnapshot } from "@/lib/commerce/snapshot-fulfillment.functions";
+import { generateMySnapshotReport } from "@/lib/commerce/snapshot-report-write.functions";
 import type { NoticeAnalyzerInput } from "@/lib/notice-analyzer";
 
 const EMPTY: NoticeAnalyzerInput = {
@@ -17,6 +17,7 @@ const EMPTY: NoticeAnalyzerInput = {
 export function SnapshotReportForm({ orderId, userId }: { orderId: string; userId: string }) {
   const [input, setInput] = useState<NoticeAnalyzerInput>({ ...EMPTY });
   const [working, setWorking] = useState(false);
+  const [consent, setConsent] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [finished, setFinished] = useState(false);
   function patch<K extends keyof NoticeAnalyzerInput>(key: K, value: NoticeAnalyzerInput[K]) {
@@ -24,17 +25,18 @@ export function SnapshotReportForm({ orderId, userId }: { orderId: string; userI
   }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (working || finished) return;
+    if (working || finished || !consent) return;
     setFeedback(null); setWorking(true);
     try {
       const { data } = await supabase.auth.getSession();
       if (!data.session || data.session.user.id !== userId) throw new Error("Please sign in again.");
-      const outcome = await generateMyVerifiedSnapshot({ data: {
-        authAccessToken: data.session.access_token, orderId, notice: input,
+      const outcome = await generateMySnapshotReport({ data: {
+        authAccessToken: data.session.access_token, orderId, notice: input, consentToAiProcessing: true,
       } });
       if (outcome.state === "unavailable") throw new Error("No report could be created. Check your Shopify payment, account link and notice details.");
       setFinished(true);
       setInput({ ...EMPTY });
+      setConsent(false);
       setFeedback(outcome.state === "created"
         ? "Your report was stored privately. Select Check & download above to verify access."
         : "A private report already exists for this purchase. Select Check & download above.");
@@ -81,7 +83,11 @@ export function SnapshotReportForm({ orderId, userId }: { orderId: string; userI
           className="mt-1 w-full rounded-lg border border-gold/30 bg-transparent p-2"
           onChange={event => patch("documentTitle", event.target.value)} />
       </label>
-      <button disabled={working} type="submit"
+      <label className="flex items-start gap-2 text-sm">
+        <input type="checkbox" required checked={consent} onChange={event => setConsent(event.target.checked)} />
+        I consent to sending this notice for AI processing to create my private report.
+      </label>
+      <button disabled={working || !consent} type="submit"
         className="rounded-full border border-gold/40 px-4 py-2 text-sm disabled:opacity-50">
         {working ? "Verifying payment and preparing report..." : "Verify purchase & create report"}
       </button>
