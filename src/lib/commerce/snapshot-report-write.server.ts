@@ -49,11 +49,9 @@ export async function createVerifiedSnapshotReport(
       });
       return !error && data === true;
     },
-    releaseReport: async (userId, id) => {
-      // No automatic retry after an uncertain AI-provider outcome. An operator
-      // must review the reservation and payment before allowing another charge.
-      void userId;
-      void id;
+    recordFailedAttempt: async (_userId, _id) => {
+      // The unique reservation remains durable. A provider timeout might have
+      // incurred a charge, so no automatic unlock or retry is permitted.
     },
     storageReady: async () => {
       const { data, error } = await supabaseAdmin.storage.getBucket(BUCKET);
