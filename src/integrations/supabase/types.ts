@@ -504,6 +504,42 @@ export type Database = {
           },
         ]
       }
+      merchant_audit_log: {
+        Row: {
+          action: string
+          actor_id: string
+          before_state: Json | null
+          created_at: string
+          detail: string | null
+          id: string
+          outcome: string
+          requested_state: Json | null
+          target: string
+        }
+        Insert: {
+          action: string
+          actor_id: string
+          before_state?: Json | null
+          created_at?: string
+          detail?: string | null
+          id?: string
+          outcome: string
+          requested_state?: Json | null
+          target: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string
+          before_state?: Json | null
+          created_at?: string
+          detail?: string | null
+          id?: string
+          outcome?: string
+          requested_state?: Json | null
+          target?: string
+        }
+        Relationships: []
+      }
       red_team_checks: {
         Row: {
           category: string
@@ -643,15 +679,42 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "merchant"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -778,6 +841,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["merchant"],
+    },
   },
 } as const
