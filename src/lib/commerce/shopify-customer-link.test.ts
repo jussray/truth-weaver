@@ -50,8 +50,14 @@ describe("Shopify buyer identity link", () => {
     expect(trustedShopifyEndpoint("https://shopify.com.attacker.com/customer/api/2026-10/graphql", "graphql", host)).toBe(false);
     expect(trustedShopifyEndpoint("https://another-shop.myshopify.com/customer/api/2026-10/graphql", "graphql", host)).toBe(false);
     expect(trustedShopifyEndpoint("https://evil.shopify.com/authentication/oauth/token", "token", host)).toBe(false);
-    expect(trustedShopifyEndpoint("https://shopify.com/authentication/oauth/authorize", "authorization", host)).toBe(true);
-    expect(trustedShopifyEndpoint("https://accounts.shopify.com/authentication/oauth/token", "token", host)).toBe(true);
-    expect(trustedShopifyEndpoint("https://shopify.com/authentication/oauth/token/other", "token", host)).toBe(false);
+    // Exact endpoint paths returned by this shop's live OpenID + Customer API discovery.
+    expect(trustedShopifyEndpoint("https://shopify.com/authentication/85973860573/oauth/authorize", "authorization", host)).toBe(true);
+    expect(trustedShopifyEndpoint("https://shopify.com/authentication/85973860573/oauth/token", "token", host)).toBe(true);
+    expect(trustedShopifyEndpoint("https://shopify.com/85973860573/account/customer/api/2026-10/graphql", "graphql", host)).toBe(true);
+    expect(trustedShopifyEndpoint("https://shopify.com/authentication/12345/oauth/token", "token", host)).toBe(false);
+    expect(trustedShopifyEndpoint("https://shopify.com/12345/account/customer/api/2026-10/graphql", "graphql", host)).toBe(false);
+    expect(trustedShopifyEndpoint("https://shopify.com/authentication/oauth/authorize", "authorization", host)).toBe(false);
+    expect(trustedShopifyEndpoint("https://accounts.shopify.com/authentication/oauth/token", "token", host)).toBe(false);
+    expect(trustedShopifyEndpoint("https://shopify.com/authentication/85973860573/oauth/token/other", "token", host)).toBe(false);
   });
 });
