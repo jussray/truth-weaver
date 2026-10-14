@@ -42,6 +42,19 @@ export async function createVerifiedSnapshotReport(
       if (error) throw error;
       return !!data;
     },
+    reserveReport: async (userId, id) => {
+      // Fail closed if the atomic reservation migration has not been deployed.
+      const { data, error } = await supabaseAdmin.rpc("tw_reserve_snapshot_generation", {
+        p_auth_user_id: userId, p_order_gid: id,
+      });
+      return !error && data === true;
+    },
+    releaseReport: async (userId, id) => {
+      // No automatic retry after an uncertain AI-provider outcome. An operator
+      // must review the reservation and payment before allowing another charge.
+      void userId;
+      void id;
+    },
     storageReady: async () => {
       const { data, error } = await supabaseAdmin.storage.getBucket(BUCKET);
       return !error && data?.public === false;
