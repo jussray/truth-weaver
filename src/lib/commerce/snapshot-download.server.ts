@@ -41,7 +41,7 @@ export async function getVerifiedSnapshotDownload(accessToken: string, orderId: 
       const { data: bucket, error: bucketError } = await supabaseAdmin.storage.getBucket(BUCKET);
       if (bucketError || !bucket || bucket.public !== false) return null;
       const { data, error } = await supabaseAdmin.storage.from(BUCKET)
-        .createSignedUrl(key, 45, { download: key.endsWith(".pdf") ? "truth-weaver-notice-snapshot.pdf" : "truth-weaver-notice-snapshot.txt" });
+        .createSignedUrl(key, 45, { download: key.toLowerCase().endsWith(".pdf") ? "truth-weaver-notice-snapshot.pdf" : "truth-weaver-notice-snapshot.txt" });
       if (error || !data?.signedUrl) return null;
       // Never hand a customer an arbitrary URL, even if an upstream response is malformed.
       const base = process.env["SUPABASE_URL"];
