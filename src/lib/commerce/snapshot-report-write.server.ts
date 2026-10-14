@@ -58,7 +58,7 @@ export async function createVerifiedSnapshotReport(
       const file = new TextEncoder().encode(content);
       if (file.byteLength > 524288) return false;
       const { error: uploadedError } = await supabaseAdmin.storage.from(BUCKET).upload(key, file, {
-        contentType: "text/plain", upsert: false, cacheControl: "private, no-store",
+        contentType: "text/plain", upsert: false, cacheControl: "0",
       });
       if (uploadedError) return false;
       const { error: insertError } = await supabaseAdmin.from("tw_snapshot_report_locations").insert({
