@@ -24,7 +24,10 @@ test("public storefront homepage renders the cinematic legal storefront", async 
     await expect(page.locator(`[data-connector="${id}"]`)).toContainText("Lovable app connector");
   }
   await page.goto("/shop");
-  await expect(page.locator("[data-shop-unavailable]")).toBeVisible();
+  // Shopify is live data. The Shop may show actual saleable products or an
+  // explicit unavailable/empty state, but should never remain indefinitely loading.
+  const shopState = page.locator("[data-shop-unavailable], [data-product-grid]");
+  await expect(shopState.first()).toBeVisible({ timeout: 20_000 });
   expect(errors).toEqual([]);
 });
 

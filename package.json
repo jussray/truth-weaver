@@ -9,7 +9,7 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run src/domain/law.test.ts src/lib/connectors/connectors.test.ts src/lib/connectors/custody.test.ts src/lib/notice-analyzer.test.ts src/lib/continuity.test.ts src/lib/legal-navigator.test.ts src/lib/shopify.test.ts src/lib/notice-offers.test.ts src/lib/notice-report.test.ts src/lib/commerce/shopify-order-proof.test.ts src/lib/issue-research.test.ts src/lib/commerce/snapshot-entitlement.test.ts src/lib/commerce/shopify-customer-link.test.ts src/lib/merchant/policy.test.ts src/lib/merchant/portal-contract.test.ts",
+    "test": "vitest run src/domain/law.test.ts src/lib/connectors/connectors.test.ts src/lib/connectors/custody.test.ts src/lib/notice-analyzer.test.ts src/lib/continuity.test.ts src/lib/legal-navigator.test.ts src/lib/shopify.test.ts src/lib/notice-offers.test.ts src/lib/notice-report.test.ts src/lib/commerce/shopify-order-proof.test.ts src/lib/issue-research.test.ts src/lib/commerce/snapshot-entitlement.test.ts src/lib/commerce/shopify-customer-link.test.ts src/lib/commerce/snapshot-reconciliation.test.ts src/lib/merchant/policy.test.ts src/lib/merchant/portal-contract.test.ts",
     "test:e2e": "playwright test",
     "verify:founder-intelligence": "node scripts/verify-founder-intelligence.mjs",
     "lint": "eslint .",
