@@ -18,6 +18,7 @@ export type SnapshotDownloadResult =
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ORDER = /^gid:\/\/shopify\/Order\/[1-9][0-9]*$/;
+const REPORT_FILENAME = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}\.(?:txt|pdf)$/i;
 const DENIED: SnapshotDownloadResult = { available: false, reason: "not_available" };
 
 /**
@@ -38,8 +39,11 @@ export async function authorizeSnapshotDownload(
     const entitlement = await deps.entitlement(userId, orderId);
     if (!entitlement || entitlement.authUserId !== userId || entitlement.orderId !== orderId) return DENIED;
     const location = await deps.reportLocation(userId, orderId);
-    if (!location || location.authUserId !== userId || location.orderId !== orderId ||
-      !/^[a-zA-Z0-9/_-]{12,512}\.(?:txt|pdf)$/.test(location.key) || location.key.startsWith("/")) return DENIED;
+    if (!location || location.authUserId !== userId || location.orderId !== orderId) return DENIED;
+    // A service-role location row must never authorize a different customer/order object.
+    // Uploads are immutable and generated as <auth user>/<Shopify order number>/<UUID>.<format>.
+    const scope = `${userId}/${orderId.slice("gid://shopify/Order/".length)}/`;
+    if (!location.key.startsWith(scope) || !REPORT_FILENAME.test(location.key.slice(scope.length))) return DENIED;
     const proof = await deps.verifyPayment(orderId, binding.shopifyCustomerId);
     const decision = decideSnapshotDelivery({ authUserId: userId, binding, entitlement, proof, now: deps.now() });
     if (!decision.deliver || decision.orderId !== orderId) return DENIED;

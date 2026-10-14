@@ -4,7 +4,7 @@ import { authorizeSnapshotDownload, type SnapshotDownloadDependencies } from "./
 const uid = "123e4567-e89b-42d3-a456-426614174000";
 const order = "gid://shopify/Order/67890";
 const customer = "gid://shopify/Customer/12345";
-const key = uid + "/snapshot-report.txt";
+const key = uid + "/67890/123e4567-e89b-42d3-a456-426614174abc.txt";
 const token = "server-verified-jwt";
 function scenario() {
   const deps: SnapshotDownloadDependencies = {
@@ -52,6 +52,35 @@ describe("Snapshot download authorization", () => {
     s.reportLocation = vi.fn(async () => ({ authUserId: uid, orderId: "gid://shopify/Order/1", key }));
     expect(await authorizeSnapshotDownload(token, order, s)).toEqual(denied);
     expect(s.signPrivateReport).not.toHaveBeenCalled();
+  });
+  it("rejects another customer's or another order's private object path even if the row claims ownership", async () => {
+    const otherUser = scenario();
+    otherUser.reportLocation = vi.fn(async () => ({
+      authUserId: uid, orderId: order, key: "123e4567-e89b-42d3-a456-426614174001/67890/123e4567-e89b-42d3-a456-426614174abc.txt",
+    }));
+    expect(await authorizeSnapshotDownload(token, order, otherUser)).toEqual(denied);
+    expect(otherUser.signPrivateReport).not.toHaveBeenCalled();
+
+    const otherOrder = scenario();
+    otherOrder.reportLocation = vi.fn(async () => ({
+      authUserId: uid, orderId: order, key: uid + "/67891/123e4567-e89b-42d3-a456-426614174abc.txt",
+    }));
+    expect(await authorizeSnapshotDownload(token, order, otherOrder)).toEqual(denied);
+    expect(otherOrder.signPrivateReport).not.toHaveBeenCalled();
+
+    const unexpectedPath = scenario();
+    unexpectedPath.reportLocation = vi.fn(async () => ({
+      authUserId: uid, orderId: order, key: uid + "/67890/../other-user.pdf",
+    }));
+    expect(await authorizeSnapshotDownload(token, order, unexpectedPath)).toEqual(denied);
+    expect(unexpectedPath.signPrivateReport).not.toHaveBeenCalled();
+  });
+  it("accepts a PDF only when it remains scoped to the same customer and order", async () => {
+    const d = scenario();
+    const pdf = uid + "/67890/123e4567-e89b-42d3-a456-426614174abd.pdf";
+    d.reportLocation = vi.fn(async () => ({ authUserId: uid, orderId: order, key: pdf }));
+    expect(await authorizeSnapshotDownload(token, order, d)).toMatchObject({ available: true });
+    expect(d.signPrivateReport).toHaveBeenCalledWith(pdf);
   });
   it("does not sign if fresh Shopify proof is unavailable or refunded", async () => {
     const d = scenario();
