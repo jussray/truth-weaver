@@ -7,6 +7,10 @@ export type SnapshotReportWriteDependencies = {
   binding(userId: string): Promise<CustomerBinding | null>;
   entitlement(userId: string, orderId: string): Promise<SnapshotEntitlement | null>;
   hasReport(userId: string, orderId: string): Promise<boolean>;
+  /** Atomically claims the order before any paid AI call. Only one caller may win. */
+  reserveReport(userId: string, orderId: string): Promise<boolean>;
+  /** Releases only this caller\'s reservation on failed generation. */
+  releaseReport(userId: string, orderId: string): Promise<void>;
   storageReady(): Promise<boolean>;
   verifyPayment(orderId: string, customerId: string): Promise<PaymentProofDecision>;
   generateReport(notice: NoticeAnalyzerInput): Promise<string | null>;
@@ -46,19 +50,26 @@ export async function prepareOwnedSnapshotReport(
     if (!decideSnapshotDelivery({ authUserId: userId, binding, entitlement, proof, now: deps.now() }).deliver) return DENIED;
     if (!await deps.storageReady()) return DENIED;
     if (await deps.hasReport(userId, orderId)) return { state: "already_ready" };
+    if (!await deps.reserveReport(userId, orderId)) return DENIED;
 
-    // All expensive analysis is server-side. The returned report is never sent
-    // to the browser by this action. The deterministic report carries disclaimers.
-    const report = await deps.generateReport(notice);
-    if (!report || !report.startsWith("TRUTH WEAVER | NOTICE SNAPSHOT\n") ||
-      !report.includes("NON-AUTHORIZING") ||
-      new TextEncoder().encode(report).byteLength > 524288) return DENIED;
-
-    // Revocation/expiry may change while AI is generating; re-read the grant.
-    const freshEntitlement = await deps.entitlement(userId, orderId);
-    const refreshed = await deps.verifyPayment(orderId, binding.shopifyCustomerId);
-    if (!decideSnapshotDelivery({ authUserId: userId, binding, entitlement: freshEntitlement, proof: refreshed, now: deps.now() }).deliver) return DENIED;
-    return (await deps.saveReport(userId, orderId, report)) ? { state: "created" } : DENIED;
+    let saved = false;
+    try {
+      // All expensive analysis is server-side. The returned report is never sent
+      // to the browser by this action. The deterministic report carries disclaimers.
+      const report = await deps.generateReport(notice);
+      if (!report || !report.startsWith("TRUTH WEAVER | NOTICE SNAPSHOT\n") ||
+        !report.includes("NON-AUTHORIZING") ||
+        new TextEncoder().encode(report).byteLength > 524288) return DENIED;
+  
+      // Revocation/expiry may change while AI is generating; re-read the grant.
+      const freshEntitlement = await deps.entitlement(userId, orderId);
+      const refreshed = await deps.verifyPayment(orderId, binding.shopifyCustomerId);
+      if (!decideSnapshotDelivery({ authUserId: userId, binding, entitlement: freshEntitlement, proof: refreshed, now: deps.now() }).deliver) return DENIED;
+      if (await deps.saveReport(userId, orderId, report)) { saved = true; return { state: "created" }; }
+      return DENIED;
+    } finally {
+      if (!saved) await deps.releaseReport(userId, orderId);
+    }
   } catch {
     // Neither legal notice text nor provider exceptions are disclosed to browser.
     return DENIED;
