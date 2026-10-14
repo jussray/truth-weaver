@@ -71,10 +71,11 @@ export async function readMerchantDashboard(token: string) {
 }
 
 export async function updateMerchantProductStatus(
-  token: string, productId: string, nextStatus: ProductStatus, confirmation: string,
+  token: string, productId: string, nextStatus: ProductStatus, confirmation: string, expectedCurrentStatus: ProductStatus,
 ) {
   const merchant = await requireMerchant(token);
-  if (!PRODUCT_GID.test(productId) || !["ACTIVE", "DRAFT", "ARCHIVED"].includes(nextStatus)) {
+  if (!PRODUCT_GID.test(productId) || !["ACTIVE", "DRAFT", "ARCHIVED"].includes(nextStatus) ||
+      !["ACTIVE", "DRAFT", "ARCHIVED"].includes(expectedCurrentStatus)) {
     throw new Error("Invalid product or status.");
   }
   if (confirmation !== confirmationPhrase("status", productId, nextStatus)) {
@@ -83,6 +84,9 @@ export async function updateMerchantProductStatus(
   const previous = (await adminGraphql<ProductResponse>(PRODUCT, { id: productId })).product;
   if (!previous || previous.id !== productId || previous.variants.pageInfo.hasNextPage) {
     throw new Error("Full product variants could not be verified; no change permitted.");
+  }
+  if (previous.status !== expectedCurrentStatus) {
+    throw new Error("Shopify status changed since your screen loaded. Refresh before changing it.");
   }
   const decision = canSetStatus(nextStatus, previous.variants.nodes.map(v => v.sku));
   if (!decision.allowed) throw new Error(decision.reason);
@@ -102,7 +106,7 @@ export async function updateMerchantProductStatus(
 }
 
 export async function updateMerchantVariantPrice(
-  token: string, productId: string, variantId: string, price: string, confirmation: string,
+  token: string, productId: string, variantId: string, price: string, confirmation: string, expectedCurrentPrice: string,
 ) {
   const merchant = await requireMerchant(token);
   if (!PRODUCT_GID.test(productId) || !VARIANT_GID.test(variantId) || !validatePrice(price)) {
@@ -114,6 +118,9 @@ export async function updateMerchantVariantPrice(
   const previous = (await adminGraphql<VariantResponse>(VARIANT, { id: variantId })).productVariant;
   if (!previous || previous.id !== variantId || previous.product.id !== productId) {
     throw new Error("Variant does not belong to the requested product.");
+  }
+  if (previous.price !== expectedCurrentPrice) {
+    throw new Error("Shopify price changed since your screen loaded. Refresh before changing it.");
   }
   if (previous.price === price) return { verified: true, unchanged: true, price };
   await audit(merchant.userId, "variant_price", variantId, "attempted", "Requested price " + price + " USD");
