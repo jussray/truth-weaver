@@ -90,9 +90,9 @@ function NoticeAnalyzerPage() {
         setFileMessage(`Loaded ${file.name}. Review the text before analysis.`);
       } else if (isImage) {
         const { ocrNoticeImage } = await import("@/lib/ocr-notice");
-        const { text, averageConfidence } = await ocrNoticeImage(file, setFileMessage);
+        const { text, averageConfidence, qualityWarning } = await ocrNoticeImage(file, setFileMessage);
         updateField("noticeText", text);
-        setFileMessage(`Scanned ${file.name}. OCR confidence approximately ${Math.round(averageConfidence)}%. ${ocrNote}`);
+        setFileMessage(`Scanned ${file.name}. OCR confidence approximately ${Math.round(averageConfidence)}%. ${qualityWarning ?? ocrNote}`);
       } else {
         setFileMessage("Extracting selectable text locally. No notice has been submitted.");
         try {
@@ -102,9 +102,9 @@ function NoticeAnalyzerPage() {
         } catch (cause) {
           if (!(cause instanceof Error) || !cause.message.startsWith("No sufficient selectable text")) throw cause;
           const { ocrNoticePdf } = await import("@/lib/ocr-notice");
-          const { text, averageConfidence } = await ocrNoticePdf(file, setFileMessage);
+          const { text, averageConfidence, qualityWarning } = await ocrNoticePdf(file, setFileMessage);
           updateField("noticeText", text);
-          setFileMessage(`Scanned ${file.name}. OCR confidence approximately ${Math.round(averageConfidence)}%. ${ocrNote}`);
+          setFileMessage(`Scanned ${file.name}. OCR confidence approximately ${Math.round(averageConfidence)}%. ${qualityWarning ?? ocrNote}`);
         }
       }
     } catch (cause) {
