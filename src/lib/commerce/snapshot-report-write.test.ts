@@ -22,7 +22,7 @@ function deps(): SnapshotReportWriteDependencies {
     entitlement: vi.fn(async () => ({ authUserId: owner, orderId: order, offer: "snapshot" as const, grantedAt: "2026-10-14T13:00:00Z", revokedAt: null, expiresAt: null })),
     hasReport: vi.fn(async () => false),
     reserveReport: vi.fn(async () => true),
-    releaseReport: vi.fn(async () => {}),
+    recordFailedAttempt: vi.fn(async () => {}),
     storageReady: vi.fn(async () => true),
     verifyPayment: vi.fn(async () => ({ granted: true as const, orderId: order, offer: "snapshot" as const,
       variantId: "gid://shopify/ProductVariant/68176830562525" })),
@@ -84,7 +84,38 @@ describe("Paid Snapshot generation and private storage gate", () => {
     d.generateReport = vi.fn(async () => { throw new Error("provider failed after billing"); });
     expect(await prepareOwnedSnapshotReport(token, order, notice, d)).toEqual(blocked);
     expect(d.reserveReport).toHaveBeenCalledTimes(1);
-    expect(d.releaseReport).toHaveBeenCalledTimes(1);
+    expect(d.recordFailedAttempt).toHaveBeenCalledTimes(1);
+  });
+  it("only one concurrent request may invoke paid AI for the same order", async () => {
+    const claimed = new Set<string>();
+    const d = deps();
+    d.reserveReport = vi.fn(async (_userId, orderId) => {
+      if (claimed.has(orderId)) return false;
+      claimed.add(orderId);
+      return true;
+    });
+    const [first, second] = await Promise.all([
+      prepareOwnedSnapshotReport(token, order, notice, d),
+      prepareOwnedSnapshotReport(token, order, notice, d),
+    ]);
+    expect([first.state, second.state].sort()).toEqual(["created", "unavailable"]);
+    expect(d.generateReport).toHaveBeenCalledTimes(1);
+    expect(d.saveReport).toHaveBeenCalledTimes(1);
+    expect(d.reserveReport).toHaveBeenCalledTimes(2);
+  });
+  it("does not reopen an order after an uncertain provider failure", async () => {
+    const claimed = new Set<string>();
+    const d = deps();
+    d.reserveReport = vi.fn(async (_userId, orderId) => {
+      if (claimed.has(orderId)) return false;
+      claimed.add(orderId);
+      return true;
+    });
+    d.generateReport = vi.fn(async () => { throw new Error("provider timeout after charge"); });
+    expect(await prepareOwnedSnapshotReport(token, order, notice, d)).toEqual(blocked);
+    expect(await prepareOwnedSnapshotReport(token, order, notice, d)).toEqual(blocked);
+    expect(d.generateReport).toHaveBeenCalledTimes(1);
+    expect(d.recordFailedAttempt).toHaveBeenCalledTimes(1);
   });
   it("does not regenerate an existing private report for the same order", async () => {
     const d = deps(); d.hasReport = vi.fn(async () => true);
