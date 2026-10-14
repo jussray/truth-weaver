@@ -104,7 +104,7 @@ export function ShopifyCustomerConnect() {
       const verified = await checkMySnapshotPurchases({ data: { authAccessToken: data.session.access_token } });
       if (verified.state === "verified") {
         setOrderStatus(verified.recorded > 0
-          ? "Shopify payment verified for " + verified.recorded + " Snapshot purchase(s). Report delivery is not enabled yet."
+          ? "Shopify payment verified for " + verified.recorded + " Snapshot purchase(s). Open Order status to check private report availability."
           : "No eligible paid Snapshot order was found for this connected customer.");
       } else if (verified.state === "not_linked") {
         setOrderStatus("Your verified Shopify account connection is missing. Reconnect before checking orders.");
@@ -175,8 +175,8 @@ export function ShopifyCustomerConnect() {
           </button>
           {orderStatus && <p role="status" className="text-sm text-parchment/70">{orderStatus}</p>}
           <p className="text-xs text-parchment/60">
-            Only Shopify-confirmed, non-test paid orders can create an entitlement. Report downloads
-            remain unavailable until secure fulfillment is separately verified.
+            Only Shopify-confirmed, non-test paid orders can create an entitlement. Private report access
+            requires a separate entitlement and fresh server-side verification.
           </p>
         </div>
       )}
