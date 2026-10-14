@@ -9,8 +9,8 @@ export type SnapshotReportWriteDependencies = {
   hasReport(userId: string, orderId: string): Promise<boolean>;
   /** Atomically claims the order before any paid AI call. Only one caller may win. */
   reserveReport(userId: string, orderId: string): Promise<boolean>;
-  /** Releases only this caller\'s reservation on failed generation. */
-  releaseReport(userId: string, orderId: string): Promise<void>;
+  /** Records a failed attempt without reopening the durable reservation. */
+  recordFailedAttempt(userId: string, orderId: string): Promise<void>;
   storageReady(): Promise<boolean>;
   verifyPayment(orderId: string, customerId: string): Promise<PaymentProofDecision>;
   generateReport(notice: NoticeAnalyzerInput): Promise<string | null>;
@@ -68,7 +68,7 @@ export async function prepareOwnedSnapshotReport(
       if (await deps.saveReport(userId, orderId, report)) { saved = true; return { state: "created" }; }
       return DENIED;
     } finally {
-      if (!saved) await deps.releaseReport(userId, orderId);
+      if (!saved) await deps.recordFailedAttempt(userId, orderId);
     }
   } catch {
     // Neither legal notice text nor provider exceptions are disclosed to browser.
