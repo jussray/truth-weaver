@@ -91,12 +91,20 @@ function ProductEditor({ product, onSaved }: { product: MerchantProduct; onSaved
     v.sku === "TW-SNAPSHOT-ONE" || v.sku === "TW-DEEPDIVE-ONE" || v.sku === "TW-PREMIUM-ONE");
   const statusPhrase = confirmationPhrase("status", product.id, status);
 
+  // Refreshing the provider snapshot invalidates stale edits and confirmations.
+  useEffect(() => {
+    setStatus(product.status);
+    setStatusProof("");
+    setPriceFields({});
+    setPriceProofs({});
+  }, [product]);
+
   async function applyStatus() {
     if (busy || statusProof !== statusPhrase) return;
     setBusy(true); setMessage("");
     try {
       const r = await changeMerchantProductStatus({
-        data: { authAccessToken: await currentToken(), productId: product.id, nextStatus: status, confirmation: statusProof },
+        data: { authAccessToken: await currentToken(), productId: product.id, nextStatus: status, confirmation: statusProof, expectedCurrentStatus: product.status },
       });
       setMessage(r.unchanged ? "Status unchanged in Shopify." : "Shopify status readback verified.");
       setStatusProof("");
@@ -112,7 +120,7 @@ function ProductEditor({ product, onSaved }: { product: MerchantProduct; onSaved
     setBusy(true); setMessage("");
     try {
       const r = await changeMerchantVariantPrice({
-        data: { authAccessToken: await currentToken(), productId: product.id, variantId, price: requested, confirmation: phrase },
+        data: { authAccessToken: await currentToken(), productId: product.id, variantId, price: requested, confirmation: phrase, expectedCurrentPrice: current },
       });
       setMessage(r.unchanged ? "Price unchanged in Shopify." : "Shopify price readback verified.");
       setPriceProofs(p => ({ ...p, [variantId]: "" }));
