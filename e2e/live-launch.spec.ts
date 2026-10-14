@@ -32,6 +32,9 @@ test.describe("Truth Weaver live domain (read-only)", () => {
     await page.goto(new URL("/notice-analyzer", liveUrl).href, { waitUntil: "domcontentloaded" });
     expect(permittedHosts.has(new URL(page.url()).hostname)).toBe(true);
     await expect(page.getByTestId("notice-analyzer-form")).toBeVisible();
+    // SSR markup is inert until the real React input handlers hydrate. Wait for that
+    // user-facing readiness signal instead of racing the initial client render.
+    await expect(page.locator('input[type="file"]')).toBeEnabled({ timeout: 20_000 });
     await page.getByTestId("notice-text").fill(
       "Example notice for browser verification only. No real legal information or private details are included.",
     );
