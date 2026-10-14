@@ -1,4 +1,5 @@
 import { type NoticeOffer } from "../notice-offers";
+import { shopifyAdminAccessToken } from "../merchant/admin.server";
 import {
   TRUTH_WEAVER_SHOPIFY_DOMAIN,
   evaluatePaidNoticeOrder,
@@ -57,7 +58,7 @@ export async function verifyFreshTruthWeaverPurchase(
   if (!/^gid:\/\/shopify\/Order\/[1-9][0-9]*$/.test(orderId)) return denied;
   if (!trustedShopifyCustomerId) return { granted: false, reason: "customer_not_bound" };
 
-  const token = dependencies.adminToken ?? process.env["SHOPIFY_ADMIN_ACCESS_TOKEN"];
+  const token = dependencies.adminToken ?? shopifyAdminAccessToken();
   if (!token) return denied;
 
   try {
