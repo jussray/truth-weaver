@@ -21,6 +21,8 @@ function deps(): SnapshotReportWriteDependencies {
     binding: vi.fn(async () => ({ authUserId: owner, shopifyCustomerId: customer, verifiedAt: "2026-10-14T13:00:00Z" })),
     entitlement: vi.fn(async () => ({ authUserId: owner, orderId: order, offer: "snapshot" as const, grantedAt: "2026-10-14T13:00:00Z", revokedAt: null, expiresAt: null })),
     hasReport: vi.fn(async () => false),
+    reserveReport: vi.fn(async () => true),
+    releaseReport: vi.fn(async () => {}),
     storageReady: vi.fn(async () => true),
     verifyPayment: vi.fn(async () => ({ granted: true as const, orderId: order, offer: "snapshot" as const,
       variantId: "gid://shopify/ProductVariant/68176830562525" })),
@@ -69,6 +71,20 @@ describe("Paid Snapshot generation and private storage gate", () => {
     b.storageReady = vi.fn(async () => false);
     expect(await prepareOwnedSnapshotReport(token, order, notice, b)).toEqual(blocked);
     expect(b.generateReport).not.toHaveBeenCalled();
+  });
+  it("never charges AI when another request already reserved the order", async () => {
+    const d = deps();
+    d.reserveReport = vi.fn(async () => false);
+    expect(await prepareOwnedSnapshotReport(token, order, notice, d)).toEqual(blocked);
+    expect(d.generateReport).not.toHaveBeenCalled();
+    expect(d.saveReport).not.toHaveBeenCalled();
+  });
+  it("holds a durable reservation after AI failure rather than automatically allowing retries", async () => {
+    const d = deps();
+    d.generateReport = vi.fn(async () => { throw new Error("provider failed after billing"); });
+    expect(await prepareOwnedSnapshotReport(token, order, notice, d)).toEqual(blocked);
+    expect(d.reserveReport).toHaveBeenCalledTimes(1);
+    expect(d.releaseReport).toHaveBeenCalledTimes(1);
   });
   it("does not regenerate an existing private report for the same order", async () => {
     const d = deps(); d.hasReport = vi.fn(async () => true);
