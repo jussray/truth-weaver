@@ -54,8 +54,10 @@ export async function prepareOwnedSnapshotReport(
       !report.includes("NON-AUTHORIZING") ||
       new TextEncoder().encode(report).byteLength > 524288) return DENIED;
 
+    // Revocation/expiry may change while AI is generating; re-read the grant.
+    const freshEntitlement = await deps.entitlement(userId, orderId);
     const refreshed = await deps.verifyPayment(orderId, binding.shopifyCustomerId);
-    if (!decideSnapshotDelivery({ authUserId: userId, binding, entitlement, proof: refreshed, now: deps.now() }).deliver) return DENIED;
+    if (!decideSnapshotDelivery({ authUserId: userId, binding, entitlement: freshEntitlement, proof: refreshed, now: deps.now() }).deliver) return DENIED;
     return (await deps.saveReport(userId, orderId, report)) ? { state: "created" } : DENIED;
   } catch {
     // Neither legal notice text nor provider exceptions are disclosed to browser.
