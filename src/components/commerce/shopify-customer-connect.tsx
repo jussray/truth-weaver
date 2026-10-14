@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { customerLinkStatus, connectShopifyCustomer } from "@/lib/commerce/shopify-customer-link.functions";
+import { checkMySnapshotPurchases } from "@/lib/commerce/snapshot-reconciliation.functions";
 import { trustedShopifyEndpoint } from "@/lib/commerce/shopify-customer-link";
 
 const SHOP_HOST = "fcr-truth-weaver-esimv-203acj81.myshopify.com";
@@ -26,6 +27,8 @@ async function pkceChallenge(verifier: string): Promise<string> {
 export function ShopifyCustomerConnect() {
   const [status, setStatus] = useState<"loading" | "linked" | "unlinked" | "working">("loading");
   const [error, setError] = useState<string | null>(null);
+  const [checkingOrders, setCheckingOrders] = useState(false);
+  const [orderStatus, setOrderStatus] = useState<string | null>(null);
   const canonical = typeof window === "undefined" || window.location.origin === new URL(ACCOUNT_REDIRECT).origin;
   const configured = clientId.length > 4 && canonical;
 
@@ -88,6 +91,35 @@ export function ShopifyCustomerConnect() {
     return () => { active = false; };
   }, []);
 
+  async function checkPaidSnapshots() {
+    if (status !== "linked" || checkingOrders) return;
+    setCheckingOrders(true);
+    setOrderStatus(null);
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        setOrderStatus("Your Truth Weaver session expired. Sign in again.");
+        return;
+      }
+      const verified = await checkMySnapshotPurchases({ data: { authAccessToken: data.session.access_token } });
+      if (verified.state === "verified") {
+        setOrderStatus(verified.recorded > 0
+          ? "Shopify payment verified for " + verified.recorded + " Snapshot purchase(s). Report delivery is not enabled yet."
+          : "No eligible paid Snapshot order was found for this connected customer.");
+      } else if (verified.state === "not_linked") {
+        setOrderStatus("Your verified Shopify account connection is missing. Reconnect before checking orders.");
+      } else if (verified.state === "not_authenticated") {
+        setOrderStatus("Your session has expired. Sign in again.");
+      } else {
+        setOrderStatus("Shopify order verification is unavailable. No purchases or entitlements were asserted.");
+      }
+    } catch {
+      setOrderStatus("Shopify order verification is unavailable. No access was granted.");
+    } finally {
+      setCheckingOrders(false);
+    }
+  }
+
   async function startShopifySignIn() {
     if (!configured) return;
     setError(null);
@@ -134,6 +166,20 @@ export function ShopifyCustomerConnect() {
           : "No verified Shopify identity is connected to this Truth Weaver account."}
       </p>
       {error && <p role="alert" className="text-sm text-red-200">{error}</p>}
+      {status === "linked" && (
+        <div className="space-y-2 rounded-xl border border-gold/20 p-3">
+          <button type="button" disabled={checkingOrders}
+            onClick={() => void checkPaidSnapshots()}
+            className="inline-flex items-center rounded-full border border-gold/40 px-4 py-2 text-sm text-gold disabled:opacity-50">
+            {checkingOrders ? "Checking Shopify payment..." : "Verify my $10 Snapshot purchases"}
+          </button>
+          {orderStatus && <p role="status" className="text-sm text-parchment/70">{orderStatus}</p>}
+          <p className="text-xs text-parchment/60">
+            Only Shopify-confirmed, non-test paid orders can create an entitlement. Report downloads
+            remain unavailable until secure fulfillment is separately verified.
+          </p>
+        </div>
+      )}
       {status !== "linked" && (
         <button type="button" disabled={!configured || status === "working"}
           onClick={() => void startShopifySignIn()}
