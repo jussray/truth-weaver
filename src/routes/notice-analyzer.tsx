@@ -230,7 +230,7 @@ function NoticeAnalyzerPage() {
                 </label>
               </div>
               <p className="mt-2 text-xs leading-5 text-parchment/55">
-                Selectable-text PDFs (up to 5 MB and 15 pages) and .txt are processed locally first. Image-only scans and photos need OCR, which is not enabled. Review extracted text; it is sent to the server only when you choose Analyze.
+                PDFs (up to 5 MB), photos and .txt are processed on your device first. Scanned PDFs (up to 6 pages) and photos are read with OCR, which can misread text. Review extracted text; it is sent to the server only when you choose Analyze.
               </p>
               <p data-testid="notice-file-status" role="status" className="mt-2 min-h-5 text-xs text-gold-soft">
                 {fileMessage || (uploadReady ? "No document loaded. You can also paste text below." : "Preparing document upload...")}
