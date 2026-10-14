@@ -43,7 +43,10 @@ export function ShopifyCustomerConnect() {
       const { data } = await supabase.auth.getSession();
       const session = data.session;
       if (!session || !active) {
-        if (active) setError("Sign in to Truth Weaver again before connecting a Shopify account.");
+        if (active) {
+          setError("Sign in to Truth Weaver again before connecting a Shopify account.");
+          setStatus("unlinked");
+        }
         return;
       }
       if (providerError) {
@@ -143,7 +146,7 @@ export function ShopifyCustomerConnect() {
         Continue viewing orders through Shopify in the meantime.
       </p>}
       <p className="text-xs text-parchment/60">
-        No login tokens, order identifiers or payment details are stored in this browser by Truth Weaver after linking.
+        Truth Weaver stores temporary PKCE state in this tab during connection and clears it on return. Your Truth Weaver login session remains managed separately by Supabase. Shopify orders require independent payment verification.
       </p>
     </div>
   );

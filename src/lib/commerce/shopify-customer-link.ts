@@ -46,9 +46,11 @@ export function trustedShopifyEndpoint(value: string, kind: "authorization" | "t
     const u = new URL(value);
     if (u.protocol !== "https:" || u.username || u.password || u.port || u.hash) return false;
     const host = u.hostname;
-    if (!(host === trustedHost || host === "shopify.com" || host.endsWith(".shopify.com"))) return false;
-    if (kind === "authorization") return u.pathname.includes("/oauth/authorize");
-    if (kind === "token") return u.pathname.includes("/oauth/token");
+    // Discovery is read from the exact Truth Weaver store. A response pointing
+    // to another merchant's .myshopify.com shop must never receive OAuth tokens.
+    if (!(host === trustedHost || host === "shopify.com" || host === "accounts.shopify.com")) return false;
+    if (kind === "authorization") return /\/authentication\/oauth\/authorize\/?$/.test(u.pathname);
+    if (kind === "token") return /\/authentication\/oauth\/token\/?$/.test(u.pathname);
     return /^\/customer\/api\/20[0-9]{2}-(?:01|04|07|10)\/graphql\/?$/.test(u.pathname);
   } catch {
     return false;
