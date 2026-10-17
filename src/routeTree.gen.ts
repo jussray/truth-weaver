@@ -15,6 +15,7 @@ import { Route as ConnectorsRouteImport } from './routes/connectors'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LegalLibraryRouteImport } from './routes/legal-library'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as MerchantRouteImport } from './routes/merchant'
 import { Route as NoticeAnalyzerRouteImport } from './routes/notice-analyzer'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ShopRouteImport } from './routes/shop'
@@ -23,6 +24,11 @@ import { Route as SourcesRouteImport } from './routes/sources'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedFulfillmentRouteImport } from './routes/_authenticated/fulfillment'
+import { Route as AuthenticatedVendorInviteRouteImport } from './routes/_authenticated/vendor-invite'
+import { Route as MerchantIndexRouteImport } from './routes/merchant.index'
+import { Route as MerchantAuditLogRouteImport } from './routes/merchant.audit-log'
+import { Route as MerchantOrdersRouteImport } from './routes/merchant.orders'
+import { Route as MerchantProductsRouteImport } from './routes/merchant.products'
 import { Route as ProductHandleRouteImport } from './routes/product.$handle'
 import { Route as AuthenticatedIssuesIssueIdRouteImport } from './routes/_authenticated/issues.$issueId'
 import { Route as AuthenticatedIssuesNewRouteImport } from './routes/_authenticated/issues.new'
@@ -54,6 +60,11 @@ const LegalLibraryRoute = LegalLibraryRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MerchantRoute = MerchantRouteImport.update({
+  id: '/merchant',
+  path: '/merchant',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NoticeAnalyzerRoute = NoticeAnalyzerRouteImport.update({
@@ -97,6 +108,32 @@ const AuthenticatedFulfillmentRoute =
     path: '/fulfillment',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedVendorInviteRoute =
+  AuthenticatedVendorInviteRouteImport.update({
+    id: '/vendor-invite',
+    path: '/vendor-invite',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const MerchantIndexRoute = MerchantIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MerchantRoute,
+} as any)
+const MerchantAuditLogRoute = MerchantAuditLogRouteImport.update({
+  id: '/audit-log',
+  path: '/audit-log',
+  getParentRoute: () => MerchantRoute,
+} as any)
+const MerchantOrdersRoute = MerchantOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => MerchantRoute,
+} as any)
+const MerchantProductsRoute = MerchantProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => MerchantRoute,
+} as any)
 const ProductHandleRoute = ProductHandleRouteImport.update({
   id: '/product/$handle',
   path: '/product/$handle',
@@ -120,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof ForgotPasswordRoute
   '/legal-library': typeof LegalLibraryRoute
   '/login': typeof LoginRoute
+  '/merchant': typeof MerchantRouteWithChildren
   '/notice-analyzer': typeof NoticeAnalyzerRoute
   '/reset-password': typeof ResetPasswordRoute
   '/shop': typeof ShopRoute
@@ -128,7 +166,12 @@ export interface FileRoutesByFullPath {
   '/account': typeof AuthenticatedAccountRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/fulfillment': typeof AuthenticatedFulfillmentRoute
+  '/vendor-invite': typeof AuthenticatedVendorInviteRoute
+  '/merchant/audit-log': typeof MerchantAuditLogRoute
+  '/merchant/orders': typeof MerchantOrdersRoute
+  '/merchant/products': typeof MerchantProductsRoute
   '/product/$handle': typeof ProductHandleRoute
+  '/merchant/': typeof MerchantIndexRoute
   '/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/issues/new': typeof AuthenticatedIssuesNewRoute
 }
@@ -146,7 +189,12 @@ export interface FileRoutesByTo {
   '/account': typeof AuthenticatedAccountRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/fulfillment': typeof AuthenticatedFulfillmentRoute
+  '/vendor-invite': typeof AuthenticatedVendorInviteRoute
+  '/merchant/audit-log': typeof MerchantAuditLogRoute
+  '/merchant/orders': typeof MerchantOrdersRoute
+  '/merchant/products': typeof MerchantProductsRoute
   '/product/$handle': typeof ProductHandleRoute
+  '/merchant': typeof MerchantIndexRoute
   '/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/issues/new': typeof AuthenticatedIssuesNewRoute
 }
@@ -158,6 +206,7 @@ export interface FileRoutesById {
   '/forgot-password': typeof ForgotPasswordRoute
   '/legal-library': typeof LegalLibraryRoute
   '/login': typeof LoginRoute
+  '/merchant': typeof MerchantRouteWithChildren
   '/notice-analyzer': typeof NoticeAnalyzerRoute
   '/reset-password': typeof ResetPasswordRoute
   '/shop': typeof ShopRoute
@@ -166,7 +215,12 @@ export interface FileRoutesById {
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/fulfillment': typeof AuthenticatedFulfillmentRoute
+  '/_authenticated/vendor-invite': typeof AuthenticatedVendorInviteRoute
+  '/merchant/audit-log': typeof MerchantAuditLogRoute
+  '/merchant/orders': typeof MerchantOrdersRoute
+  '/merchant/products': typeof MerchantProductsRoute
   '/product/$handle': typeof ProductHandleRoute
+  '/merchant/': typeof MerchantIndexRoute
   '/_authenticated/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/_authenticated/issues/new': typeof AuthenticatedIssuesNewRoute
 }
@@ -178,6 +232,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/legal-library'
     | '/login'
+    | '/merchant'
     | '/notice-analyzer'
     | '/reset-password'
     | '/shop'
@@ -186,7 +241,12 @@ export interface FileRouteTypes {
     | '/account'
     | '/dashboard'
     | '/fulfillment'
+    | '/vendor-invite'
+    | '/merchant/audit-log'
+    | '/merchant/orders'
+    | '/merchant/products'
     | '/product/$handle'
+    | '/merchant/'
     | '/issues/$issueId'
     | '/issues/new'
   fileRoutesByTo: FileRoutesByTo
@@ -204,7 +264,12 @@ export interface FileRouteTypes {
     | '/account'
     | '/dashboard'
     | '/fulfillment'
+    | '/vendor-invite'
+    | '/merchant/audit-log'
+    | '/merchant/orders'
+    | '/merchant/products'
     | '/product/$handle'
+    | '/merchant'
     | '/issues/$issueId'
     | '/issues/new'
   id:
@@ -215,6 +280,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/legal-library'
     | '/login'
+    | '/merchant'
     | '/notice-analyzer'
     | '/reset-password'
     | '/shop'
@@ -223,7 +289,12 @@ export interface FileRouteTypes {
     | '/_authenticated/account'
     | '/_authenticated/dashboard'
     | '/_authenticated/fulfillment'
+    | '/_authenticated/vendor-invite'
+    | '/merchant/audit-log'
+    | '/merchant/orders'
+    | '/merchant/products'
     | '/product/$handle'
+    | '/merchant/'
     | '/_authenticated/issues/$issueId'
     | '/_authenticated/issues/new'
   fileRoutesById: FileRoutesById
@@ -235,6 +306,7 @@ export interface RootRouteChildren {
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LegalLibraryRoute: typeof LegalLibraryRoute
   LoginRoute: typeof LoginRoute
+  MerchantRoute: typeof MerchantRouteWithChildren
   NoticeAnalyzerRoute: typeof NoticeAnalyzerRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ShopRoute: typeof ShopRoute
@@ -285,6 +357,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/merchant': {
+      id: '/merchant'
+      path: '/merchant'
+      fullPath: '/merchant'
+      preLoaderRoute: typeof MerchantRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notice-analyzer': {
@@ -343,6 +422,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFulfillmentRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/vendor-invite': {
+      id: '/_authenticated/vendor-invite'
+      path: '/vendor-invite'
+      fullPath: '/vendor-invite'
+      preLoaderRoute: typeof AuthenticatedVendorInviteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/merchant/': {
+      id: '/merchant/'
+      path: '/'
+      fullPath: '/merchant/'
+      preLoaderRoute: typeof MerchantIndexRouteImport
+      parentRoute: typeof MerchantRoute
+    }
+    '/merchant/audit-log': {
+      id: '/merchant/audit-log'
+      path: '/audit-log'
+      fullPath: '/merchant/audit-log'
+      preLoaderRoute: typeof MerchantAuditLogRouteImport
+      parentRoute: typeof MerchantRoute
+    }
+    '/merchant/orders': {
+      id: '/merchant/orders'
+      path: '/orders'
+      fullPath: '/merchant/orders'
+      preLoaderRoute: typeof MerchantOrdersRouteImport
+      parentRoute: typeof MerchantRoute
+    }
+    '/merchant/products': {
+      id: '/merchant/products'
+      path: '/products'
+      fullPath: '/merchant/products'
+      preLoaderRoute: typeof MerchantProductsRouteImport
+      parentRoute: typeof MerchantRoute
+    }
     '/product/$handle': {
       id: '/product/$handle'
       path: '/product/$handle'
@@ -371,6 +485,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedFulfillmentRoute: typeof AuthenticatedFulfillmentRoute
+  AuthenticatedVendorInviteRoute: typeof AuthenticatedVendorInviteRoute
   AuthenticatedIssuesIssueIdRoute: typeof AuthenticatedIssuesIssueIdRoute
   AuthenticatedIssuesNewRoute: typeof AuthenticatedIssuesNewRoute
 }
@@ -379,12 +494,31 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedFulfillmentRoute: AuthenticatedFulfillmentRoute,
+  AuthenticatedVendorInviteRoute: AuthenticatedVendorInviteRoute,
   AuthenticatedIssuesIssueIdRoute: AuthenticatedIssuesIssueIdRoute,
   AuthenticatedIssuesNewRoute: AuthenticatedIssuesNewRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
+interface MerchantRouteChildren {
+  MerchantAuditLogRoute: typeof MerchantAuditLogRoute
+  MerchantOrdersRoute: typeof MerchantOrdersRoute
+  MerchantProductsRoute: typeof MerchantProductsRoute
+  MerchantIndexRoute: typeof MerchantIndexRoute
+}
+
+const MerchantRouteChildren: MerchantRouteChildren = {
+  MerchantAuditLogRoute: MerchantAuditLogRoute,
+  MerchantOrdersRoute: MerchantOrdersRoute,
+  MerchantProductsRoute: MerchantProductsRoute,
+  MerchantIndexRoute: MerchantIndexRoute,
+}
+
+const MerchantRouteWithChildren = MerchantRoute._addFileChildren(
+  MerchantRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -393,6 +527,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForgotPasswordRoute: ForgotPasswordRoute,
   LegalLibraryRoute: LegalLibraryRoute,
   LoginRoute: LoginRoute,
+  MerchantRoute: MerchantRouteWithChildren,
   NoticeAnalyzerRoute: NoticeAnalyzerRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ShopRoute: ShopRoute,
