@@ -540,6 +540,39 @@ export type Database = {
         }
         Relationships: []
       }
+      merchant_invites: {
+        Row: {
+          code_hash: string
+          created_at: string
+          created_by: string
+          expires_at: string
+          id: string
+          label: string | null
+          redeemed_at: string | null
+          redeemed_by: string | null
+        }
+        Insert: {
+          code_hash: string
+          created_at?: string
+          created_by: string
+          expires_at?: string
+          id?: string
+          label?: string | null
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+        }
+        Update: {
+          code_hash?: string
+          created_at?: string
+          created_by?: string
+          expires_at?: string
+          id?: string
+          label?: string | null
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+        }
+        Relationships: []
+      }
       red_team_checks: {
         Row: {
           category: string
@@ -805,6 +838,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_merchant_invite: { Args: { _label: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -812,6 +846,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      redeem_merchant_invite: { Args: { _code: string }; Returns: boolean }
     }
     Enums: {
       app_role: "merchant"
