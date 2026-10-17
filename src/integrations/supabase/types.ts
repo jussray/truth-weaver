@@ -682,86 +682,102 @@ export type Database = {
       tw_shopify_customer_bindings: {
         Row: {
           auth_user_id: string
+          created_at: string
           shopify_customer_gid: string
           verification_method: string
           verified_at: string
-          created_at: string
         }
         Insert: {
           auth_user_id: string
+          created_at?: string
           shopify_customer_gid: string
           verification_method: string
           verified_at: string
-          created_at?: string
         }
         Update: {
           auth_user_id?: string
+          created_at?: string
           shopify_customer_gid?: string
           verification_method?: string
           verified_at?: string
-          created_at?: string
         }
         Relationships: []
       }
       tw_snapshot_entitlements: {
         Row: {
-          order_gid: string
           auth_user_id: string
-          variant_gid: string
-          offer: string
-          shopify_verified_at: string
-          granted_at: string
-          revoked_at: string | null
-          expires_at: string | null
           created_at: string
+          expires_at: string | null
+          granted_at: string
+          offer: string
+          order_gid: string
+          revoked_at: string | null
+          shopify_verified_at: string
+          variant_gid: string
         }
         Insert: {
-          order_gid: string
           auth_user_id: string
-          variant_gid: string
-          offer?: string
-          shopify_verified_at: string
-          granted_at?: string
-          revoked_at?: string | null
-          expires_at?: string | null
           created_at?: string
+          expires_at?: string | null
+          granted_at?: string
+          offer?: string
+          order_gid: string
+          revoked_at?: string | null
+          shopify_verified_at: string
+          variant_gid: string
         }
         Update: {
-          order_gid?: string
           auth_user_id?: string
-          variant_gid?: string
-          offer?: string
-          shopify_verified_at?: string
-          granted_at?: string
-          revoked_at?: string | null
-          expires_at?: string | null
           created_at?: string
+          expires_at?: string | null
+          granted_at?: string
+          offer?: string
+          order_gid?: string
+          revoked_at?: string | null
+          shopify_verified_at?: string
+          variant_gid?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tw_snapshot_entitlements_auth_user_id_fkey"
+            columns: ["auth_user_id"]
+            isOneToOne: false
+            referencedRelation: "tw_shopify_customer_bindings"
+            referencedColumns: ["auth_user_id"]
+          },
+        ]
       }
       tw_snapshot_report_locations: {
         Row: {
-          order_gid: string
           auth_user_id: string
-          private_storage_key: string
-          media_type: string
           created_at: string
+          media_type: string
+          order_gid: string
+          private_storage_key: string
         }
         Insert: {
-          order_gid: string
           auth_user_id: string
-          private_storage_key: string
-          media_type: string
           created_at?: string
+          media_type: string
+          order_gid: string
+          private_storage_key: string
         }
         Update: {
-          order_gid?: string
           auth_user_id?: string
-          private_storage_key?: string
-          media_type?: string
           created_at?: string
+          media_type?: string
+          order_gid?: string
+          private_storage_key?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tw_snapshot_report_owner_fk"
+            columns: ["order_gid", "auth_user_id"]
+            isOneToOne: false
+            referencedRelation: "tw_snapshot_entitlements"
+            referencedColumns: ["order_gid", "auth_user_id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
