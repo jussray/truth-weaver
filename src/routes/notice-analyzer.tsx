@@ -52,6 +52,7 @@ function NoticeAnalyzerPage() {
   const [result, setResult] = useState<NoticeAnalyzerResult | null>(null);
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+  const [filePending, setFilePending] = useState(false);
   const [fileMessage, setFileMessage] = useState("");
   const [consent, setConsent] = useState(false);
   // Hydration gate: a file picked before React attaches its input handler can
@@ -64,10 +65,6 @@ function NoticeAnalyzerPage() {
   }
 
   async function handleNoticeFile(event: ChangeEvent<HTMLInputElement>) {
-    setFileMessage("");
-    setResult(null);
-    setConsent(false);
-    updateField("noticeText", "");
     const file = event.currentTarget.files?.[0];
     event.currentTarget.value = "";
     if (!file) return;
@@ -79,6 +76,12 @@ function NoticeAnalyzerPage() {
       setFileMessage("Supported: PDF, photo (PNG/JPG/WebP), or .txt.");
       return;
     }
+    // A canceled picker, unsupported file, or failed extraction must not erase a drafted notice.
+    // Stop submission while processing and require fresh consent for a replacement document.
+    setConsent(false);
+    setResult(null);
+    setFilePending(true);
+    setFileMessage("Reading the selected document on this device...");
     const ocrNote = "Machine-read (OCR) — check every date, name and amount against the original before analysis.";
 
     try {
@@ -109,11 +112,17 @@ function NoticeAnalyzerPage() {
       }
     } catch (cause) {
       setFileMessage(cause instanceof Error ? cause.message : "The document could not be read. Paste the text instead.");
+    } finally {
+      setFilePending(false);
     }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (filePending) {
+      setError("Finish reading the selected document before analyzing.");
+      return;
+    }
     if (!consent) {
       setError("Consent to sending the reviewed notice text for analysis is required.");
       return;
@@ -169,7 +178,7 @@ function NoticeAnalyzerPage() {
 
       <section className="bg-ink px-5 py-12 sm:px-6 lg:py-16">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr]">
-          <form onSubmit={handleSubmit} inert={!uploadReady} aria-busy={!uploadReady} className="space-y-5" data-testid="notice-analyzer-form">
+          <form onSubmit={handleSubmit} inert={!uploadReady || filePending} aria-busy={!uploadReady || filePending} className="space-y-5" data-testid="notice-analyzer-form">
             <div className="rounded-2xl border border-gold/20 bg-forest-deep/35 p-5">
               <h2 className="font-serif text-2xl text-parchment">1. Notice & jurisdiction</h2>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -226,7 +235,7 @@ function NoticeAnalyzerPage() {
                 <h2 className="font-serif text-2xl text-parchment">3. Notice text</h2>
                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-gold/35 px-3 py-2 text-xs font-bold text-gold hover:bg-gold/10">
                   <Upload className="h-4 w-4" aria-hidden /> Load PDF / photo / .txt
-                  <input type="file" accept=".pdf,application/pdf,.txt,text/plain,.png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" disabled={!uploadReady} onChange={handleNoticeFile} className="sr-only" />
+                  <input type="file" accept=".pdf,application/pdf,.txt,text/plain,.png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" disabled={!uploadReady || filePending} onChange={handleNoticeFile} className="sr-only" />
                 </label>
               </div>
               <p className="mt-2 text-xs leading-5 text-parchment/55">
@@ -266,7 +275,7 @@ function NoticeAnalyzerPage() {
             <button
               data-testid="analyze-notice"
               type="submit"
-              disabled={pending || !consent}
+              disabled={pending || filePending || !consent}
               className="foil-surface inline-flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 font-bold text-ink disabled:cursor-wait disabled:opacity-60"
             >
               {pending ? <LoaderCircle className="h-5 w-5 animate-spin" aria-hidden /> : <FileSearch className="h-5 w-5" aria-hidden />}
