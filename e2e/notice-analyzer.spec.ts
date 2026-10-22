@@ -82,7 +82,6 @@ test("image-only PDF does not pretend to have been transcribed", async ({ page }
   await expect(page.getByTestId("notice-text")).toHaveValue("");
 });
 
-
 test("canceling the file picker or choosing an unsupported file preserves the drafted notice", async ({ page }) => {
   await page.goto("/notice-analyzer");
   const input = page.locator('input[type="file"]');
