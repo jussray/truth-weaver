@@ -178,7 +178,7 @@ function NoticeAnalyzerPage() {
 
       <section className="bg-ink px-5 py-12 sm:px-6 lg:py-16">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr]">
-          <form onSubmit={handleSubmit} inert={!uploadReady || filePending} aria-busy={!uploadReady || filePending} className="space-y-5" data-testid="notice-analyzer-form">
+          <form onSubmit={handleSubmit} inert={!uploadReady} aria-busy={!uploadReady || filePending} className="space-y-5" data-testid="notice-analyzer-form">
             <div className="rounded-2xl border border-gold/20 bg-forest-deep/35 p-5">
               <h2 className="font-serif text-2xl text-parchment">1. Notice & jurisdiction</h2>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -247,6 +247,7 @@ function NoticeAnalyzerPage() {
               </p>
               <textarea
                 data-testid="notice-text"
+                disabled={filePending}
                 required
                 minLength={40}
                 maxLength={NOTICE_TEXT_MAX}
