@@ -81,3 +81,40 @@ test("image-only PDF does not pretend to have been transcribed", async ({ page }
   await expect(page.getByTestId("notice-file-status")).toContainText(/Could not read enough text|No sufficient selectable text|Scanned PDFs are limited/i, { timeout: 60000 });
   await expect(page.getByTestId("notice-text")).toHaveValue("");
 });
+
+
+test("canceling the file picker or choosing an unsupported file preserves the drafted notice", async ({ page }) => {
+  await page.goto("/notice-analyzer");
+  const input = page.locator('input[type="file"]');
+  const noticeText = page.getByTestId("notice-text");
+  await expect(input).toBeEnabled();
+  const draft = "Drafted notice text must survive picker cancellation and unsupported file choices without loss of work.";
+  await noticeText.fill(draft);
+
+  await input.setInputFiles([]);
+  await expect(noticeText).toHaveValue(draft);
+
+  await input.setInputFiles({ name: "invalid.csv", mimeType: "text/csv", buffer: Buffer.from("untrusted csv") });
+  await expect(page.getByTestId("notice-file-status")).toContainText("Supported: PDF");
+  await expect(noticeText).toHaveValue(draft);
+});
+
+test("a failed local file read preserves the previous draft but requires renewed consent", async ({ page }) => {
+  await page.goto("/notice-analyzer");
+  const input = page.locator('input[type="file"]');
+  const noticeText = page.getByTestId("notice-text");
+  const draft = "Existing pasted notice content should not disappear when the replacement file is too large.";
+  await noticeText.fill(draft);
+  await page.getByTestId("notice-consent").check();
+
+  await input.setInputFiles({
+    name: "oversized.txt",
+    mimeType: "text/plain",
+    buffer: Buffer.alloc(100_001, "x"),
+  });
+
+  await expect(page.getByTestId("notice-file-status")).toContainText("Text file is too large");
+  await expect(noticeText).toHaveValue(draft);
+  await expect(page.getByTestId("notice-consent")).not.toBeChecked();
+  await expect(page.getByTestId("analyze-notice")).toBeDisabled();
+});
