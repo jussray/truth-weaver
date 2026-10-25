@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import {
@@ -20,6 +20,7 @@ import {
   type NoticeAnalyzerInput,
   type NoticeAnalyzerResult,
 } from "@/lib/notice-analyzer";
+import { COUNSEL_STORAGE_KEY, toStoredAnalysis } from "@/lib/counsel-document";
 
 export const Route = createFileRoute("/notice-analyzer")({
   component: NoticeAnalyzerPage,
@@ -133,6 +134,12 @@ function NoticeAnalyzerPage() {
     try {
       const response = await analyzeLegalNotice({ data: form });
       setResult(response);
+      try {
+        // Session-only, this tab only. Raw notice text is never stored.
+        sessionStorage.setItem(COUNSEL_STORAGE_KEY, JSON.stringify(toStoredAnalysis(form, response)));
+      } catch {
+        // Storage can be unavailable (private mode / quota). The on-screen result is unaffected.
+      }
     } catch {
       setError(
         "Analysis is unavailable right now. No legal conclusion was generated. Check the inputs and AI availability, then try again.",
@@ -359,6 +366,13 @@ function AnalysisResult({ result }: { result: NoticeAnalyzerResult }) {
         </div>
         <h2 className="mt-4 font-serif text-3xl text-parchment">Notice analysis</h2>
         <p className="mt-2 text-xs leading-5 text-parchment/55">{result.authority.disclaimer}</p>
+        <Link
+          to="/fulfillment"
+          data-testid="open-counsel-document"
+          className="mt-4 inline-flex items-center gap-2 rounded-full border border-gold/50 px-4 py-2 text-sm font-semibold text-gold hover:bg-gold/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+        >
+          <FileSearch className="h-4 w-4" aria-hidden /> Open Counsel document (PDF)
+        </Link>
       </div>
 
       <ResultSection icon={Clock3} title="Critical dates & deadlines">
