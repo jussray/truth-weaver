@@ -48,7 +48,7 @@ export function toStoredAnalysis(metadata: CounselMetadata, result: NoticeAnalyz
       jurisdictionType: metadata.jurisdictionType,
       jurisdictionDetail: metadata.jurisdictionDetail ?? "",
     },
-    result,
+    result: structuredClone(result),
   };
 }
 
