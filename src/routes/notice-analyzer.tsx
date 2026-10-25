@@ -53,6 +53,7 @@ function NoticeAnalyzerPage() {
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
   const [fileMessage, setFileMessage] = useState("");
+  const [scanRejected, setScanRejected] = useState("");
   const [consent, setConsent] = useState(false);
   // Hydration gate: a file picked before React attaches its input handler can
   // be silently dropped on SSR pages. Accept uploads only after mount.
@@ -65,6 +66,7 @@ function NoticeAnalyzerPage() {
 
   async function handleNoticeFile(event: ChangeEvent<HTMLInputElement>) {
     setFileMessage("");
+    setScanRejected("");
     setResult(null);
     setConsent(false);
     updateField("noticeText", "");
@@ -108,6 +110,12 @@ function NoticeAnalyzerPage() {
         }
       }
     } catch (cause) {
+      if (cause instanceof Error && cause.name === "OcrUnreadableError") {
+        updateField("noticeText", "");
+        setScanRejected(cause.message);
+        setFileMessage("Scan rejected. Nothing was analyzed.");
+        return;
+      }
       setFileMessage(cause instanceof Error ? cause.message : "The document could not be read. Paste the text instead.");
     }
   }
@@ -236,6 +244,15 @@ function NoticeAnalyzerPage() {
               <p data-testid="notice-file-status" role="status" className="mt-2 min-h-5 text-xs text-gold-soft">
                 {fileMessage || (uploadReady ? "No document loaded. You can also paste text below." : "Preparing document upload...")}
               </p>
+              {scanRejected && (
+                <div data-testid="ocr-retake" role="alert" className="mt-3 flex gap-3 rounded-xl border border-danger/60 bg-danger/10 p-4 text-sm text-parchment">
+                  <AlertTriangle className="h-5 w-5 shrink-0 text-danger" aria-hidden />
+                  <div>
+                    <p className="font-bold text-danger">Retake required — scan too blurry</p>
+                    <p className="mt-1 leading-6">{scanRejected}</p>
+                  </div>
+                </div>
+              )}
               <textarea
                 data-testid="notice-text"
                 required
