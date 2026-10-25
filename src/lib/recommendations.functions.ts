@@ -5,7 +5,7 @@ import { handleSchema, type RecommendationResult } from "./recommendations";
 
 /** Public read: recommends only real, purchasable products from the store's own catalog. */
 export const getRecommendations = createServerFn({ method: "POST" })
-  .inputValidator(z.object({ handle: handleSchema }))
+  .validator(z.object({ handle: handleSchema }))
   .handler(async ({ data }): Promise<RecommendationResult> => {
     const { recommendForHandle } = await import("./recommendations.server");
     try {
