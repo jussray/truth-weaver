@@ -37,5 +37,16 @@
 - [x] /merchant layout (sidebar, header, role gate), products price editor (one-click / typed phrase for big changes), orders (details hidden, logged reveal), activity log
 - [x] Notice Analyzer: scans below 85% clarity are rejected and must be retaken
 - [x] Rule tests + browser test file for price edit → activity log → confirmation message
-- [ ] Live price write + round-trip test. Blocked: store's server-side admin connection is rejected by Shopify; needs reconnecting the Shopify admin app token
-- [ ] Real checkout → paid Snapshot delivery. Blocked: same store connection, and Snapshot is still on launch hold (founder approval needed to go live)
+- [x] Live catalog price round-trip (Deep Dive draft $29 → $29.01 → $29, read back) via Lovable's Shopify connection
+- [ ] Portal price writes + /merchant/orders. Blocked: app's server-side Shopify admin token is rejected (401); needs a Shopify admin API token with write_products + read_orders
+- [ ] Real checkout → paid Snapshot delivery. Founder approved a test sale; Snapshot must be set Active in Shopify admin (tools cannot change product status)
+
+## Launch (founder request 2026-10-25)
+- [ ] Counsel document on /fulfillment: compile Notice Analyzer results, branded PDF download + print
+- [ ] "You may also like" on product pages: AI picks from real catalog only, labeled fallback
+- [ ] Blurry scan browser test: blocked until a clear scan is uploaded
+- [ ] SEO review (fast foundations scan) and fix failing findings
+- [ ] Database check: linter + slow queries
+- [ ] Shop categories (guides, templates, courses, bundles): real category pages with what each includes, honest empty state, area filters
+- [ ] Guide/template/course/bundle products in Shopify. Blocked: founder must approve titles, prices and the actual deliverable files; digital delivery after payment not yet wired
+- [ ] Typecheck, unit tests, Playwright, then publish the full site
