@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { RelatedProducts } from "@/components/storefront/related-products";
 import { SiteChrome } from "@/components/storefront/site-chrome";
 import { fetchProductByHandle, formatPrice } from "@/lib/shopify";
 import { useCartStore } from "@/stores/cart-store";
@@ -68,6 +69,7 @@ function ProductPage() {
             </div>
           </div>
         )}
+        {p ? <RelatedProducts handle={p.handle} /> : null}
       </section>
     </SiteChrome>
   );
