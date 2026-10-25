@@ -1,3 +1,4 @@
+import "./styles.css";
 export { AppShell } from "./components/counsel/app-shell"
 export { CounselPage, StateBox, WorkspaceNav } from "./components/counsel/page"
 export { TruthBadge, AuthorityChip, IntegrationBadge, Panel, Field } from "./components/counsel/ui-bits"
