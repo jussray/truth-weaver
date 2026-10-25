@@ -31,3 +31,11 @@
 - [x] Snapshot entitlement decision seam (pure, fail-closed, revocable) + tests
 - [ ] Snapshot production delivery. Blocked: Admin token secret, server-side customer binding store, entitlement table, secure report download route
 - [ ] Fulfillment/status page, product images, live tests, publish. On hold per founder (no publication/sale; drafts kept)
+
+## Merchant portal (approved interview plan)
+- [x] Merchant role for founder test account + one-time vendor invites (lawyers/paralegals)
+- [x] /merchant layout (sidebar, header, role gate), products price editor (one-click / typed phrase for big changes), orders (details hidden, logged reveal), activity log
+- [x] Notice Analyzer: scans below 85% clarity are rejected and must be retaken
+- [x] Rule tests + browser test file for price edit → activity log → confirmation message
+- [ ] Live price write + round-trip test. Blocked: store's server-side admin connection is rejected by Shopify; needs reconnecting the Shopify admin app token
+- [ ] Real checkout → paid Snapshot delivery. Blocked: same store connection, and Snapshot is still on launch hold (founder approval needed to go live)
