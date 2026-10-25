@@ -47,4 +47,6 @@
 - [ ] Blurry scan browser test: blocked until a clear scan is uploaded
 - [ ] SEO review (fast foundations scan) and fix failing findings
 - [ ] Database check: linter + slow queries
+- [ ] Shop categories (guides, templates, courses, bundles): real category pages with what each includes, honest empty state, area filters
+- [ ] Guide/template/course/bundle products in Shopify. Blocked: founder must approve titles, prices and the actual deliverable files; digital delivery after payment not yet wired
 - [ ] Typecheck, unit tests, Playwright, then publish the full site
