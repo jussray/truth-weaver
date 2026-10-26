@@ -11,6 +11,7 @@ Truth Weaver is a **standalone** app: the jurisdictional legal navigation engine
 - Live URL: https://truthweaver.jussco.company (CI passes it to Playwright as `TRUTH_WEAVER_LIVE_URL`). A repo file is never proof of live state; re-observe the domain.
 - Data: Supabase (`supabase/`, `drizzle/`). Server code reads secrets through `process.env`; never expose them to client bundles.
 - Cloudflare runtime contract (`wrangler.jsonc`, `cloudflare/`, verify + build-readback scripts) is **pending in draft PR #13**, not on `main`.
+- Observed 2026-10-26 (Cloudflare API, read-only): the live domain is DNS-only to Lovable hosting. A Cloudflare Worker `truth-weaver` exists but serves only `workers.dev` and previews, with **0 secrets** set. Do not treat a Worker deploy or preview as the live site, and do not move DNS without Juss.
 
 ## Commands
 | Purpose | Command |
