@@ -55,7 +55,9 @@ describe("merchant audit database contract", () => {
     );
     const constraint = migration.match(/outcome\s+text\s+not\s+null\s+check\s*\(\s*outcome\s+in\s*\(([^)]+)\)\s*\)/i);
     expect(constraint, "merchant_audit_log.outcome CHECK constraint must exist").not.toBeNull();
-    const databaseOutcomes = [...constraint![1].matchAll(/'([^']+)'/g)].map((match) => match[1]).sort();
+    const sqlAllowedValues = constraint?.[1];
+    if (!sqlAllowedValues) throw new Error("No merchant audit CHECK constraint outcomes found");
+    const databaseOutcomes = [...sqlAllowedValues.matchAll(/'([^']+)'/g)].map((match) => match[1]).sort();
     expect([...MERCHANT_AUDIT_OUTCOMES].sort()).toEqual(databaseOutcomes);
     expect(MERCHANT_AUDIT_OUTCOMES).not.toContain("unverified");
   });
