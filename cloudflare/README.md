@@ -19,6 +19,16 @@ This folder and `wrangler.jsonc` declare the Cloudflare Workers runtime for Trut
 
 Consequence: every name in `secrets-manifest.json` is currently provisioned in Lovable, not in Cloudflare. Server paths that read them fail on the Worker (previews included) until they are set there. Moving the live domain to this Worker is a founder decision. It needs every `secret`/`config` name set on the Worker, plus the DNS record switched to proxied, with a Playwright readback afterwards. Merging this folder does neither.
 
+## Cutover to Cloudflare (founder-approved 2026-10-26; gated, in order)
+
+1. **Set bindings on Worker `truth-weaver`.** Set every manifest name Lovable currently has set, with the same values: `npx wrangler secret put <NAME> --name truth-weaver` for `secret`, the same or dashboard vars for `config`/`public`. Skip build-identity names (`GITHUB_SHA`, `LOVABLE_GIT_COMMIT_SHA`, `VERCEL_GIT_COMMIT_SHA`). Values never enter git or chat.
+2. **Name diff.** Use the Cloudflare API (`GET /workers/scripts/truth-weaver/secrets` and `/settings`, names only) against `secrets-manifest.json`. Every name set in Lovable must be present.
+3. **Real-browser readback** of `https://truth-weaver.mcgill-raylene.workers.dev/` via Cloudflare Browser Rendering: home page, plus one Supabase-backed and one AI-backed path.
+4. **DNS.** Attach `truthweaver.jussco.company` to the Worker as a custom domain, replacing the DNS-only `A 185.158.133.1`. Then re-read the live domain in a real browser.
+5. **Rollback.** Remove the custom domain and restore `A truthweaver.jussco.company 185.158.133.1` (DNS-only). Lovable keeps serving throughout until step 4.
+
+Baseline 2026-10-26 (Browser Rendering): the Worker's `workers.dev` home page server-renders the same page as the live Lovable site (same title; 57,269 vs 58,017 bytes). PR previews sit behind Cloudflare Access. Server paths that need secrets are not yet tested.
+
 ## What is not declared yet (deliberate)
 
 - `main` (the Worker entry). The Lovable build (Vite + Nitro, Cloudflare target) produces the real server bundle. Its output path has not been read back, so this file does not guess it. `wrangler deploy` is blocked until a build readback sets `main`.
