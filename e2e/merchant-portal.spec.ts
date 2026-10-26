@@ -27,14 +27,16 @@ test.describe("merchant price edit (opt-in live round-trip)", () => {
     const store = page.getByRole("alert").filter({ hasText: /store connection/i });
     test.skip(await store.isVisible().catch(() => false), "Shopify store connection is not live");
 
-    const input = page.locator(`li[data-variant-id="${liveVariantId}"] input[aria-label^="Price for "]`);
+    const targetRow = page.locator(`li[data-variant-id="${liveVariantId}"]`);
+    const input = targetRow.locator('input[aria-label^="Price for "]');
     await expect(input).toBeVisible();
     const before = await input.inputValue();
+    test.skip(Number(before) >= 9999.99, "No safe one-cent price raise within the merchant price limit");
     const next = (Number(before) + 0.01).toFixed(2);
 
     try {
       await input.fill(next);
-      await page.getByRole("button", { name: "Review change" }).first().click();
+      await targetRow.getByRole("button", { name: "Review change" }).click();
       await expect(page.getByTestId("price-diff")).toContainText(`$${before}`);
       await page.getByRole("button", { name: "Confirm change" }).click();
       await expect(page.getByTestId("price-notice")).toContainText(`from $${before} to $${next}`);
@@ -55,7 +57,7 @@ test.describe("merchant price edit (opt-in live round-trip)", () => {
       const actual = await input.inputValue();
       if (actual !== before) {
         await input.fill(before);
-        await page.getByRole("button", { name: "Review change" }).first().click();
+        await targetRow.getByRole("button", { name: "Review change" }).click();
         await page.getByRole("button", { name: "Fill phrase" }).click();
         await page.getByRole("button", { name: "Confirm change" }).click();
         await expect(page.getByTestId("price-notice")).toContainText(`to $${before}`);
