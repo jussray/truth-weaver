@@ -104,6 +104,7 @@ export const updateVariantPrice = createServerFn({ method: "POST" })
     }
 
     await audit(ctx, { action: "price.update", target, before_state: { price: before.price }, requested_state: { price }, outcome: "attempted" });
+    let mutationAccepted = false;
     try {
       const res = await adminGraphql<{ productVariantsBulkUpdate: { productVariants: Array<{ id: string; price: string }> | null; userErrors: Array<{ message: string }> } }>(
         `mutation($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
@@ -114,12 +115,27 @@ export const updateVariantPrice = createServerFn({ method: "POST" })
       const r = res.productVariantsBulkUpdate;
       const after = r.productVariants?.[0]?.price;
       if (r.userErrors.length || after !== price) throw new Error(r.userErrors[0]?.message ?? "Shopify did not confirm the new price.");
+      mutationAccepted = true;
+      // A mutation response is not proof that the live Admin catalog reads the new price.
+      // Read it back independently before reporting a successful round-trip.
+      const readback = await adminGraphql<{ productVariant: { price: string } | null }>(
+        `query($id: ID!) { productVariant(id: $id) { price } }`,
+        { id: data.variantId },
+      );
+      if (readback.productVariant?.price !== price) {
+        throw new Error("Independent catalog price readback did not match the requested price.");
+      }
       await audit(ctx, { action: "price.update", target, before_state: { price: before.price }, requested_state: { price }, outcome: "succeeded" });
       const label = `${before.product.title} — ${before.title}`;
       return { ok: true as const, before: before.price, after, message: priceChangeMessage(label, before.price, after) };
     } catch (e) {
-      await audit(ctx, { action: "price.update", target, before_state: { price: before.price }, requested_state: { price }, outcome: "failed", detail: e instanceof Error ? e.message.slice(0, 200) : "unknown" });
-      return { ok: false as const, message: storeError(e) };
+      await audit(ctx, { action: "price.update", target, before_state: { price: before.price }, requested_state: { price }, outcome: mutationAccepted ? "unverified" : "failed", detail: e instanceof Error ? e.message.slice(0, 200) : "unknown" });
+      return {
+        ok: false as const,
+        message: mutationAccepted
+          ? "Shopify accepted the write, but independent catalog readback was not verified. The live price may have changed; check Shopify Admin before retrying."
+          : storeError(e),
+      };
     }
   });
 
