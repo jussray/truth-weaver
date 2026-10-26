@@ -15,6 +15,7 @@ import {
   redactOrder,
   requiresTypedConfirmation,
   validatePrice,
+  variantBelongsToProduct,
 } from "./policy";
 
 /* Every handler re-checks the merchant role server-side. The route guard is UX only. */
@@ -90,10 +91,10 @@ export const updateVariantPrice = createServerFn({ method: "POST" })
     if (!price) return { ok: false as const, message: "Enter a price like 12.00 between 0.50 and 10000.00." };
 
     const { adminGraphql } = await admin();
-    let before: { price: string; title: string; product: { title: string } };
+    let before: { id: string; price: string; title: string; product: { id: string; title: string } };
     try {
       const read = await adminGraphql<{ productVariant: typeof before | null }>(
-        `query($id: ID!) { productVariant(id: $id) { price title product { title } } }`,
+        `query($id: ID!) { productVariant(id: $id) { id price title product { id title } } }`,
         { id: data.variantId },
       );
       if (!read.productVariant) return { ok: false as const, message: "That product option no longer exists." };
@@ -103,6 +104,12 @@ export const updateVariantPrice = createServerFn({ method: "POST" })
     }
 
     const target = data.variantId;
+    // Independently bind both caller-supplied GIDs to Shopify's readback.
+    // A malformed or cross-product pair must never reach the mutation.
+    if (!variantBelongsToProduct(before.id, before.product.id, data.variantId, data.productId)) {
+      await audit(ctx, { action: "price.update", target, before_state: { price: before.price }, requested_state: { price }, outcome: "denied", detail: "Shopify variant/product identity mismatch" });
+      return { ok: false as const, message: "The selected variant does not belong to that product. Refresh the catalog before retrying." };
+    }
     if (requiresTypedConfirmation(before.price, price) && data.confirmation !== confirmationPhrase("price", target, price)) {
       await audit(ctx, { action: "price.update", target, before_state: { price: before.price }, requested_state: { price }, outcome: "denied", detail: "typed confirmation missing or mismatched" });
       return { ok: false as const, message: "This is a large change. Type the confirmation phrase exactly to continue." };
