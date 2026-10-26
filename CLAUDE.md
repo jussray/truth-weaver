@@ -13,6 +13,8 @@ Truth Weaver is a **standalone** app: the jurisdictional legal navigation engine
 - Cloudflare runtime contract (`wrangler.jsonc`, `cloudflare/`, verify + build-readback scripts) is **pending in draft PR #13**, not on `main`.
 - Observed 2026-10-26 (Cloudflare API, read-only): the live domain is DNS-only to Lovable hosting. A Cloudflare Worker `truth-weaver` exists but serves only `workers.dev` and previews, with **0 secrets** set. Do not treat a Worker deploy or preview as the live site, and do not move DNS without Juss.
 
+- **Domain rule (Juss, 2026-10-26):** `*.foundercontrolroom.org` is an extension of Founder Control Room's code (FCR-owned). `*.jussco.company` is for standalone apps and products only, each owning its own repo and runtime. Never serve a standalone app as FCR code, or FCR code as a standalone product, on the other's domain.
+
 ## Commands
 | Purpose | Command |
 | --- | --- |
