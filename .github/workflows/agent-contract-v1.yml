@@ -18,7 +18,17 @@ concurrency:
 jobs:
   verify-agent-contract:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
+      - name: Print runner and exact-head diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "runner=${RUNNER_NAME:-unassigned} os=${RUNNER_OS:-unknown}"
+          echo "repository=$GITHUB_REPOSITORY event=$GITHUB_EVENT_NAME"
+          echo "expected_head=$EXPECTED_HEAD_SHA"
+          echo "If this step never appears, investigate GitHub Actions runner allocation, account billing, and repository Actions policy before blaming application code."
+
       - name: Check out exact proof subject
         uses: actions/checkout@v4
         with:
