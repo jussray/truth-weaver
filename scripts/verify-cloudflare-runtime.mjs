@@ -21,6 +21,10 @@ const REQUIRED_FLAGS = ["nodejs_compat", "nodejs_compat_populate_process_env"];
 const FORBIDDEN_FLAGS = ["nodejs_compat_do_not_populate_process_env", "disallow_importable_env"];
 const ENV_LITERAL = /process\.env(?:\[\s*["']([A-Za-z_][A-Za-z0-9_]*)["']\s*\]|\.([A-Za-z_][A-Za-z0-9_]*))/g;
 const ENV_DYNAMIC = /process\.env\[\s*[^\s"'\]]/g;
+// Names reaching a dynamic read: `env("NAME")` wrapper calls and connector `requiredEnv: [...]` lists.
+const ENV_WRAPPER_CALL = /\benv\(\s*["']([A-Z][A-Z0-9_]*)["']\s*\)/g;
+const REQUIRED_ENV_LIST = /requiredEnv:\s*\[([^\]]*)\]/g;
+const QUOTED_NAME = /["']([A-Z][A-Z0-9_]*)["']/g;
 const ENTRY_KEYS = new Set(["name", "class", "usedBy"]);
 const ENTRY_CLASSES = new Set(["secret", "config", "public"]);
 
@@ -135,15 +139,19 @@ for (const pattern of [".wrangler/", ".dev.vars"]) {
   if (!ignoreLines.has(pattern)) fail(`.gitignore missing ${pattern}`);
 }
 
-// 4. Every literal process.env read in shipped code must be declared
+// 4. Every env name read in shipped code (literal, env() wrapper, requiredEnv list) must be declared
 const seen = new Map();
 const dynamicReads = new Set();
 for (const dir of scanDirs) {
   for (const file of await walk(join(root, dir))) {
     const text = await readFile(file, "utf8");
     const rel = relative(root, file);
-    for (const match of text.matchAll(ENV_LITERAL)) {
-      const name = match[1] ?? match[2];
+    const names = [...text.matchAll(ENV_LITERAL)].map((match) => match[1] ?? match[2]);
+    names.push(...[...text.matchAll(ENV_WRAPPER_CALL)].map((match) => match[1]));
+    for (const list of text.matchAll(REQUIRED_ENV_LIST)) {
+      names.push(...[...list[1].matchAll(QUOTED_NAME)].map((match) => match[1]));
+    }
+    for (const name of names) {
       const where = seen.get(name) ?? new Set();
       where.add(rel);
       seen.set(name, where);
@@ -175,5 +183,5 @@ if (failures.length > 0) {
 const declared = wrangler
   ? `name=${wrangler.name} compat=${wrangler.compatibility_date} flags=${wrangler.compatibility_flags.join("+")}`
   : "worker=build-owned";
-console.log(`cloudflare-runtime VERIFIED ${declared} manifest=${manifestNames.size} literalEnvNames=${seen.size} dynamicReadFiles=${dynamicReads.size}`);
+console.log(`cloudflare-runtime VERIFIED ${declared} manifest=${manifestNames.size} envNames=${seen.size} dynamicReadFiles=${dynamicReads.size}`);
 for (const message of unknowns) console.log(`  ${message}`);
