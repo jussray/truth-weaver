@@ -27,6 +27,19 @@ export function canSetStatus(next: ProductStatus, variantSkus: readonly (string 
   return { allowed: true };
 }
 
+/** Readback identities must match both caller targets before an Admin write. */
+export function variantBelongsToProduct(
+  actualVariantId: string,
+  actualProductId: string,
+  requestedVariantId: string,
+  requestedProductId: string,
+): boolean {
+  return VARIANT_GID.test(actualVariantId)
+    && PRODUCT_GID.test(actualProductId)
+    && actualVariantId === requestedVariantId
+    && actualProductId === requestedProductId;
+}
+
 /** Exact-phrase confirmation the merchant must type; binds the confirmation to the specific change. */
 export function confirmationPhrase(action: "price" | "status", target: string, value: string): string {
   return `${action.toUpperCase()} ${target.split("/").pop()} ${value}`;
