@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-// Static check of a repo's Cloudflare Workers runtime contract.
-// Shared file: byte-identical across Juss & Co Lovable/TanStack repos. All per-repo
-// settings live in cloudflare/secrets-manifest.json, never in this script.
+// Static check of truth-weaver's Cloudflare Workers runtime contract.
+// Settings (worker, scanDirs, env names) live in cloudflare/secrets-manifest.json.
 // No dependencies: Node built-ins only, so it runs without registry access.
 // Usage: node scripts/verify-cloudflare-runtime.mjs [rootDir]
 // Exit 0 = VERIFIED, exit 1 = FAIL. It never reads or prints secret values.
@@ -16,7 +15,7 @@ const unknowns = [];
 const fail = (msg) => failures.push(msg);
 
 const MANIFEST_PATH = "cloudflare/secrets-manifest.json";
-const MANIFEST_SCHEMA = "jussco/cloudflare-runtime-manifest@v1";
+const MANIFEST_SCHEMA = "truth-weaver/cloudflare-runtime-manifest@v1";
 const MIN_COMPAT_DATE = "2025-04-01";
 const REQUIRED_FLAGS = ["nodejs_compat", "nodejs_compat_populate_process_env"];
 const FORBIDDEN_FLAGS = ["nodejs_compat_do_not_populate_process_env", "disallow_importable_env"];

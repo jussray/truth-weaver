@@ -1,6 +1,5 @@
 #!/usr/bin/env node
-// Read back what the Lovable Vite + Nitro build actually emitted for Cloudflare.
-// Shared file: byte-identical across Juss & Co Lovable/TanStack repos.
+// Read back what truth-weaver's Lovable Vite + Nitro build actually emitted for Cloudflare.
 // Run after `npm run build`. Prints worker config fields and var NAMES only, never values.
 // Usage: node scripts/readback-cloudflare-build.mjs [rootDir]
 // Exit 1 only when no build output exists; everything else is reported as evidence.
