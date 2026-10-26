@@ -20,6 +20,9 @@ import {
 
 type Ctx = { supabase: SupabaseClient<Database>; userId: string };
 
+/** Matches the public.merchant_audit_log.outcome database CHECK constraint. */
+type MerchantAuditOutcome = "attempted" | "succeeded" | "failed" | "denied";
+
 async function assertMerchant({ supabase, userId }: Ctx) {
   const { data, error } = await supabase.rpc("has_role", { _user_id: userId, _role: "merchant" });
   if (error || data !== true) throw new Error("Merchant authorization required.");
@@ -27,10 +30,10 @@ async function assertMerchant({ supabase, userId }: Ctx) {
 
 async function audit(
   { supabase, userId }: Ctx,
-  row: { action: string; target: string; before_state?: Json; requested_state?: Json; outcome: string; detail?: string },
+  row: { action: string; target: string; before_state?: Json; requested_state?: Json; outcome: MerchantAuditOutcome; detail?: string },
 ) {
   const { error } = await supabase.from("merchant_audit_log").insert({ actor_id: userId, ...row });
-  if (error) throw new Error("Audit log write failed; change not attempted.");
+  if (error) throw new Error("Audit log write failed.");
 }
 
 async function admin() {
@@ -107,20 +110,25 @@ export const updateVariantPrice = createServerFn({ method: "POST" })
     }
 
     await audit(ctx, { action: "price.update", target, before_state: { price: before.price }, requested_state: { price }, outcome: "attempted" });
-    let mutationAccepted = false;
+    let writeAttempted = false;
+    let catalogReadbackConfirmed = false;
     try {
+      // The request may reach Shopify even if the response is lost. Treat any
+      // unconfirmed write attempt as potentially applied; never claim no change.
+      writeAttempted = true;
       const res = await adminGraphql<{ productVariantsBulkUpdate: { productVariants: Array<{ id: string; price: string }> | null; userErrors: Array<{ message: string }> } }>(
         `mutation($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
           productVariantsBulkUpdate(productId: $productId, variants: $variants) { productVariants { id price } userErrors { message } }
         }`,
         { productId: data.productId, variants: [{ id: data.variantId, price }] },
       );
-      const r = res.productVariantsBulkUpdate;
-      const after = r.productVariants?.[0]?.price;
-      if (r.userErrors.length || after !== price) throw new Error(r.userErrors[0]?.message ?? "Shopify did not confirm the new price.");
-      mutationAccepted = true;
-      // A mutation response is not proof that the live Admin catalog reads the new price.
-      // Read it back independently before reporting a successful round-trip.
+      const result = res.productVariantsBulkUpdate;
+      const after = result.productVariants?.[0]?.price;
+      if (result.userErrors.length || after !== price) {
+        throw new Error(result.userErrors[0]?.message ?? "Shopify did not confirm the new price.");
+      }
+      // A successful mutation response alone is insufficient: independently
+      // confirm the live catalog before writing a "succeeded" audit record.
       const readback = await adminGraphql<{ productVariant: { price: string } | null }>(
         `query($id: ID!) { productVariant(id: $id) { price } }`,
         { id: data.variantId },
@@ -128,16 +136,32 @@ export const updateVariantPrice = createServerFn({ method: "POST" })
       if (readback.productVariant?.price !== price) {
         throw new Error("Independent catalog price readback did not match the requested price.");
       }
+      catalogReadbackConfirmed = true;
       await audit(ctx, { action: "price.update", target, before_state: { price: before.price }, requested_state: { price }, outcome: "succeeded" });
       const label = `${before.product.title} — ${before.title}`;
       return { ok: true as const, before: before.price, after, message: priceChangeMessage(label, before.price, after) };
     } catch (e) {
-      await audit(ctx, { action: "price.update", target, before_state: { price: before.price }, requested_state: { price }, outcome: mutationAccepted ? "unverified" : "failed", detail: e instanceof Error ? e.message.slice(0, 200) : "unknown" });
+      const reason = e instanceof Error ? e.message : "unknown";
+      // "unverified" is not a permitted database outcome. Store it in detail,
+      // preserving the exact four allowed outcomes without a risky migration.
+      const detail = `${writeAttempted ? "UNVERIFIED_SHOPIFY_WRITE: " : ""}${reason}`.slice(0, 200);
+      try {
+        await audit(ctx, { action: "price.update", target, before_state: { price: before.price }, requested_state: { price }, outcome: "failed", detail });
+      } catch {
+        return {
+          ok: false as const,
+          message: writeAttempted
+            ? "A Shopify price write may have occurred, and the audit receipt could not be saved. Check Shopify Admin before retrying."
+            : "Audit logging is unavailable. No price change was attempted.",
+        };
+      }
       return {
         ok: false as const,
-        message: mutationAccepted
-          ? "Shopify accepted the write, but independent catalog readback was not verified. The live price may have changed; check Shopify Admin before retrying."
-          : storeError(e),
+        message: catalogReadbackConfirmed
+          ? "Shopify confirmed the catalog price, but the final audit receipt could not be saved. Check Shopify Admin and the activity log before retrying."
+          : writeAttempted
+            ? "A Shopify price write was attempted, but the live price was not verified. It may have changed; check Shopify Admin before retrying."
+            : storeError(e),
       };
     }
   });
