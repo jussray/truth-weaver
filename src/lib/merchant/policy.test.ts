@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { MERCHANT_AUDIT_OUTCOMES } from "./audit-contract";
-import { canSetStatus, confirmationPhrase, redactOrder, validatePrice } from "./policy";
+import { canSetStatus, confirmationPhrase, redactOrder, validatePrice, variantBelongsToProduct } from "./policy";
 
 describe("merchant policy", () => {
   it("blocks activating launch-hold Snapshot", () => {
@@ -44,6 +44,25 @@ describe("price confirmation tiers", () => {
     expect(priceChangeMessage("Snapshot — Default", "10.00", "12.00")).toBe(
       "Price for Snapshot — Default changed from $10.00 to $12.00.",
     );
+  });
+});
+
+describe("merchant catalog identity checks", () => {
+  const variant = "gid://shopify/ProductVariant/25";
+  const product = "gid://shopify/Product/12";
+
+  it("allows a variant only when Shopify's variant and parent product IDs both match", () => {
+    expect(variantBelongsToProduct(variant, product, variant, product)).toBe(true);
+  });
+
+  it("denies cross-product IDs and different variant IDs", () => {
+    expect(variantBelongsToProduct(variant, product, variant, "gid://shopify/Product/13")).toBe(false);
+    expect(variantBelongsToProduct(variant, product, "gid://shopify/ProductVariant/26", product)).toBe(false);
+  });
+
+  it("fails closed for malformed readback identities", () => {
+    expect(variantBelongsToProduct("invalid", product, variant, product)).toBe(false);
+    expect(variantBelongsToProduct(variant, "invalid", variant, product)).toBe(false);
   });
 });
 
