@@ -1,4 +1,7 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { MERCHANT_AUDIT_OUTCOMES } from "./audit-contract";
 import { canSetStatus, confirmationPhrase, redactOrder, validatePrice } from "./policy";
 
 describe("merchant policy", () => {
@@ -41,5 +44,19 @@ describe("price confirmation tiers", () => {
     expect(priceChangeMessage("Snapshot — Default", "10.00", "12.00")).toBe(
       "Price for Snapshot — Default changed from $10.00 to $12.00.",
     );
+  });
+});
+
+describe("merchant audit database contract", () => {
+  it("uses only outcomes accepted by the committed Supabase migration", () => {
+    const migration = readFileSync(
+      resolve(process.cwd(), "supabase/migrations/20261014030242_cef5eec2-77b7-4df1-b280-52f1f1e02784.sql"),
+      "utf8",
+    );
+    const constraint = migration.match(/outcome\s+text\s+not\s+null\s+check\s*\(\s*outcome\s+in\s*\(([^)]+)\)\s*\)/i);
+    expect(constraint, "merchant_audit_log.outcome CHECK constraint must exist").not.toBeNull();
+    const databaseOutcomes = [...constraint![1].matchAll(/'([^']+)'/g)].map((match) => match[1]).sort();
+    expect([...MERCHANT_AUDIT_OUTCOMES].sort()).toEqual(databaseOutcomes);
+    expect(MERCHANT_AUDIT_OUTCOMES).not.toContain("unverified");
   });
 });
