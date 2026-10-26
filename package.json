@@ -13,6 +13,7 @@
     "test:e2e": "playwright test",
     "verify:founder-intelligence": "node scripts/verify-founder-intelligence.mjs",
     "verify:cloudflare-runtime": "node scripts/verify-cloudflare-runtime.mjs",
+    "readback:cloudflare-build": "node scripts/readback-cloudflare-build.mjs",
     "lint": "eslint .",
     "format:check": "prettier --check .",
     "format": "prettier --write ."
