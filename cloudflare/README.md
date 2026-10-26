@@ -4,7 +4,7 @@ This folder and `wrangler.jsonc` declare the Cloudflare Workers runtime for Trut
 
 ## What is declared
 
-- `wrangler.jsonc`: worker name, `compatibility_date` 2025-04-01, and the flags `nodejs_compat` and `nodejs_compat_populate_process_env`. The flags let server code read secrets through `process.env`, which the server code relies on. With these flags, `process.env` is populated from the Worker's bindings.
+- `wrangler.jsonc`: worker name, `compatibility_date` 2026-10-25 (matches the deployed Worker; the verifier requires >= 2025-04-01), and the flags `nodejs_compat` and `nodejs_compat_populate_process_env`. The flags let server code read secrets through `process.env`, which the server code relies on. With these flags, `process.env` is populated from the Worker's bindings.
 - `cloudflare/secrets-manifest.json`: every secret and config name the code reads, with its class. Names and classes only. Values never enter git.
 - `scripts/verify-cloudflare-runtime.mjs`: static check, no dependencies. Settings (`worker`, `scanDirs`) live in the manifest under schema `truth-weaver/cloudflare-runtime-manifest@v1`. This repo owns its copy; no other repo depends on it. Run with `npm run verify:cloudflare-runtime`. It fails if a required flag is missing, if config declares `vars` or `secrets`, if the JSON is invalid, or if the code reads an env name the manifest does not declare: literal `process.env` reads, `env("NAME")` wrapper calls, and connector `requiredEnv` lists all count.
 
