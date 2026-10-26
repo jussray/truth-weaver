@@ -10,6 +10,15 @@ This folder and `wrangler.jsonc` declare the Cloudflare Workers runtime for Trut
 
 - `scripts/readback-cloudflare-build.mjs`: runs in CI right after `npm run build` and prints what the Nitro build emitted (output layout, generated wrangler config name/main/flags, var names only). This is the build readback that decides `main` and whether this root `wrangler.jsonc` matches or collides with the generated config.
 
+## Observed runtime topology (Cloudflare API readback, 2026-10-26, read-only, names only)
+
+- `truthweaver.jussco.company`: DNS `A 185.158.133.1`, **not proxied**, with a `_lovable` verification TXT. INFERRED: the live site is served by Lovable hosting, not by this Worker.
+- Zone route `*truthweaver.jussco.company/*` -> `truth-weaver` exists but cannot fire while the record is DNS-only. INFERRED: dormant.
+- `www.truthweaver.jussco.company` is a custom domain on the separate `truthweaver-www-redirect` Worker.
+- Worker `truth-weaver`: reachable on `workers.dev` and PR previews only. **0 secrets**, one binding (`ASSETS`), `compatibility_date` 2026-10-25, flags `nodejs_compat`. Last production deploy via wrangler at 2026-10-25T22:06Z.
+
+Consequence: every name in `secrets-manifest.json` is currently provisioned in Lovable, not in Cloudflare. Server paths that read them fail on the Worker (previews included) until they are set there. Moving the live domain to this Worker is a founder decision. It needs every `secret`/`config` name set on the Worker, plus the DNS record switched to proxied, with a Playwright readback afterwards. Merging this folder does neither.
+
 ## What is not declared yet (deliberate)
 
 - `main` (the Worker entry). The Lovable build (Vite + Nitro, Cloudflare target) produces the real server bundle. Its output path has not been read back, so this file does not guess it. `wrangler deploy` is blocked until a build readback sets `main`.
