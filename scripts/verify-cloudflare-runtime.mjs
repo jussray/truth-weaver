@@ -123,6 +123,9 @@ if (wrangler) {
   for (const flag of FORBIDDEN_FLAGS) {
     if (flags.includes(flag)) fail(`compatibility flag forbidden here: ${flag}`);
   }
+  if (!wrangler.previews || typeof wrangler.previews !== "object" || Array.isArray(wrangler.previews)) {
+    fail("wrangler.jsonc must include a previews object for Cloudflare PR preview deployments");
+  }
   // Secrets and vars must never be declared in git-tracked config.
   for (const key of ["vars", "secrets"]) {
     if (key in wrangler) fail(`"${key}" must not be declared in wrangler.jsonc (values stay out of git)`);
