@@ -8,12 +8,33 @@ on:
 permissions:
   contents: read
 
+# Cancel obsolete commits within the same PR/branch to conserve private-repo minutes.
+# This does not cancel checks for a different PR or for main.
+concurrency:
+  group: verify-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+# PR checks must verify the PR's exact source head, not the synthetic merge ref.
+env:
+  EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+
 jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.EXPECTED_HEAD_SHA }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Assert exact commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "expected=$EXPECTED_HEAD_SHA actual=$(git rev-parse HEAD)"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD_SHA"
       - uses: actions/setup-node@v4
         with:
           node-version: 22
