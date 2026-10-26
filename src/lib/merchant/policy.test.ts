@@ -66,6 +66,35 @@ describe("merchant catalog identity checks", () => {
   });
 });
 
+describe("merchant invite migration safety", () => {
+  it("never bootstraps merchant authority from a hard-coded email", () => {
+    const sourcePaths = [
+      "drizzle/migrations/0000_merchant_vendor_invites.sql",
+      "supabase/migrations/20261026070000_merchant_invites_authenticated.sql",
+    ];
+    for (const path of sourcePaths) {
+      const sql = readFileSync(resolve(process.cwd(), path), "utf8");
+      expect(sql).not.toMatch(/from\s+auth\.users\s+where\s+email\s*=/i);
+      expect(sql).not.toMatch(/test-user-tw@/i);
+    }
+  });
+
+  it("restricts SECURITY DEFINER invite RPCs to authenticated users with explicit guards", () => {
+    const sql = readFileSync(
+      resolve(process.cwd(), "supabase/migrations/20261026070000_merchant_invites_authenticated.sql"),
+      "utf8",
+    );
+    expect(sql.match(/security definer set search_path = ''/g)).toHaveLength(2);
+    expect(sql).toMatch(/public\.has_role\(auth\.uid\(\), 'merchant'::public\.app_role\)/);
+    expect(sql).toMatch(/revoke execute on function public\.create_merchant_invite\(text\) from public, anon/i);
+    expect(sql).toMatch(/revoke execute on function public\.redeem_merchant_invite\(text\) from public, anon/i);
+    expect(sql).toMatch(/grant execute on function public\.create_merchant_invite\(text\) to authenticated/i);
+    expect(sql).toMatch(/grant execute on function public\.redeem_merchant_invite\(text\) to authenticated/i);
+    expect(sql).toMatch(/where code_hash = encode\(extensions\.digest\(_code, 'sha256'\), 'hex'\)/);
+    expect(sql).toMatch(/and redeemed_by is null and expires_at > now\(\)/);
+  });
+});
+
 describe("merchant audit database contract", () => {
   it("uses only outcomes accepted by the committed Supabase migration", () => {
     const migration = readFileSync(
