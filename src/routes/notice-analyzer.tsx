@@ -67,7 +67,8 @@ function NoticeAnalyzerPage() {
 
   async function handleNoticeFile(event: ChangeEvent<HTMLInputElement>) {
     setFileMessage("");
-    setScanRejected("");
+    // A rejected scan stays blocked until a later scan successfully parses.
+    // Do not clear the rejection just because a new file was selected.
     setResult(null);
     setConsent(false);
     updateField("noticeText", "");
@@ -95,18 +96,21 @@ function NoticeAnalyzerPage() {
         const { ocrNoticeImage } = await import("@/lib/ocr-notice");
         const { text, averageConfidence } = await ocrNoticeImage(file, setFileMessage);
         updateField("noticeText", text);
+        setScanRejected("");
         setFileMessage(`Scanned ${file.name}. OCR confidence approximately ${Math.round(averageConfidence)}%. ${ocrNote}`);
       } else {
         setFileMessage("Extracting selectable text locally. No notice has been submitted.");
         try {
           const { text, pages } = await extractNoticePdfText(file);
           updateField("noticeText", text);
+          setScanRejected("");
           setFileMessage(`Loaded ${file.name} (${pages} page${pages === 1 ? "" : "s"}). Review the text before analysis.`);
         } catch (cause) {
           if (!(cause instanceof Error) || !cause.message.startsWith("No sufficient selectable text")) throw cause;
           const { ocrNoticePdf } = await import("@/lib/ocr-notice");
           const { text, averageConfidence } = await ocrNoticePdf(file, setFileMessage);
           updateField("noticeText", text);
+          setScanRejected("");
           setFileMessage(`Scanned ${file.name}. OCR confidence approximately ${Math.round(averageConfidence)}%. ${ocrNote}`);
         }
       }
@@ -123,6 +127,10 @@ function NoticeAnalyzerPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (scanRejected) {
+      setError("The last scan was unreadable. Upload a clearer PDF or photo before analyzing.");
+      return;
+    }
     if (!consent) {
       setError("Consent to sending the reviewed notice text for analysis is required.");
       return;
@@ -290,7 +298,7 @@ function NoticeAnalyzerPage() {
             <button
               data-testid="analyze-notice"
               type="submit"
-              disabled={pending || !consent}
+              disabled={pending || !consent || Boolean(scanRejected)}
               className="foil-surface inline-flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 font-bold text-ink disabled:cursor-wait disabled:opacity-60"
             >
               {pending ? <LoaderCircle className="h-5 w-5 animate-spin" aria-hidden /> : <FileSearch className="h-5 w-5" aria-hidden />}
