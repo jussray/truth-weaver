@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 /** Calls a protected server function with the signed-in user's bearer token. */
 export async function authed<TOptions, TResult>(
   fn: (opts: TOptions) => Promise<TResult>,
-  data?: TOptions extends { data: infer D } ? D : never,
+  data?: NonNullable<TOptions> extends { data?: infer D } ? D : never,
 ): Promise<TResult> {
   const { data: s } = await supabase.auth.getSession();
   const token = s.session?.access_token;
