@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database, Json } from "@/integrations/supabase/types";
+import type { MerchantAuditOutcome } from "./audit-contract";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
@@ -20,8 +21,6 @@ import {
 
 type Ctx = { supabase: SupabaseClient<Database>; userId: string };
 
-/** Matches the public.merchant_audit_log.outcome database CHECK constraint. */
-type MerchantAuditOutcome = "attempted" | "succeeded" | "failed" | "denied";
 
 async function assertMerchant({ supabase, userId }: Ctx) {
   const { data, error } = await supabase.rpc("has_role", { _user_id: userId, _role: "merchant" });
