@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
+import type { Json } from "@/integrations/supabase/types";
 import { authed } from "@/lib/merchant/authed-call";
 import { createVendorInvite, listAuditLog } from "@/lib/merchant/portal.functions";
 
@@ -10,6 +11,11 @@ export const Route = createFileRoute("/merchant/audit-log")({
 });
 
 type Rows = Awaited<ReturnType<typeof listAuditLog>>;
+
+function auditedPrice(state: Json | null): string | null {
+  if (!state || typeof state !== "object" || Array.isArray(state)) return null;
+  return typeof state.price === "string" ? state.price : null;
+}
 
 function AuditPage() {
   const [rows, setRows] = useState<Rows | null>(null);
@@ -49,8 +55,8 @@ function AuditPage() {
             <span className="font-semibold text-gold">{r.action}</span> · {r.outcome} · <span className="text-parchment/60">{new Date(r.created_at).toLocaleString()}</span>
             <div className="text-parchment/70">
               {r.target.split("/").pop()}
-              {r.before_state?.price && ` · $${r.before_state.price}`}
-              {r.requested_state?.price && ` → $${r.requested_state.price}`}
+              {auditedPrice(r.before_state) && ` · ${auditedPrice(r.before_state)}`}
+              {auditedPrice(r.requested_state) && ` → ${auditedPrice(r.requested_state)}`}
               {r.detail && ` · ${r.detail}`}
             </div>
           </li>
