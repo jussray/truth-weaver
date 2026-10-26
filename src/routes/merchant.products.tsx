@@ -81,7 +81,7 @@ function ProductsPage() {
                 const draft = drafts[v.id] ?? v.price;
                 const valid = validatePrice(draft) && draft !== v.price;
                 return (
-                  <li key={v.id} className="flex flex-wrap items-center gap-3 py-3">
+                  <li key={v.id} data-variant-id={v.id} className="flex flex-wrap items-center gap-3 py-3">
                     <span className="min-w-40 flex-1 text-sm">{v.title}{v.sku ? <span className="text-parchment/50"> · {v.sku}</span> : null}</span>
                     <label className="flex items-center gap-2 text-sm">
                       <span className="text-parchment/60">Price $</span>
