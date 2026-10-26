@@ -7,7 +7,7 @@ import {
   parseRecommendationOutput,
   type RecommendationResult,
 } from "./recommendations";
-import { fetchProducts, type ShopifyProduct } from "./shopify";
+import { fetchProductByHandle, fetchProducts, type ShopifyProduct } from "./shopify";
 
 const MODEL = "openai/gpt-6-astra";
 const CACHE_TTL_MS = 10 * 60 * 1000;
@@ -36,8 +36,9 @@ function outputText(response: unknown): string {
 }
 
 export async function recommendForHandle(handle: string): Promise<RecommendationResult> {
-  const catalog = await fetchProducts();
-  const current = catalog.find((p) => p.node.handle === handle);
+  // The shop list is a capped first page; resolve the viewed product directly so
+  // product pages beyond that page are still eligible for recommendations.
+  const [current, catalog] = await Promise.all([fetchProductByHandle(handle), fetchProducts()]);
   if (!current) return { mode: "none", items: [], notice: null };
   const candidates = candidatesFor(current, catalog);
   if (candidates.length === 0) return { mode: "none", items: [], notice: null };
