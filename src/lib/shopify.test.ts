@@ -73,7 +73,7 @@ describe("Truth Weaver launch-hold purchase boundary", () => {
     }), { status: 200 }));
     globalThis.fetch = request as typeof fetch;
     try {
-      expect(await fetchLiveCart("cart-1")).toBeNull();
+      await expect(fetchLiveCart("cart-1")).rejects.toThrow("launch-held");
       expect(request).toHaveBeenCalledTimes(1);
     } finally {
       globalThis.fetch = originalFetch;
