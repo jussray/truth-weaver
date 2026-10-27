@@ -74,6 +74,18 @@ import { Panel } from "@ws-0dfe240cdcdbfcf99736/8ef43cd3-8d93-4494-a685-59ce0f79
 import { ProductCard } from "@ws-0dfe240cdcdbfcf99736/8ef43cd3-8d93-4494-a685-59ce0f795614"
 ```
 
+### RelatedProducts
+
+```ts
+import { RelatedProducts } from "@ws-0dfe240cdcdbfcf99736/8ef43cd3-8d93-4494-a685-59ce0f795614"
+```
+
+**Props:**
+
+| Prop | Type | Default |
+|---|---|---|
+| `handle` | string | `—` |
+
 ### Sheet
 
 ```ts
