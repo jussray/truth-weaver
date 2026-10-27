@@ -119,7 +119,10 @@ export async function fetchLiveCart(cartId: string): Promise<LiveCart> {
   if (!cart || cart.totalQuantity === 0) return null;
   // Restored Shopify carts may predate the launch hold: never return checkout.
   if (cart.lines?.edges?.some((edge: { node: { merchandise: { id: string } } }) =>
-    !isStorefrontVariantSellable(edge.node.merchandise.id))) return null;
+    !isStorefrontVariantSellable(edge.node.merchandise.id))) {
+    // Do not erase a saved local cart merely because a line is held.
+    throw new Error("Shopify cart includes launch-held merchandise.");
+  }
   const checkoutUrl = formatCheckoutUrl(cart.checkoutUrl);
   if (!checkoutUrl) throw new Error("Unsafe checkout URL from Shopify");
   return {
