@@ -1,5 +1,13 @@
 # Roadmap
 
+## Launch execution (2026-10-27)
+- [x] Reauthenticate Shopify chat tools and read existing catalog.
+- [x] Run current SEO foundations, database linter, slow-query and security checks.
+- [ ] Add immutable paid-order Counsel storage and authenticated issuance/readback with fresh payment verification.
+- [ ] Create purchasable guides/templates/courses/bundles. Blocked: approved product prices and actual deliverable content are missing.
+- [ ] Real checkout and paid delivery. Blocked: app Admin credential and Customer Account OAuth configuration absent.
+- [ ] Fix sitemap after SEO approval; verify preview and request publication without claiming deployment completion.
+
 ## COUNSEL (active)
 - [ ] Database: jurisdictions, legal_sources, legal_books, issues, findings, issue_elements, remedies_defenses, issue_sources, issue_books, red_team_checks
 - [ ] Seed source-family registry + book categories (labelled registry, not coverage)
