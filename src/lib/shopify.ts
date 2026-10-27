@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import { isStorefrontVariantSellable } from "./commerce/storefront-launch-guard";
 
 const SHOPIFY_API_VERSION = "2026-10";
 const SHOPIFY_STORE_PERMANENT_DOMAIN = "fcr-truth-weaver-esimv-203acj81.myshopify.com";
@@ -116,6 +117,9 @@ export async function fetchLiveCart(cartId: string): Promise<LiveCart> {
   const data = await storefrontApiRequest(CART_FULL_QUERY, { id: cartId });
   const cart = data?.data?.cart;
   if (!cart || cart.totalQuantity === 0) return null;
+  // Restored Shopify carts may predate the launch hold: never return checkout.
+  if (cart.lines?.edges?.some((edge: { node: { merchandise: { id: string } } }) =>
+    !isStorefrontVariantSellable(edge.node.merchandise.id))) return null;
   const checkoutUrl = formatCheckoutUrl(cart.checkoutUrl);
   if (!checkoutUrl) throw new Error("Unsafe checkout URL from Shopify");
   return {
@@ -137,6 +141,7 @@ export async function cartExists(cartId: string): Promise<boolean> {
 }
 
 export async function createShopifyCart(variantId: string, quantity: number) {
+  if (!isStorefrontVariantSellable(variantId)) return null;
   const data = await storefrontApiRequest(CART_CREATE_MUTATION, { input: { lines: [{ quantity, merchandiseId: variantId }] } });
   const errs: UserError[] = data?.data?.cartCreate?.userErrors ?? [];
   if (errs.length) {
@@ -151,6 +156,7 @@ export async function createShopifyCart(variantId: string, quantity: number) {
 }
 
 export async function addLineToShopifyCart(cartId: string, variantId: string, quantity: number) {
+  if (!isStorefrontVariantSellable(variantId)) return { success: false };
   const data = await storefrontApiRequest(CART_LINES_ADD_MUTATION, { cartId, lines: [{ quantity, merchandiseId: variantId }] });
   const errs: UserError[] = data?.data?.cartLinesAdd?.userErrors ?? [];
   if (isCartNotFoundError(errs)) return { success: false, cartNotFound: true };
