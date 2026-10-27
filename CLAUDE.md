@@ -13,8 +13,8 @@ Truth Weaver is a **standalone** app: the jurisdictional legal navigation engine
 - Cloudflare runtime contract (`wrangler.jsonc`, `cloudflare/`, verify + build-readback scripts) is **pending in draft PR #13**, not on `main`.
 - Observed 2026-10-26 (Cloudflare API, read-only): the live domain is DNS-only to Lovable hosting. A Cloudflare Worker `truth-weaver` exists but serves only `workers.dev` and previews, with **0 secrets** set. Do not treat a Worker deploy or preview as the live site, and do not move DNS without Juss.
 
-- **Domain rule (Juss, 2026-10-26):** `*.foundercontrolroom.org` is an extension of Founder Control Room's code (FCR-owned). `*.jussco.company` is for standalone apps and products only, each owning its own repo and runtime. Never serve a standalone app as FCR code, or FCR code as a standalone product, on the other's domain.
-- **Brand rule (Juss, 2026-10-26):** every product keeps its own identity. A `*.foundercontrolroom.org` host shows FCR-branded FCR code; a standalone app on `*.jussco.company` shows its own brand. Never serve the same page under both, and never redirect an FCR host to a standalone product.
+- **Platform rule (Juss, 2026-10-26):** Founder Control Room (FCR) is the source platform: apps are pulled from its skills and systems. Some apps are FCR-branded; some are both standalone products and FCR extensions. A standalone app's live site is its own real domain on `*.jussco.company`, with its own brand, built from its own GitHub repo (and Lovable where used).
+- **Truth Compass and Truth Weaver (Juss, 2026-10-26):** standalone apps pulled from FCR. Live sites: `compass.jussco.company` and `truthweaver.jussco.company`. Their FCR-branded URLs (`truthcompass.foundercontrolroom.org`, `truthweaver.foundercontrolroom.org`) are dropped: DNS records and Pages domains removed 2026-10-27. Do not recreate them.
 
 ## Commands
 | Purpose | Command |
