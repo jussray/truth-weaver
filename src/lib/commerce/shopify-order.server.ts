@@ -65,6 +65,8 @@ export async function verifyFreshTruthWeaverPurchase(
       "https://" + TRUTH_WEAVER_SHOPIFY_DOMAIN + "/admin/api/2026-10/graphql.json",
       {
         method: "POST",
+        redirect: "error",
+        cache: "no-store",
         headers: {
           "Content-Type": "application/json",
           "X-Shopify-Access-Token": token,
