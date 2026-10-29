@@ -33,7 +33,6 @@ interface CartStore {
   removeItem: (variantId: string) => Promise<void>;
   clearCart: () => void;
   syncCart: () => Promise<void>;
-  getCheckoutUrl: () => string | null;
   prepareCheckout: () => Promise<string | null>;
 }
 
@@ -123,7 +122,6 @@ export const useCartStore = create<CartStore>()(
       },
 
       clearCart: () => set({ items: [], cartId: null, checkoutUrl: null }),
-      getCheckoutUrl: () => get().checkoutUrl,
 
       // Re-read the real Shopify cart, reconcile lines/prices/quantities, return its checkoutUrl.
       prepareCheckout: async () => {
@@ -169,7 +167,8 @@ export const useCartStore = create<CartStore>()(
     {
       name: "shopify-cart",
       storage: createJSONStorage(() => localStorage),
-      partialize: (s) => ({ items: s.items, cartId: s.cartId, checkoutUrl: s.checkoutUrl }),
+      // checkoutUrl is never persisted: prepareCheckout re-reads a validated URL from Shopify.
+      partialize: (s) => ({ items: s.items, cartId: s.cartId }),
     },
   ),
 );
