@@ -31,7 +31,10 @@
 - [x] Notice analyzer: upload/paste notice + jurisdiction → dates, obligations, questions for counsel (AI Gateway, non-authorizing) at /notice-analyzer
 - [x] index.tsx import check: no malformed import found; typecheck + production build pass
 - [ ] AI-only semantic triage (no keyword fallback, honest error, validated/deduped, stale-safe)
-- [ ] Harden Shopify cart: errors throw (incl 402), validate HTTPS checkout host, refresh cart before redirect
+- [x] Harden Shopify cart: HTTPS/same-store checkout URL validation (`formatCheckoutUrl` in src/lib/shopify.ts; rules covered by src/lib/shopify.test.ts)
+- [x] Shopify cart: 402 throws in `storefrontApiRequest` (src/lib/shopify.ts) — code only, no test yet
+- [x] Shopify cart: refresh before redirect (`prepareCheckout` in src/stores/cart-store.ts → cart-drawer `window.location.assign`) — code only, no test yet
+- [ ] Shopify cart tests for the 402 throw and the refresh-before-redirect path (not run in this session; dependency install blocked)
 - [ ] Claim store (blocked: needs founder to click Claim in Shopify menu)
 - [ ] First product (blocked: needs founder name, price, deliverable, fulfillment)
 - [ ] Publish after checks
