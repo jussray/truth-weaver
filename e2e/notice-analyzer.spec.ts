@@ -11,10 +11,10 @@ test("legal notice analyzer is source-bound and does not fabricate a result befo
   // The SSR form is inert until its React input handlers are attached.
   await expect(page.locator('input[type="file"]')).toBeEnabled();
 
-  await expect(page.getByRole("heading", { level: 1, name: /Pull the signal out of a legal notice/i })).toBeVisible();
-  await expect(page.getByTestId("notice-authority")).toContainText("NON-AUTHORIZING");
+  await expect(page.getByRole("heading", { level: 1, name: "Understand your legal notice." })).toBeVisible();
+  await expect(page.getByTestId("notice-authority")).toContainText("Research only — not permission to act");
   await expect(page.getByTestId("notice-authority")).toContainText("GOVERNING LAW IS THE AUTHORITY");
-  await expect(page.getByText(/OCR is machine reading, not verification/i)).toBeVisible();
+  await expect(page.getByText(/Automatic reading is not verification/i)).toBeVisible();
 
   await page.getByTestId("jurisdiction-type").selectOption("state");
   await page.getByTestId("jurisdiction-detail").fill("Pennsylvania");
