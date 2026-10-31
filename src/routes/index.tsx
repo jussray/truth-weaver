@@ -16,16 +16,31 @@ export const Route = createFileRoute("/")({
   component: TruthWeaverModule,
   head: () => ({
     meta: [
-      { title: "Truth Weaver Counsel | Understand the Law. Change What’s Possible." },
+      { title: "Free Legal Research by Location | Truth Weaver Counsel" },
       {
         name: "description",
         content:
-          "Understand your legal situation, find relevant sources, and see what still needs checking. Free legal research from Truth Weaver.",
+          "Describe your legal situation and where it happened. Truth Weaver finds official law sources, explains them in plain English, and shows what still needs checking.",
       },
       { property: "og:title", content: "Truth Weaver Counsel — Understand the Law" },
       { property: "og:description", content: "Start free legal research for your situation and location. See cited sources and what still needs checking." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebApplication",
+          name: "Truth Weaver Counsel",
+          url: "https://truthweaver.jussco.company/",
+          applicationCategory: "ReferenceApplication",
+          description:
+            "Plain-English legal research by location. Finds official law sources and flags what still needs checking. Not a law firm and not legal advice.",
+          offers: { "@type": "Offer", price: "0", priceCurrency: "USD", description: "Free legal research" },
+        }),
+      },
     ],
   }),
 });

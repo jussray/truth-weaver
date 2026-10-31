@@ -32,6 +32,7 @@ import { Route as MerchantProductsRouteImport } from './routes/merchant.products
 import { Route as ProductHandleRouteImport } from './routes/product.$handle'
 import { Route as AuthenticatedIssuesIssueIdRouteImport } from './routes/_authenticated/issues.$issueId'
 import { Route as AuthenticatedIssuesNewRouteImport } from './routes/_authenticated/issues.new'
+import { Route as ApiPublicShopifyOrdersPaidRouteImport } from './routes/api/public/shopify/orders-paid'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -150,6 +151,12 @@ const AuthenticatedIssuesNewRoute = AuthenticatedIssuesNewRouteImport.update({
   path: '/issues/new',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicShopifyOrdersPaidRoute =
+  ApiPublicShopifyOrdersPaidRouteImport.update({
+    id: '/api/public/shopify/orders-paid',
+    path: '/api/public/shopify/orders-paid',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -174,6 +181,7 @@ export interface FileRoutesByFullPath {
   '/merchant/': typeof MerchantIndexRoute
   '/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/issues/new': typeof AuthenticatedIssuesNewRoute
+  '/api/public/shopify/orders-paid': typeof ApiPublicShopifyOrdersPaidRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -197,6 +205,7 @@ export interface FileRoutesByTo {
   '/merchant': typeof MerchantIndexRoute
   '/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/issues/new': typeof AuthenticatedIssuesNewRoute
+  '/api/public/shopify/orders-paid': typeof ApiPublicShopifyOrdersPaidRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -223,6 +232,7 @@ export interface FileRoutesById {
   '/merchant/': typeof MerchantIndexRoute
   '/_authenticated/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/_authenticated/issues/new': typeof AuthenticatedIssuesNewRoute
+  '/api/public/shopify/orders-paid': typeof ApiPublicShopifyOrdersPaidRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -249,6 +259,7 @@ export interface FileRouteTypes {
     | '/merchant/'
     | '/issues/$issueId'
     | '/issues/new'
+    | '/api/public/shopify/orders-paid'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -272,6 +283,7 @@ export interface FileRouteTypes {
     | '/merchant'
     | '/issues/$issueId'
     | '/issues/new'
+    | '/api/public/shopify/orders-paid'
   id:
     | '__root__'
     | '/'
@@ -297,6 +309,7 @@ export interface FileRouteTypes {
     | '/merchant/'
     | '/_authenticated/issues/$issueId'
     | '/_authenticated/issues/new'
+    | '/api/public/shopify/orders-paid'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -313,6 +326,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   SourcesRoute: typeof SourcesRoute
   ProductHandleRoute: typeof ProductHandleRoute
+  ApiPublicShopifyOrdersPaidRoute: typeof ApiPublicShopifyOrdersPaidRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -478,6 +492,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIssuesNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/shopify/orders-paid': {
+      id: '/api/public/shopify/orders-paid'
+      path: '/api/public/shopify/orders-paid'
+      fullPath: '/api/public/shopify/orders-paid'
+      preLoaderRoute: typeof ApiPublicShopifyOrdersPaidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -534,6 +555,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   SourcesRoute: SourcesRoute,
   ProductHandleRoute: ProductHandleRoute,
+  ApiPublicShopifyOrdersPaidRoute: ApiPublicShopifyOrdersPaidRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
