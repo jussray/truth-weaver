@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { accessSnapshotReport, safeSnapshotKey, SNAPSHOT_REPORT_BUCKET, SNAPSHOT_MAX_BYTES, type SnapshotReportPorts } from "./snapshot-report-access";
+import { accessSnapshotReport, readBoundedSnapshotStream, safeSnapshotKey, SNAPSHOT_REPORT_BUCKET, SNAPSHOT_MAX_BYTES, type SnapshotReportPorts } from "./snapshot-report-access";
 import { NOTICE_VARIANTS } from "./shopify-order-proof";
 
 const uid = "123e4567-e89b-42d3-a456-426614174000";
@@ -100,6 +100,17 @@ describe("private Snapshot report retrieval", () => {
 });
 
 describe("private binary limits", () => {
+  it("cancels the real bounded stream reader when bytes exceed 524288", async () => {
+    const cancel = vi.fn();
+    const stream = new ReadableStream<Uint8Array>({ start(controller) { controller.enqueue(new Uint8Array(524289)); }, cancel });
+    expect(await readBoundedSnapshotStream(stream)).toBeNull();
+    expect(cancel).toHaveBeenCalledOnce();
+  });
+  it("reads a bounded private stream without writing a file", async () => {
+    const stream = new ReadableStream<Uint8Array>({ start(controller) { controller.enqueue(new TextEncoder().encode("%PDF-test")); controller.close(); } });
+    const result = await readBoundedSnapshotStream(stream);
+    expect(await result?.text()).toBe("%PDF-test");
+  });
   it("rejects an oversized declared object before downloading", async () => {
     await denied({ object: async () => ({ bucketId: SNAPSHOT_REPORT_BUCKET, contentType: "application/pdf", size: 524289 }) });
   });

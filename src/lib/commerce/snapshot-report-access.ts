@@ -5,6 +5,28 @@ export const SNAPSHOT_REPORT_BUCKET = "tw-snapshot-reports";
 export const SNAPSHOT_MAX_BYTES = 524288;
 export const SNAPSHOT_ORDER_GID = /^gid:\/\/shopify\/Order\/[1-9][0-9]{0,19}$/;
 
+/** Cancel oversized/erroring storage streams before retaining excess bytes. */
+export async function readBoundedSnapshotStream(stream: ReadableStream<Uint8Array>): Promise<Blob | null> {
+  const reader = stream.getReader();
+  const chunks: Uint8Array<ArrayBuffer>[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      if (!(value instanceof Uint8Array) || total + value.byteLength > SNAPSHOT_MAX_BYTES) {
+        await reader.cancel(); return null;
+      }
+      total += value.byteLength;
+      chunks.push(new Uint8Array(value));
+    }
+    return total > 0 ? new Blob(chunks, { type: "application/pdf" }) : null;
+  } catch {
+    try { await reader.cancel(); } catch { /* deny without logging */ }
+    return null;
+  } finally { reader.releaseLock(); }
+}
+
 export interface ReportBinding extends CustomerBinding { verificationMethod: string }
 export interface ReportEntitlement extends SnapshotEntitlement { variantId: string }
 export interface ReportLocation { authUserId: string; orderId: string; key: string; mediaType: string }

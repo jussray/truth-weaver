@@ -1,6 +1,6 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { verifyFreshTruthWeaverPurchase } from "./shopify-order.server";
-import { accessSnapshotReport, SNAPSHOT_REPORT_BUCKET, type SnapshotReportPorts } from "./snapshot-report-access";
+import { accessSnapshotReport, readBoundedSnapshotStream, SNAPSHOT_REPORT_BUCKET, type SnapshotReportPorts } from "./snapshot-report-access";
 
 const ports: SnapshotReportPorts = {
   async authenticate(token) {
@@ -43,8 +43,8 @@ const ports: SnapshotReportPorts = {
   },
   async download(key) {
     const { data, error } = await supabaseAdmin.storage.from(SNAPSHOT_REPORT_BUCKET)
-      .download(key);
-    return error ? null : data;
+      .download(key, {}, { cache: "no-store", signal: AbortSignal.timeout(8000) }).asStream();
+    return error || !data ? null : readBoundedSnapshotStream(data);
   },
 };
 
