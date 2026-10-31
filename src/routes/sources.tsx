@@ -8,10 +8,10 @@ import { listSources } from "@/lib/counsel";
 export const Route = createFileRoute("/sources")({
   head: () => ({
     meta: [
-      { title: "Source registry — Truth Weaver Counsel" },
-      { name: "description", content: "Registered legal source families and their integration status." },
-      { property: "og:title", content: "Source registry — Truth Weaver Counsel" },
-      { property: "og:description", content: "Registered source families, not exhaustive coverage." },
+      { title: "Official Legal Sources We Check | Truth Weaver Counsel" },
+      { name: "description", content: "The official law websites, courts and government sources Truth Weaver checks, which locations are covered today, and where coverage is still limited." },
+      { property: "og:title", content: "Official Legal Sources We Check | Truth Weaver Counsel" },
+      { property: "og:description", content: "See which official law sources we check and where coverage is still limited." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

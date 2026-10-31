@@ -7,9 +7,9 @@ import { listBooks } from "@/lib/counsel";
 export const Route = createFileRoute("/legal-library")({
   head: () => ({
     meta: [
-      { title: "Legal library — Truth Weaver Counsel" },
-      { name: "description", content: "Registered secondary legal books and treatises." },
-      { property: "og:title", content: "Legal library — Truth Weaver Counsel" },
+      { title: "Legal Library: Law Books & Treatises | Truth Weaver Counsel" },
+      { name: "description", content: "Browse law books, treatises and guides that explain the law. Books help you understand and find law, but the official law itself always comes first." },
+      { property: "og:title", content: "Legal Library: Law Books & Treatises | Truth Weaver Counsel" },
       { property: "og:description", content: "Books explain and help discover law; they are secondary sources." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
