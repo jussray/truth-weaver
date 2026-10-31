@@ -13,6 +13,7 @@ export const LEGAL_STATUS_LABELS: Readonly<Record<string, string>> = {
   VERIFIED_SOURCES: "Some law verified — check each finding",
   PARTIAL: "Research incomplete",
   BLOCKED: "Research could not be completed",
+  LIVE_RETRIEVAL_UNAVAILABLE: "Official sources could not be retrieved",
 };
 
 export function legalStatusLabel(state: string): string {
