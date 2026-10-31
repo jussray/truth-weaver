@@ -18,7 +18,38 @@ const searchSchema = z.object({
 export const Route = createFileRoute("/shop")({
   validateSearch: (s) => searchSchema.parse(s),
   head: () =>
-    pageHead({ path: '/shop', title: 'Legal Guides, Templates & Courses | Truth Weaver Counsel', description: 'Guides, templates, courses and bundles that help you understand the law and check official sources. Items marked not for sale are still being prepared.', breadcrumbs: [{ name: "Home", path: "/" }, { name: 'Shop', path: '/shop' }] }), => {
+    pageHead({ path: '/shop', title: 'Legal Guides, Templates & Courses | Truth Weaver Counsel', description: 'Guides, templates, courses and bundles that help you understand the law and check official sources. Items marked not for sale are still being prepared.', breadcrumbs: [{ name: "Home", path: "/" }, { name: 'Shop', path: '/shop' }] }),
+  component: ShopPage,
+});
+
+const ICONS: Record<ShopCategory["slug"], typeof BookOpen> = {
+  guides: BookOpen,
+  templates: FileText,
+  courses: GraduationCap,
+  bundles: Package,
+};
+
+function ShopPage() {
+  const { category: categorySlug, area } = Route.useSearch();
+  const category = findCategory(categorySlug);
+  const query = buildShopQuery(category?.slug, area);
+  const q = useQuery({ queryKey: ["products", query ?? "all"], queryFn: () => fetchProducts(query) });
+  const products = q.data ?? [];
+  const pill = (active: boolean) =>
+    `rounded-full border px-4 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold ${active ? "border-gold bg-gold/10 text-gold" : "border-parchment/15 text-parchment/70 hover:border-gold/50"}`;
+
+  return (
+    <SiteChrome>
+      <section className="mx-auto max-w-7xl px-5 py-14 sm:px-6">
+        <p className="text-xs font-bold uppercase tracking-[0.4em] text-gold">Shop legal tools</p>
+        <h1 className="mt-3 break-words font-serif text-4xl text-parchment sm:text-6xl">
+          {category ? category.label : area ? area : "The Counsel Store"}
+        </h1>
+        {area && category ? <p className="mt-2 text-parchment/70">Legal area: {area}</p> : null}
+
+        <nav aria-label="Store categories" className="mt-8 flex flex-wrap gap-2">
+          <a href={area ? `/shop?area=${encodeURIComponent(area)}` : "/shop"} aria-current={!category ? "page" : undefined} className={pill(!category)}>All</a>
+          {SHOP_CATEGORIES.map((c) => {
             const href = `/shop?category=${c.slug}${area ? `&area=${encodeURIComponent(area)}` : ""}`;
             return <a key={c.slug} href={href} aria-current={category?.slug === c.slug ? "page" : undefined} className={pill(category?.slug === c.slug)}>{c.label}</a>;
           })}

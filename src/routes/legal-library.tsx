@@ -7,7 +7,19 @@ import { listBooks } from "@/lib/counsel";
 
 export const Route = createFileRoute("/legal-library")({
   head: () =>
-    pageHead({ path: '/legal-library', title: 'Legal Library: Law Books & Treatises | Truth Weaver Counsel', description: 'Browse law books, treatises and guides that explain the law. Books help you understand and find law, but the official law itself always comes first.', breadcrumbs: [{ name: "Home", path: "/" }, { name: 'Legal Library', path: '/legal-library' }] }), => {
+    pageHead({ path: '/legal-library', title: 'Legal Library: Law Books & Treatises | Truth Weaver Counsel', description: 'Browse law books, treatises and guides that explain the law. Books help you understand and find law, but the official law itself always comes first.', breadcrumbs: [{ name: "Home", path: "/" }, { name: 'Legal Library', path: '/legal-library' }] }),
+  component: LibraryPage,
+});
+
+function LibraryPage() {
+  const q = useQuery({ queryKey: ["books"], queryFn: listBooks });
+  return (
+    <CounselPage title="Legal library" eyebrow="Secondary sources — cannot by themselves establish verified law">
+      {q.isLoading && <StateBox kind="loading">Loading library…</StateBox>}
+      {q.error && <StateBox kind="error">{(q.error as Error).message}</StateBox>}
+      {q.data?.length === 0 && <StateBox kind="empty">No books registered yet.</StateBox>}
+      <ul className="grid gap-3 sm:grid-cols-2">
+        {q.data?.map((b) => {
           const catalogUrl = b.catalog_url && /^https?:\/\//i.test(b.catalog_url) ? b.catalog_url : null;
           return (
             <li key={b.id} className={tw.card}>

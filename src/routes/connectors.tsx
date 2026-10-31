@@ -15,7 +15,28 @@ import { getMerchantAccess } from "@/lib/merchant/portal.functions";
 
 export const Route = createFileRoute("/connectors")({
   head: () =>
-    pageHead({ path: '/connectors', title: 'How We Check Legal Sources | Truth Weaver Counsel', description: 'How Truth Weaver looks for official law, checks location and dates, and marks what is uncertain, and why a summary or citation alone is not the law.', breadcrumbs: [{ name: "Home", path: "/" }, { name: 'Source Center', path: '/connectors' }] }),);
+    pageHead({ path: '/connectors', title: 'How We Check Legal Sources | Truth Weaver Counsel', description: 'How Truth Weaver looks for official law, checks location and dates, and marks what is uncertain, and why a summary or citation alone is not the law.', breadcrumbs: [{ name: "Home", path: "/" }, { name: 'Source Center', path: '/connectors' }] }),
+  component: SourceCenter,
+});
+
+const PATH_LABEL: Record<ConnectorPath, string> = {
+  lovable_ai: "Built-in AI",
+  standard_connector: "Connector",
+  shopify_integration: "Store integration",
+  custom_adapter: "Custom adapter",
+  public_web: "Public sources",
+};
+
+type WitnessReadiness = Awaited<ReturnType<typeof getLinearWitnessReadiness>>;
+
+function WitnessConsole({ readiness }: { readiness: WitnessReadiness }) {
+  const [token, setToken] = useState("");
+  const [witnessRunId, setWitnessRunId] = useState("");
+  const [pending, setPending] = useState(false);
+  const [result, setResult] = useState<string | null>(null);
+
+  useEffect(() => {
+    setWitnessRunId(crypto.randomUUID());
   }, []);
 
   async function runWitness() {

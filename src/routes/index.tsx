@@ -17,9 +17,6 @@ export const Route = createFileRoute("/")({
   component: TruthWeaverModule,
   head: () =>
     pageHead({ path: '/', title: 'Free Legal Research by Location | Truth Weaver Counsel', description: 'Describe your legal situation and where it happened. Truth Weaver looks for official law sources, explains them in plain English, and shows what still needs checking. Not legal advice.', jsonLd: [...WEBSITE_LD, { "@type": "SoftwareApplication", name: "Truth Weaver Counsel", applicationCategory: "ReferenceApplication", operatingSystem: "Web", isAccessibleForFree: true, url: "https://truthweaver.jussco.company/", description: "Free plain-English legal research by location and a legal notice reader. Not a law firm and not legal advice.", publisher: { "@id": "https://www.jussco.company/#organization" } }] }),
-      },
-    ],
-  }),
 });
 
 const LEGAL_AREAS = [

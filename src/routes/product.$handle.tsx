@@ -11,7 +11,35 @@ import { useCartStore } from "@/stores/cart-store";
 
 export const Route = createFileRoute("/product/$handle")({
   head: () =>
-    pageHead({ path: '/shop', title: 'Legal Tool | Truth Weaver Counsel', description: 'A legal guide, template or course from the Truth Weaver Counsel store.', noindex: true }), : formatPrice(p.priceRange.minVariantPrice)}</p>
+    pageHead({ path: '/shop', title: 'Legal Tool | Truth Weaver Counsel', description: 'A legal guide, template or course from the Truth Weaver Counsel store.', noindex: true }),
+  component: ProductPage,
+});
+
+function ProductPage() {
+  const { handle } = Route.useParams();
+  const q = useQuery({ queryKey: ["product", handle], queryFn: () => fetchProductByHandle(handle) });
+  const addItem = useCartStore((s) => s.addItem);
+  const isLoading = useCartStore((s) => s.isLoading);
+  const [variantIdx, setVariantIdx] = useState(0);
+
+  const p = q.data?.node;
+  const variant = p?.variants.edges[variantIdx]?.node;
+
+  return (
+    <SiteChrome>
+      <section className="mx-auto max-w-6xl px-5 py-14 sm:px-6">
+        {q.isLoading ? (
+          <p className="text-parchment/60">Loading…</p>
+        ) : !p ? (
+          <p className="text-parchment/70">Product not found. <a href="/shop" className="text-gold underline">Back to shop</a></p>
+        ) : (
+          <div className="grid gap-10 md:grid-cols-2">
+            <div className="overflow-hidden rounded-2xl border border-gold/20 bg-ink">
+              {p.images.edges[0] && <img src={p.images.edges[0].node.url} alt={p.images.edges[0].node.altText ?? p.title} className="w-full object-cover" />}
+            </div>
+            <div>
+              <h1 className="font-serif text-4xl text-parchment">{p.title}</h1>
+              <p className="mt-3 text-2xl font-semibold text-gold-soft">{variant ? formatPrice(variant.price) : formatPrice(p.priceRange.minVariantPrice)}</p>
               {p.variants.edges.length > 1 && (
                 <select value={variantIdx} onChange={(e) => setVariantIdx(Number(e.currentTarget.value))} className="mt-5 rounded-xl border border-parchment/15 bg-ink px-3 py-2 text-parchment">
                   {p.variants.edges.map((v, i) => <option key={v.node.id} value={i}>{v.node.title}</option>)}
