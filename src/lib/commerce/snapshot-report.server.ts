@@ -41,14 +41,21 @@ const ports: SnapshotReportPorts = {
     const { data, error } = await supabaseAdmin.storage.from(SNAPSHOT_REPORT_BUCKET).info(key);
     return error || !data ? null : { bucketId: data.bucketId, contentType: data.contentType ?? "", size: data.size ?? 0 };
   },
-  async sign(key, seconds) {
+  async download(key) {
     const { data, error } = await supabaseAdmin.storage.from(SNAPSHOT_REPORT_BUCKET)
-      .createSignedUrl(key, seconds, { download: "Truth-Weaver-Notice-Snapshot.pdf" });
-    return error ? null : data?.signedUrl ?? null;
+      .download(key);
+    return error ? null : data;
   },
 };
 
-export const retrieveOwnSnapshotReport = (token: string, orderId: string) => accessSnapshotReport(token, orderId, ports);
+export async function retrieveOwnSnapshotReport(token: string) {
+  // No order/customer/key supplied by the caller. Selection is bounded and owned.
+  const own = await listOwnSnapshotReports(token);
+  if (own.state === "not_authenticated") return { state: "not_authenticated" } as const;
+  const newest = own.orders[0];
+  if (!newest) return { state: "not_available" } as const;
+  return accessSnapshotReport(token, newest.orderId, ports);
+}
 
 /** Server-owned enumeration exposes no customer identity, PII, or object keys.
  * A recorded entitlement is not a fresh payment/delivery assertion. */
@@ -63,7 +70,7 @@ export async function listOwnSnapshotReports(token: string): Promise<{
     const binding = await ports.binding(userId);
     if (!binding || binding.verificationMethod !== "verified_customer_account") return { state: "not_linked", orders: [] };
     const { data, error } = await supabaseAdmin.from("tw_snapshot_entitlements")
-      .select("order_gid").eq("auth_user_id", userId).eq("offer", "snapshot")
+      .select("order_gid").eq("auth_user_id", userId).eq("offer", "snapshot").eq("variant_gid", "gid://shopify/ProductVariant/68176830562525")
       .is("revoked_at", null).or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
       .order("granted_at", { ascending: false }).limit(50);
     if (error || !data) return { state: "unavailable", orders: [] };
