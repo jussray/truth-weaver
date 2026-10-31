@@ -1,3 +1,4 @@
+import { pageHead, WEBSITE_LD } from "@/lib/seo";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
@@ -14,32 +15,8 @@ import { IssueTriageBanner } from "@/components/storefront/issue-triage";
 
 export const Route = createFileRoute("/")({
   component: TruthWeaverModule,
-  head: () => ({
-    meta: [
-      { title: "Free Legal Research by Location | Truth Weaver Counsel" },
-      {
-        name: "description",
-        content:
-          "Describe your legal situation and where it happened. Truth Weaver finds official law sources, explains them in plain English, and shows what still needs checking.",
-      },
-      { property: "og:title", content: "Truth Weaver Counsel — Understand the Law" },
-      { property: "og:description", content: "Start free legal research for your situation and location. See cited sources and what still needs checking." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-    scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "WebApplication",
-          name: "Truth Weaver Counsel",
-          url: "https://truthweaver.jussco.company/",
-          applicationCategory: "ReferenceApplication",
-          description:
-            "Plain-English legal research by location. Finds official law sources and flags what still needs checking. Not a law firm and not legal advice.",
-          offers: { "@type": "Offer", price: "0", priceCurrency: "USD", description: "Free legal research" },
-        }),
+  head: () =>
+    pageHead({ path: '/', title: 'Free Legal Research by Location | Truth Weaver Counsel', description: 'Describe your legal situation and where it happened. Truth Weaver looks for official law sources, explains them in plain English, and shows what still needs checking. Not legal advice.', jsonLd: [...WEBSITE_LD, { "@type": "SoftwareApplication", name: "Truth Weaver Counsel", applicationCategory: "ReferenceApplication", operatingSystem: "Web", isAccessibleForFree: true, url: "https://truthweaver.jussco.company/", description: "Free plain-English legal research by location and a legal notice reader. Not a law firm and not legal advice.", publisher: { "@id": "https://www.jussco.company/#organization" } }] }),
       },
     ],
   }),

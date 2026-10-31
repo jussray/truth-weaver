@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/seo";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -5,28 +6,8 @@ import { CounselPage, StateBox, tw } from "@/components/counsel/page";
 import { listBooks } from "@/lib/counsel";
 
 export const Route = createFileRoute("/legal-library")({
-  head: () => ({
-    meta: [
-      { title: "Legal Library: Law Books & Treatises | Truth Weaver Counsel" },
-      { name: "description", content: "Browse law books, treatises and guides that explain the law. Books help you understand and find law, but the official law itself always comes first." },
-      { property: "og:title", content: "Legal Library: Law Books & Treatises | Truth Weaver Counsel" },
-      { property: "og:description", content: "Books explain and help discover law; they are secondary sources." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
-  component: LibraryPage,
-});
-
-function LibraryPage() {
-  const q = useQuery({ queryKey: ["books"], queryFn: listBooks });
-  return (
-    <CounselPage title="Legal library" eyebrow="Secondary sources — cannot by themselves establish verified law">
-      {q.isLoading && <StateBox kind="loading">Loading library…</StateBox>}
-      {q.error && <StateBox kind="error">{(q.error as Error).message}</StateBox>}
-      {q.data?.length === 0 && <StateBox kind="empty">No books registered yet.</StateBox>}
-      <ul className="grid gap-3 sm:grid-cols-2">
-        {q.data?.map((b) => {
+  head: () =>
+    pageHead({ path: '/legal-library', title: 'Legal Library: Law Books & Treatises | Truth Weaver Counsel', description: 'Browse law books, treatises and guides that explain the law. Books help you understand and find law, but the official law itself always comes first.', breadcrumbs: [{ name: "Home", path: "/" }, { name: 'Legal Library', path: '/legal-library' }] }), => {
           const catalogUrl = b.catalog_url && /^https?:\/\//i.test(b.catalog_url) ? b.catalog_url : null;
           return (
             <li key={b.id} className={tw.card}>

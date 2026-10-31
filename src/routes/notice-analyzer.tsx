@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/seo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
@@ -24,123 +25,8 @@ import { COUNSEL_STORAGE_KEY, toStoredAnalysis } from "@/lib/counsel-document";
 
 export const Route = createFileRoute("/notice-analyzer")({
   component: NoticeAnalyzerPage,
-  head: () => ({
-    meta: [
-      { title: "Legal Notice Analyzer | Truth Weaver Counsel" },
-      {
-        name: "description",
-        content:
-          "Read a legal notice, review dates and demands, and prepare questions for a lawyer. Check every finding against the original notice and official law.",
-      },
-      { property: "og:title", content: "Legal Notice Analyzer | Truth Weaver Counsel" },
-      { property: "og:description", content: "Review a notice’s dates and demands, and see what needs checking with a lawyer." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
-});
-
-type FormState = NoticeAnalyzerInput;
-
-const INITIAL_FORM: FormState = {
-  noticeText: "",
-  jurisdictionType: "",
-  jurisdictionDetail: "",
-  documentTitle: "",
-  documentType: "",
-  issuer: "",
-  receivedDate: "",
-};
-
-function NoticeAnalyzerPage() {
-  const [form, setForm] = useState<FormState>(INITIAL_FORM);
-  const [result, setResult] = useState<NoticeAnalyzerResult | null>(null);
-  const [error, setError] = useState("");
-  const [pending, setPending] = useState(false);
-  const [fileMessage, setFileMessage] = useState("");
-  const [scanRejected, setScanRejected] = useState("");
-  const [consent, setConsent] = useState(false);
-  // Hydration gate: a file picked before React attaches its input handler can
-  // be silently dropped on SSR pages. Accept uploads only after mount.
-  const [uploadReady, setUploadReady] = useState(false);
-  useEffect(() => setUploadReady(true), []);
-
-  function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
-    setForm((current) => ({ ...current, [key]: value }));
-  }
-
-  async function handleNoticeFile(event: ChangeEvent<HTMLInputElement>) {
-    setFileMessage("");
-    setScanRejected("");
-    setResult(null);
-    setConsent(false);
-    updateField("noticeText", "");
-    const file = event.currentTarget.files?.[0];
-    event.currentTarget.value = "";
-    if (!file) return;
-
-    const isPlainText = file.type === "text/plain" || /\.txt$/i.test(file.name);
-    const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
-    const isImage = /^image\/(png|jpeg|webp)$/.test(file.type) || /\.(png|jpe?g|webp)$/i.test(file.name);
-    if (!isPlainText && !isPdf && !isImage) {
-      setFileMessage("Supported: PDF, photo (PNG/JPG/WebP), or .txt.");
-      return;
-    }
-    const ocrNote = "Read automatically — check every date, name and amount against the original before analysis.";
-
-    try {
-      if (isPlainText) {
-        if (file.size > 100_000) throw new Error("Text file is too large (100 KB maximum).");
-        const text = await file.text();
-        if (text.length > NOTICE_TEXT_MAX) throw new Error("Notice text is over the 25,000-character limit.");
-        updateField("noticeText", text);
-        setFileMessage(`Loaded ${file.name}. Review the text before analysis.`);
-      } else if (isImage) {
-        const { ocrNoticeImage } = await import("@/lib/ocr-notice");
-        const { text, averageConfidence } = await ocrNoticeImage(file, setFileMessage);
-        updateField("noticeText", text);
-        setFileMessage(`Scanned ${file.name}. Estimated reading clarity ${Math.round(averageConfidence)}%. ${ocrNote}`);
-      } else {
-        setFileMessage("Extracting selectable text locally. No notice has been submitted.");
-        try {
-          const { text, pages } = await extractNoticePdfText(file);
-          updateField("noticeText", text);
-          setFileMessage(`Loaded ${file.name} (${pages} page${pages === 1 ? "" : "s"}). Review the text before analysis.`);
-        } catch (cause) {
-          if (!(cause instanceof Error) || !cause.message.startsWith("No sufficient selectable text")) throw cause;
-          const { ocrNoticePdf } = await import("@/lib/ocr-notice");
-          const { text, averageConfidence } = await ocrNoticePdf(file, setFileMessage);
-          updateField("noticeText", text);
-          setFileMessage(`Scanned ${file.name}. Estimated reading clarity ${Math.round(averageConfidence)}%. ${ocrNote}`);
-        }
-      }
-    } catch (cause) {
-      if (cause instanceof Error && cause.name === "OcrUnreadableError") {
-        updateField("noticeText", "");
-        setScanRejected(cause.message);
-        setFileMessage("Scan rejected. Nothing was analyzed.");
-        return;
-      }
-      setFileMessage(cause instanceof Error ? cause.message : "The document could not be read. Paste the text instead.");
-    }
-  }
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!consent) {
-      setError("Consent to sending the reviewed notice text for analysis is required.");
-      return;
-    }
-    setPending(true);
-    setError("");
-    setResult(null);
-
-    try {
-      const response = await analyzeLegalNotice({ data: form });
-      setResult(response);
-      try {
-        // Session-only, this tab only. Raw notice text is never stored.
-        sessionStorage.setItem(COUNSEL_STORAGE_KEY, JSON.stringify(toStoredAnalysis(form, response)));
+  head: () =>
+    pageHead({ path: '/notice-analyzer', title: 'Legal Notice Analyzer: Understand a Notice | Truth Weaver Counsel', description: 'Got a landlord, court, debt or government notice? Add it to see the dates, demands and questions to ask a lawyer. Check every finding against the original notice and official law.', breadcrumbs: [{ name: "Home", path: "/" }, { name: 'Notice Analyzer', path: '/notice-analyzer' }] }),));
       } catch {
         // Storage can be unavailable (private mode / quota). The on-screen result is unaffected.
       }

@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/seo";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -6,34 +7,8 @@ import { CounselPage, StateBox, tw } from "@/components/counsel/page";
 import { listSources } from "@/lib/counsel";
 
 export const Route = createFileRoute("/sources")({
-  head: () => ({
-    meta: [
-      { title: "Official Legal Sources We Check | Truth Weaver Counsel" },
-      { name: "description", content: "The official law websites, courts and government sources Truth Weaver checks, which locations are covered today, and where coverage is still limited." },
-      { property: "og:title", content: "Official Legal Sources We Check | Truth Weaver Counsel" },
-      { property: "og:description", content: "See which official law sources we check and where coverage is still limited." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
-  component: SourcesPage,
-});
-
-function sourceRecord(value: boolean | null, yes: string, no: string) {
-  if (value === true) return yes;
-  if (value === false) return no;
-  return "not recorded";
-}
-
-function SourcesPage() {
-  const q = useQuery({ queryKey: ["sources"], queryFn: listSources });
-  return (
-    <CounselPage title="Source registry" eyebrow="Registered sources — not exhaustive coverage">
-      {q.isLoading && <StateBox kind="loading">Loading sources…</StateBox>}
-      {q.error && <StateBox kind="error">{(q.error as Error).message}</StateBox>}
-      {q.data?.length === 0 && <StateBox kind="empty">No sources registered.</StateBox>}
-      <ul className="grid gap-3 sm:grid-cols-2">
-        {q.data?.map((s) => (
+  head: () =>
+    pageHead({ path: '/sources', title: 'Official Legal Sources We Check | Truth Weaver Counsel', description: 'The official law websites, courts and government sources Truth Weaver checks, which places are covered today, and where coverage is still limited.', breadcrumbs: [{ name: "Home", path: "/" }, { name: 'Sources', path: '/sources' }] }), => (
           <li key={s.id} className={tw.card}>
             <div className="flex flex-wrap gap-2">
               <AuthorityChip source={s} />
