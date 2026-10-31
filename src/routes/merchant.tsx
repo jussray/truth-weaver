@@ -17,6 +17,10 @@ export const Route = createFileRoute("/merchant")({
     meta: [
       { title: "Merchant Portal | Truth Weaver" },
       { name: "description", content: "Merchant-only store management for Truth Weaver: prices, orders and the activity log." },
+      { property: "og:title", content: "Merchant Portal | Truth Weaver" },
+      { property: "og:description", content: "Merchant-only management of prices, orders and recorded activity." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
   }),
