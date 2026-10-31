@@ -5,7 +5,7 @@ import { authed } from "@/lib/merchant/authed-call";
 import { createVendorInvite, listAuditLog } from "@/lib/merchant/portal.functions";
 
 export const Route = createFileRoute("/merchant/audit-log")({
-  head: () => ({ meta: [{ title: "Activity Log | Truth Weaver Merchant" }, { name: "description", content: "Every merchant price change, customer-detail view and invite, in order." }] }),
+  head: () => ({ meta: [{ title: "Activity Log | Truth Weaver Merchant" }, { name: "description", content: "Every merchant price change, customer-detail view and invite, in order." }, { property: "og:title", content: "Activity Log | Truth Weaver Merchant" }, { property: "og:description", content: "Recorded merchant changes, customer-detail views and invites." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
   component: AuditPage,
 });
 
