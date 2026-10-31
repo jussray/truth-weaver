@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { accessSnapshotReport, safeSnapshotKey, SNAPSHOT_REPORT_BUCKET, type SnapshotReportPorts } from "./snapshot-report-access";
+import { accessSnapshotReport, safeSnapshotKey, SNAPSHOT_REPORT_BUCKET, SNAPSHOT_MAX_BYTES, type SnapshotReportPorts } from "./snapshot-report-access";
 import { NOTICE_VARIANTS } from "./shopify-order-proof";
 
 const uid = "123e4567-e89b-42d3-a456-426614174000";
@@ -19,15 +19,15 @@ function setup() {
     report: vi.fn(async () => ({ authUserId: uid, orderId: order, key, mediaType: "application/pdf" })),
     privateBucket: vi.fn(async () => true),
     object: vi.fn(async () => ({ bucketId: SNAPSHOT_REPORT_BUCKET, contentType: "application/pdf", size: 100 })),
-    // Inert fixture, no real storage/purchase call and no real signed URL issued.
-    sign: vi.fn(async () => "https://storage.example/storage/v1/object/sign/tw-snapshot-reports/opaque.pdf?token=inert-test"),
+    // Inert in-memory bytes only; no purchase, file or storage fixture is written.
+    download: vi.fn(async () => new Blob(["%PDF-isolated-test"], { type: "application/pdf" })),
   };
 }
 async function denied(override: Partial<SnapshotReportPorts>, token = "isolated-test-token", id = order) {
   const ports = { ...setup(), ...override };
   const result = await accessSnapshotReport(token, id, ports, now);
   expect(result.state).not.toBe("ready");
-  expect(ports.sign).not.toHaveBeenCalled();
+  expect(ports.download).not.toHaveBeenCalled();
   expect(JSON.stringify(result)).not.toContain(key);
   return ports;
 }
@@ -68,33 +68,63 @@ describe("private Snapshot report retrieval", () => {
   it("rejects wrong object MIME", async () => { await denied({ object: async () => ({ bucketId: SNAPSHOT_REPORT_BUCKET, contentType: "text/html", size: 100 }) }); });
   it("rejects objects from another bucket", async () => { await denied({ object: async () => ({ bucketId: "public-reports", contentType: "application/pdf", size: 100 }) }); });
   it("rejects storage errors without leaking the key", async () => { await denied({ object: async () => { throw new Error(key); } }); });
-  it("rechecks revocation immediately before signing", async () => {
+  it("rechecks revocation before the private read", async () => {
     const read = vi.fn().mockResolvedValueOnce(entitlement).mockResolvedValueOnce({ ...entitlement, revokedAt: now.toISOString() });
     await denied({ entitlement: read });
     expect(read).toHaveBeenCalledTimes(2);
   });
-  it("fails closed on signed URL failure", async () => {
-    const ports = { ...setup(), sign: vi.fn(async () => null) };
+  it("fails closed on private download failure", async () => {
+    const ports = { ...setup(), download: vi.fn(async () => null) };
     expect(await accessSnapshotReport("isolated-test-token", order, ports, now)).toEqual({ state: "not_available" });
   });
   it("rejects expiry occurring during the payment/storage checks", async () => {
     const ports = { ...setup(), entitlement: vi.fn(async () => ({ ...entitlement, expiresAt: "2026-10-31T20:00:01Z" })) };
     const clock = vi.fn().mockReturnValueOnce(now).mockReturnValueOnce(new Date("2026-10-31T20:00:02Z"));
     expect(await accessSnapshotReport("isolated-test-token", order, ports, clock)).toEqual({ state: "not_available" });
-    expect(ports.sign).not.toHaveBeenCalled();
+    expect(ports.download).not.toHaveBeenCalled();
   });
-  it("fails closed on a signing exception", async () => {
-    const ports = { ...setup(), sign: async () => { throw new Error(key); } };
+  it("fails closed on a download exception", async () => {
+    const ports = { ...setup(), download: async () => { throw new Error(key); } };
     expect(await accessSnapshotReport("isolated-test-token", order, ports, now)).toEqual({ state: "not_available" });
   });
-  it("signs only after all gates, for no more than 60 seconds, without a separate key in the response", async () => {
+  it("transfers bounded private bytes only after all gates without keys or URLs", async () => {
     const ports = setup();
     const result = await accessSnapshotReport("isolated-test-token", order, ports, now);
     expect(result.state).toBe("ready");
     expect(ports.verify).toHaveBeenCalledWith(order, "gid://shopify/Customer/456");
-    expect(ports.sign).toHaveBeenCalledWith(key, 60);
-    expect(Object.keys(result).sort()).toEqual(["expiresIn", "state", "url"]);
+    expect(ports.download).toHaveBeenCalledWith(key);
+    expect(Object.keys(result).sort()).toEqual(["base64", "mediaType", "state"]);
     expect(JSON.stringify(result)).not.toContain(key);
-    expect(ports.sign.mock.invocationCallOrder[0]).toBeGreaterThan(ports.object.mock.invocationCallOrder[0] ?? Infinity);
+    expect(ports.download.mock.invocationCallOrder[0]).toBeGreaterThan(ports.object.mock.invocationCallOrder[0] ?? Infinity);
+  });
+});
+
+describe("private binary limits", () => {
+  it("rejects an oversized declared object before downloading", async () => {
+    await denied({ object: async () => ({ bucketId: SNAPSHOT_REPORT_BUCKET, contentType: "application/pdf", size: 524289 }) });
+  });
+  it("rejects actual oversized bytes despite safe metadata", async () => {
+    const ports = { ...setup(), download: vi.fn(async () => new Blob([new Uint8Array(524289)], { type: "application/pdf" })) };
+    expect(await accessSnapshotReport("isolated-test-token", order, ports, now)).toEqual({ state: "not_available" });
+  });
+  it("accepts the exact 524288-byte boundary", async () => {
+    const bytes = new Uint8Array(524288); bytes.set(new TextEncoder().encode("%PDF-"));
+    const ports = { ...setup(), download: vi.fn(async () => new Blob([bytes], { type: "application/pdf" })) };
+    const result = await accessSnapshotReport("isolated-test-token", order, ports, now);
+    expect(SNAPSHOT_MAX_BYTES).toBe(524288);
+    expect(result.state).toBe("ready");
+    if (result.state === "ready") expect(atob(result.base64).length).toBe(524288);
+  });
+  it("rejects wrong binary MIME", async () => {
+    const ports = { ...setup(), download: async () => new Blob(["%PDF-test"], { type: "text/html" }) };
+    expect(await accessSnapshotReport("isolated-test-token", order, ports, now)).toEqual({ state: "not_available" });
+  });
+  it("rejects non-PDF bytes even with PDF MIME", async () => {
+    const ports = { ...setup(), download: async () => new Blob(["<html>"], { type: "application/pdf" }) };
+    expect(await accessSnapshotReport("isolated-test-token", order, ports, now)).toEqual({ state: "not_available" });
+  });
+  it("rejects tokens longer than 8192 before auth", async () => {
+    const ports = await denied({}, "x".repeat(8193));
+    expect(ports.authenticate).not.toHaveBeenCalled();
   });
 });
