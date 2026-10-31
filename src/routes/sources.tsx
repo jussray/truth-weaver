@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/seo";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -6,16 +7,8 @@ import { CounselPage, StateBox, tw } from "@/components/counsel/page";
 import { listSources } from "@/lib/counsel";
 
 export const Route = createFileRoute("/sources")({
-  head: () => ({
-    meta: [
-      { title: "Official Legal Sources We Check | Truth Weaver Counsel" },
-      { name: "description", content: "The official law websites, courts and government sources Truth Weaver checks, which locations are covered today, and where coverage is still limited." },
-      { property: "og:title", content: "Official Legal Sources We Check | Truth Weaver Counsel" },
-      { property: "og:description", content: "See which official law sources we check and where coverage is still limited." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () =>
+    pageHead({ path: '/sources', title: 'Official Legal Sources We Check | Truth Weaver Counsel', description: 'The official law websites, courts and government sources Truth Weaver checks, which places are covered today, and where coverage is still limited.', breadcrumbs: [{ name: "Home", path: "/" }, { name: 'Sources', path: '/sources' }] }),
   component: SourcesPage,
 });
 

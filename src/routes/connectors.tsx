@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/seo";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 
@@ -13,23 +14,8 @@ import { authed } from "@/lib/merchant/authed-call";
 import { getMerchantAccess } from "@/lib/merchant/portal.functions";
 
 export const Route = createFileRoute("/connectors")({
-  head: () => ({
-    meta: [
-      { title: "Source Center | Truth Weaver Counsel" },
-      {
-        name: "description",
-        content:
-          "How Truth Weaver checks legal sources, location, relevant dates and uncertainty. Coverage is incomplete; summaries are not governing law.",
-      },
-      { property: "og:title", content: "Source Center | Truth Weaver Counsel" },
-      {
-        property: "og:description",
-        content: "Read how legal sources are checked and why a citation or summary alone does not establish law.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () =>
+    pageHead({ path: '/connectors', title: 'How We Check Legal Sources | Truth Weaver Counsel', description: 'How Truth Weaver looks for official law, checks location and dates, and marks what is uncertain, and why a summary or citation alone is not the law.', breadcrumbs: [{ name: "Home", path: "/" }, { name: 'Source Center', path: '/connectors' }] }),
   component: SourceCenter,
 });
 

@@ -1,3 +1,5 @@
+import { Faq, NOTICE_FAQ } from "@/components/storefront/faq";
+import { pageHead } from "@/lib/seo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
@@ -24,20 +26,8 @@ import { COUNSEL_STORAGE_KEY, toStoredAnalysis } from "@/lib/counsel-document";
 
 export const Route = createFileRoute("/notice-analyzer")({
   component: NoticeAnalyzerPage,
-  head: () => ({
-    meta: [
-      { title: "Legal Notice Analyzer | Truth Weaver Counsel" },
-      {
-        name: "description",
-        content:
-          "Read a legal notice, review dates and demands, and prepare questions for a lawyer. Check every finding against the original notice and official law.",
-      },
-      { property: "og:title", content: "Legal Notice Analyzer | Truth Weaver Counsel" },
-      { property: "og:description", content: "Review a notice’s dates and demands, and see what needs checking with a lawyer." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () =>
+    pageHead({ path: '/notice-analyzer', title: 'Legal Notice Analyzer: Understand a Notice | Truth Weaver Counsel', description: 'Got a landlord, court, debt or government notice? Add it to see the dates, demands and questions to ask a lawyer. Check every finding against the original notice and official law.', breadcrumbs: [{ name: "Home", path: "/" }, { name: 'Notice Analyzer', path: '/notice-analyzer' }] }),
 });
 
 type FormState = NoticeAnalyzerInput;
@@ -313,6 +303,7 @@ function NoticeAnalyzerPage() {
           </div>
         </div>
       </section>
+      <Faq id="notice-questions" title="Questions about the Notice Analyzer" items={NOTICE_FAQ} />
     </SiteChrome>
   );
 }

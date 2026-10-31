@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/seo";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { BookOpen, Check, FileText, GraduationCap, Package } from "lucide-react";
@@ -16,16 +17,8 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/shop")({
   validateSearch: (s) => searchSchema.parse(s),
-  head: () => ({
-    meta: [
-      { title: "Shop Legal Guides, Templates & Courses | Truth Weaver Counsel" },
-      { name: "description", content: "Legal guides, templates, courses and bundles that help you understand the law and check official sources. Sold through our Shopify store." },
-      { property: "og:title", content: "Shop Legal Guides, Templates & Courses | Truth Weaver Counsel" },
-      { property: "og:description", content: "Legal guides, templates, courses and bundles that help you understand the law and check official sources." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () =>
+    pageHead({ path: '/shop', title: 'Legal Guides, Templates & Courses | Truth Weaver Counsel', description: 'Guides, templates, courses and bundles that help you understand the law and check official sources. Items marked not for sale are still being prepared.', breadcrumbs: [{ name: "Home", path: "/" }, { name: 'Shop', path: '/shop' }] }),
   component: ShopPage,
 });
 

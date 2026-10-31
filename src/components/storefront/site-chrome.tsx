@@ -73,6 +73,9 @@ export function SiteChrome({ children }: { children: ReactNode }) {
         <div className="mx-auto grid max-w-7xl gap-6 md:grid-cols-[1.4fr_1fr]">
           <div>
             <p className="font-serif text-lg tracking-[0.16em] text-parchment">TRUTH WEAVER COUNSEL</p>
+            <p className="mt-1 text-xs">
+              A <a href="https://www.jussco.company" className="text-gold underline-offset-4 hover:underline">Juss &amp; Co.</a> product
+            </p>
             <p className="mt-3 max-w-xl leading-6">
               Governing law is the authority. Truth Weaver organises legal knowledge and research; it is not a law firm,
               does not give legal advice, and never turns a book, summary or AI answer into law. For advice about your
@@ -83,6 +86,8 @@ export function SiteChrome({ children }: { children: ReactNode }) {
             <a href="/shop" className="hover:text-gold">Shop</a>
             <a href="/notice-analyzer" className="hover:text-gold">Notice Analyzer</a>
             <a href="/connectors" className="hover:text-gold">Source Center</a>
+            <a href="/sources" className="hover:text-gold">Sources</a>
+            <a href="/legal-library" className="hover:text-gold">Legal Library</a>
             <a href="/#legal-research" className="hover:text-gold">Legal Research</a>
           </div>
         </div>

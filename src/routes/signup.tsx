@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/seo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 
@@ -5,16 +6,8 @@ import { CounselPage, StateBox, tw } from "@/components/counsel/page";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/signup")({
-  head: () => ({
-    meta: [
-      { title: "Create account — Truth Weaver Counsel" },
-      { name: "description", content: "Create a private Truth Weaver workspace for your legal research." },
-      { property: "og:title", content: "Create account — Truth Weaver Counsel" },
-      { property: "og:description", content: "Save legal issues, sources and findings privately." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () =>
+    pageHead({ path: '/signup', title: 'Create account — Truth Weaver Counsel', description: 'Private Truth Weaver account page.', noindex: true }),
   component: SignupPage,
 });
 
