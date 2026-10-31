@@ -16,6 +16,7 @@ import {
 import { CONTINUITY_COOKIE_NAME, writeContinuityCookie } from "@/lib/continuity";
 import { researchLegalSituation } from "@/lib/legal-navigator.functions";
 import { createLocalJurisdictionFailClosedResult } from "@/lib/legal-navigator";
+import { legalStatusLabel } from "@/lib/legal-status-labels";
 
 type ResearchResult = Awaited<ReturnType<typeof researchLegalSituation>>;
 
@@ -55,6 +56,7 @@ function StateBadge({ state }: { state: string }) {
   const strong = state === "VERIFIED LAW";
   return (
     <span
+      data-truth-state={state}
       className={
         "inline-flex rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.14em] " +
         (strong
@@ -62,7 +64,7 @@ function StateBadge({ state }: { state: string }) {
           : "border-gold/35 bg-gold/10 text-gold")
       }
     >
-      {state}
+      {legalStatusLabel(state)}
     </span>
   );
 }
@@ -114,16 +116,16 @@ export function LegalNavigator({ initialValues }: { initialValues?: LegalNavigat
           <div className="lg:sticky lg:top-28">
             <p className="text-xs font-bold uppercase tracking-[0.35em] text-gold">Truth Weaver legal navigator</p>
             <h2 className="mt-4 font-serif text-4xl font-semibold leading-[1.02] text-parchment sm:text-5xl">
-              Start with the situation. We trace the law behind it.
+              Start with your situation.
             </h2>
             <p className="mt-5 max-w-xl text-base leading-7 text-parchment/70">
-              Give Truth Weaver the problem, the place, and the relevant time. It resolves the legal layers, searches registered official sources live, checks citations against retrieved material where possible, and shows what is verified, unverified, missing, or stale.
+              Tell us what happened, where, and when. We look for relevant legal sources where research is available, and show what was found and what still needs checking. Coverage is incomplete.
             </p>
             <div className="mt-6 rounded-2xl border border-gold/25 bg-gold/5 p-4 text-sm leading-6 text-parchment/85">
-              <strong>Governing law is the authority.</strong> Model output and legal books can help explain or discover law, but they cannot silently become governing law.
+              <strong>Governing law is the authority.</strong> AI summaries and books can help explain the law, but do not establish which law applies to you.
             </div>
             <div className="mt-4 rounded-2xl border border-violet-accent/25 bg-violet-accent/10 p-4 text-sm leading-6 text-parchment/80">
-              <strong>Place matters:</strong> “Africa” is too broad. A legal answer may require country, state/province/region, county, city, court, or another jurisdiction layer.
+              <strong>Location matters:</strong> Include the country and, if relevant, the state, province, city or court. Different places have different laws.
             </div>
           </div>
 
@@ -144,7 +146,7 @@ export function LegalNavigator({ initialValues }: { initialValues?: LegalNavigat
               </label>
 
               <label className="grid gap-2 text-sm text-parchment/85">
-                Place / jurisdiction
+                Where did this happen?
                 <input
                   data-testid="legal-place"
                   required
@@ -166,7 +168,7 @@ export function LegalNavigator({ initialValues }: { initialValues?: LegalNavigat
                   />
                 </label>
                 <label className="grid gap-2 text-sm text-parchment/85">
-                  Law as of date
+                  Which date should the law be checked for?
                   <input
                     type="date"
                     value={form.asOfDate}
@@ -220,10 +222,10 @@ export function LegalNavigator({ initialValues }: { initialValues?: LegalNavigat
 
                 <div className="rounded-2xl border border-parchment/10 bg-forest-deep/25 p-4">
                   <h4 className="flex items-center gap-2 font-semibold text-parchment">
-                    <Globe2 className="h-4 w-4 text-gold" aria-hidden /> Jurisdiction stack
+                    <Globe2 className="h-4 w-4 text-gold" aria-hidden /> Places whose laws may matter
                   </h4>
                   <p className="mt-2 text-sm text-parchment/75">
-                    {result.jurisdiction.layers.length ? result.jurisdiction.layers.join(" → ") : "Not resolved"}
+                    {result.jurisdiction.layers.length ? result.jurisdiction.layers.join(" · ") : "We need a more specific location"}
                   </p>
                   {result.jurisdiction.missing.length ? (
                     <ul className="mt-3 space-y-1 text-xs leading-5 text-warn">
@@ -238,13 +240,12 @@ export function LegalNavigator({ initialValues }: { initialValues?: LegalNavigat
                       <article key={index} className="rounded-2xl border border-parchment/10 bg-forest-deep/20 p-4">
                         <div className="flex flex-wrap items-center gap-2">
                           <StateBadge state={finding.truthState} />
-                          <span className="text-[11px] uppercase tracking-wider text-parchment/45">{finding.authorityType}</span>
                         </div>
                         <h4 className="mt-3 font-semibold text-parchment">{finding.proposition}</h4>
                         <p className="mt-2 text-sm leading-6 text-parchment/75">{finding.explanation}</p>
                         {finding.citation ? (
                           <p className="mt-3 font-mono text-xs text-gold-soft">
-                            Citation: {finding.citation} {finding.citationVerified ? "✓ matched in retrieved text" : "· not text-matched"}
+                            Source reference: {finding.citation} {finding.citationVerified ? "✓ found in the source text" : "· not confirmed in the source text"}
                           </p>
                         ) : null}
                         {finding.blockers.length ? (
@@ -253,10 +254,10 @@ export function LegalNavigator({ initialValues }: { initialValues?: LegalNavigat
                           </ul>
                         ) : null}
                         {finding.currentnessNote ? (
-                          <p className="mt-3 text-xs leading-5 text-parchment/55">Currentness: {finding.currentnessNote}</p>
+                          <p className="mt-3 text-xs leading-5 text-parchment/55">Is it up to date? {finding.currentnessNote}</p>
                         ) : null}
                         {finding.contraryAuthority ? (
-                          <p className="mt-2 text-xs leading-5 text-parchment/55">Contrary authority: {finding.contraryAuthority}</p>
+                          <p className="mt-2 text-xs leading-5 text-parchment/55">Law that may point the other way: {finding.contraryAuthority}</p>
                         ) : null}
                       </article>
                     ))}
@@ -264,14 +265,14 @@ export function LegalNavigator({ initialValues }: { initialValues?: LegalNavigat
                 ) : (
                   <div className="rounded-2xl border border-warn/30 bg-warn/5 p-4 text-sm leading-6 text-parchment/75">
                     <AlertTriangle className="mr-2 inline h-4 w-4 text-warn" aria-hidden />
-                    No legal proposition was promoted. The unresolved research steps below are the useful result.
+                    We haven’t established which law applies. See what information is missing and what to check next below.
                   </div>
                 )}
 
                 {result.sources.length ? (
                   <div className="border-t border-gold/15 pt-5">
                     <h4 className="flex items-center gap-2 font-serif text-xl text-parchment">
-                      <ShieldCheck className="h-5 w-5 text-gold" aria-hidden /> Sources actually checked
+                      <ShieldCheck className="h-5 w-5 text-gold" aria-hidden /> Cited sources and retrieval results
                     </h4>
                     <div className="mt-3 space-y-2">
                       {result.sources.map((source) => (
@@ -286,7 +287,7 @@ export function LegalNavigator({ initialValues }: { initialValues?: LegalNavigat
                             <div>
                               <p className="font-semibold text-parchment">{source.title || source.issuingBody}</p>
                               <p className="mt-1 text-xs text-parchment/50">
-                                {source.authorityClass} · {source.jurisdiction} · {source.retrievalStatus}
+                                {source.jurisdiction} · {source.retrieved ? "Source text retrieved — check each finding" : "Source text unavailable — not verified"}
                               </p>
                             </div>
                             <ExternalLink className="h-4 w-4 shrink-0 text-gold" aria-hidden />
@@ -306,7 +307,7 @@ export function LegalNavigator({ initialValues }: { initialValues?: LegalNavigat
                       {result.books.map((book) => (
                         <article key={book.title} className="rounded-xl border border-parchment/10 bg-forest-deep/20 p-4">
                           <span className="rounded-full border border-violet-accent/30 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-violet-accent">
-                            Secondary
+                            Explanation, not governing law
                           </span>
                           <h5 className="mt-3 font-semibold text-parchment">{book.title}</h5>
                           <p className="mt-1 text-xs text-parchment/55">
@@ -320,16 +321,23 @@ export function LegalNavigator({ initialValues }: { initialValues?: LegalNavigat
                 ) : null}
 
                 <div className="grid gap-4 border-t border-gold/15 pt-5 md:grid-cols-2">
-                  <ResultList title="Missing facts" items={result.missingFacts} icon={AlertTriangle} />
-                  <ResultList title="Next research" items={result.nextResearch} icon={Search} />
-                  <ResultList title="Procedure / deadlines" items={result.procedureAndDeadlines} icon={CheckCircle2} />
+                  <ResultList title="What we still need to know" items={result.missingFacts} icon={AlertTriangle} />
+                  <ResultList title="What to check next" items={result.nextResearch} icon={Search} />
+                  <ResultList title="Steps and deadlines to confirm" items={result.procedureAndDeadlines} icon={CheckCircle2} />
                   <ResultList title="Options to investigate" items={result.options} icon={Scale} />
                 </div>
 
-                <div className="rounded-2xl border border-violet-accent/25 bg-violet-accent/8 p-4">
-                  <h4 className="flex items-center gap-2 font-semibold text-parchment">
-                    <Fingerprint className="h-4 w-4 text-violet-accent" aria-hidden /> Continuity receipt
-                  </h4>
+                <p className="text-sm leading-6 text-parchment/70">Confirm deadlines and required steps with the relevant court or a qualified lawyer. An uncertain finding is not a legal conclusion.</p>
+                <details data-testid="research-check-details" className="rounded-2xl border border-violet-accent/25 bg-violet-accent/8 p-4">
+                  <summary className="cursor-pointer font-semibold text-parchment focus-visible:outline focus-visible:outline-gold">
+                    <Fingerprint className="mr-2 inline h-4 w-4 text-violet-accent" aria-hidden /> How this was checked
+                  </summary>
+                  <p className="mt-3 text-sm leading-6 text-parchment/70">The record below tracks this research, not permission to act. A source link or matching citation alone does not establish governing law.</p>
+                  <a href="/connectors#how-we-check-sources" className="mt-2 inline-block text-sm text-gold underline">How we check sources</a>
+                  <p className="mt-3 text-xs text-parchment/55">Research state: {result.researchStatus} · Authority: {result.authority.status}</p>
+                  {result.findings.map((finding, index) => <p key={index} className="mt-2 text-xs text-parchment/55">{finding.proposition}: {finding.truthState} · {finding.authorityType}</p>)}
+                  {result.sources.map((source) => <p key={source.url} className="mt-2 break-words text-xs text-parchment/55">{source.url} · {source.authorityClass} · {source.retrievalStatus}</p>)}
+                  <p className="mt-3 text-xs text-parchment/55">Research fingerprint</p>
                   <p className="mt-2 break-all font-mono text-[11px] text-parchment/65">{result.continuity.fingerprint}</p>
                   <p className="mt-2 text-xs text-parchment/55">
                     {result.continuity.authority} · {result.continuity.freshness}
@@ -338,7 +346,7 @@ export function LegalNavigator({ initialValues }: { initialValues?: LegalNavigat
                   {result.continuity.staleReason ? (
                     <p className="mt-1 text-xs text-warn">{result.continuity.staleReason}</p>
                   ) : null}
-                </div>
+                </details>
               </section>
             ) : null}
           </div>

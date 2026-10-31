@@ -1,5 +1,11 @@
 # Roadmap
 
+## Approved public UX cleanup (2026-10-31)
+- [x] Simplify home, legal research and notice wording; preserve source/legal/privacy guards and Shop access.
+- [x] Explain source checks on existing Source Center; gate operator diagnostics with existing merchant verification. Server endpoint authorization is a separate unresolved security boundary, not proved by hiding UI.
+- [ ] Complete clean desktop/mobile browser verification. Desktop actions pass; mobile actions pass but hydration warnings remain. Focused tests/lint pass; global lint has pre-existing merchant typing errors and installed JS Playwright cannot locate its matching Chromium.
+- [x] Audit canonical repository/runtime and project-scoped database read-only; no publication or infrastructure changes.
+
 ## Launch execution (2026-10-27)
 - [x] Reauthenticate Shopify chat tools and read existing catalog.
 - [x] Run current SEO foundations, database linter, slow-query and security checks.

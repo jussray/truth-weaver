@@ -20,6 +20,10 @@ export const Route = createFileRoute("/_authenticated/fulfillment")({
     meta: [
       { title: "Counsel documents & orders — Truth Weaver Counsel" },
       { name: "description", content: "Download your Truth Weaver Counsel notice brief and open your verified Shopify orders." },
+      { property: "og:title", content: "Counsel documents & orders — Truth Weaver Counsel" },
+      { property: "og:description", content: "Your notice brief and links to store orders. Downloading a brief is not payment verification." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
   }),

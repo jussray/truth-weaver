@@ -8,22 +8,26 @@ import {
 } from "@/lib/connectors/linear-witness.functions";
 import { CONNECTORS, CONNECTOR_STATUS_LABEL, type ConnectorPath } from "@/lib/connectors/registry";
 import { useConnectorStatuses } from "@/lib/connectors/use-connector-status";
+import { useSession } from "@/hooks/use-session";
+import { authed } from "@/lib/merchant/authed-call";
+import { getMerchantAccess } from "@/lib/merchant/portal.functions";
 
 export const Route = createFileRoute("/connectors")({
-  loader: () => getLinearWitnessReadiness(),
   head: () => ({
     meta: [
       { title: "Source Center | Truth Weaver Counsel" },
       {
         name: "description",
         content:
-          "Where Truth Weaver's knowledge comes from: official sources, AI helpers and the store — each with a truthful connection status.",
+          "How Truth Weaver checks legal sources, location, relevant dates and uncertainty. Coverage is incomplete; summaries are not governing law.",
       },
       { property: "og:title", content: "Source Center | Truth Weaver Counsel" },
       {
         property: "og:description",
-        content: "Official sources, AI helpers and the store — each with a truthful connection status and provenance.",
+        content: "Read how legal sources are checked and why a citation or summary alone does not establish law.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: SourceCenter,
@@ -137,8 +141,13 @@ function WitnessConsole({ readiness }: { readiness: WitnessReadiness }) {
   );
 }
 
-function SourceCenter() {
-  const readiness = Route.useLoaderData();
+function OperatorDiagnostics() {
+  const [readiness, setReadiness] = useState<WitnessReadiness | null>(null);
+  useEffect(() => {
+    let active = true;
+    getLinearWitnessReadiness().then((next) => { if (active) setReadiness(next); }).catch(() => { /* Remain closed when readiness fails. */ });
+    return () => { active = false; };
+  }, []);
   const { statuses, health, error } = useConnectorStatuses();
   const [q, setQ] = useState("");
   const list = useMemo(() => {
@@ -149,15 +158,9 @@ function SourceCenter() {
   }, [q]);
 
   return (
-    <SiteChrome>
-      <section className="mx-auto max-w-7xl px-5 py-14 sm:px-6">
-        <p className="text-xs font-bold uppercase tracking-[0.4em] text-gold">Source Center</p>
-        <h1 className="mt-3 font-serif text-5xl text-parchment sm:text-6xl">Where our knowledge comes from.</h1>
-        <p className="mt-4 max-w-3xl leading-7 text-parchment/70">
-          Every result carries its provider, source link or ID, when it was retrieved, the jurisdiction it concerns,
-          the kind of evidence it is, and how far it has been verified. AI and web results can point you to evidence —
-          they never become verified law on their own.
-        </p>
+    <details data-testid="operator-diagnostics" className="mt-12 border-t border-gold/20 pt-6">
+      <summary className="cursor-pointer font-semibold text-gold focus-visible:outline focus-visible:outline-gold">Advanced operator diagnostics</summary>
+      <div>
         {error ? (
           <p className="mt-4 text-sm text-warn">
             Couldn’t complete provider health checks. No private connector is promoted to Connected without a verified server read.
@@ -194,7 +197,7 @@ function SourceCenter() {
                 <p className="mt-3 text-sm leading-6 text-parchment/75">{c.role}</p>
                 <p className="mt-3 border-t border-parchment/10 pt-3 text-xs leading-5 text-parchment/55">{c.limits}</p>
 
-                {readiness.enabled && c.setupUrl && status !== "connected" ? (
+                {readiness?.enabled && c.setupUrl && status !== "connected" ? (
                   <a
                     href={c.setupUrl}
                     target="_blank"
@@ -250,7 +253,44 @@ function SourceCenter() {
           ))}
         </div>
 
-        <WitnessConsole readiness={readiness} />
+        {readiness ? <WitnessConsole readiness={readiness} /> : <p role="status" className="mt-4 text-sm text-parchment/60">Operator readiness has not been confirmed.</p>}
+      </div>
+    </details>
+  );
+}
+
+function SourceCenter() {
+  const { user } = useSession();
+  const [merchantId, setMerchantId] = useState<string | null>(null);
+  const userId = user?.id;
+  useEffect(() => {
+    let active = true;
+    if (userId) {
+      authed(getMerchantAccess).then((access) => {
+        if (active) setMerchantId(access.isMerchant ? userId : null);
+      }).catch(() => { if (active) setMerchantId(null); });
+    }
+    return () => { active = false; };
+  }, [userId]);
+
+  return (
+    <SiteChrome>
+      <section className="mx-auto max-w-7xl px-5 py-14 sm:px-6">
+        <p className="text-xs font-bold uppercase tracking-[0.4em] text-gold">Source Center</p>
+        <h1 className="mt-3 font-serif text-5xl text-parchment sm:text-6xl">Where our knowledge comes from.</h1>
+        <p className="mt-4 max-w-3xl leading-7 text-parchment/70">Start with the law, not a summary. Research uses a limited set of official legal websites where retrieval is available. Books and AI can help explain or find material, but cannot establish governing law on their own.</p>
+        <div id="how-we-check-sources" className="mt-10 scroll-mt-24 space-y-6 border-t border-gold/20 pt-8">
+          <h2 className="font-serif text-3xl text-parchment">How we check sources</h2>
+          <div className="grid gap-8 sm:grid-cols-2">
+            <div><h3 className="font-semibold text-gold-soft">Find the relevant location</h3><p className="mt-2 text-sm leading-6 text-parchment/70">Country, state, city and court can change which law applies. If the location is unclear or research is not available there, the result says so instead of guessing.</p></div>
+            <div><h3 className="font-semibold text-gold-soft">Retrieve official text where available</h3><p className="mt-2 text-sm leading-6 text-parchment/70">Research searches registered official sites and tries to retrieve their text. Proposed citations are checked against retrieved text. A search result, a link, or an official website alone does not verify every claim.</p></div>
+            <div><h3 className="font-semibold text-gold-soft">Check the relevant date</h3><p className="mt-2 text-sm leading-6 text-parchment/70">The version in force when something happened may differ from today’s law. Current-text records inform checks where available; effective dates, amendments, appeals and historical versions can still require further research. We do not guarantee that every change has been found.</p></div>
+            <div><h3 className="font-semibold text-gold-soft">Keep uncertainty visible</h3><p className="mt-2 text-sm leading-6 text-parchment/70">Only findings that pass the law checks can be marked verified law. Missing evidence stays unverified; older evidence may be out of date. Books are explanatory unless the relevant legal system gives them legal force. Conflicting law and missing facts may change the answer.</p></div>
+          </div>
+          <p className="text-sm leading-6 text-parchment/70"><strong className="text-parchment">Coverage is incomplete.</strong> A registered source is not proof that every law or book has been read. Confirm important deadlines and decisions with official sources and a qualified lawyer. Governing law is the authority.</p>
+          <div className="flex flex-wrap gap-4 text-sm text-gold"><a href="/sources" className="underline">Browse registered legal sources</a><a href="/legal-library" className="underline">Browse legal books</a><a href="/#legal-research" className="underline">Start free legal research</a></div>
+        </div>
+        {userId && merchantId === userId ? <OperatorDiagnostics /> : <div data-testid="witness-gate" data-enabled="false" className="hidden" />}
       </section>
     </SiteChrome>
   );

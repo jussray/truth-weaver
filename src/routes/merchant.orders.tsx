@@ -5,7 +5,7 @@ import { authed } from "@/lib/merchant/authed-call";
 import { listMerchantOrders, revealOrderCustomer } from "@/lib/merchant/portal.functions";
 
 export const Route = createFileRoute("/merchant/orders")({
-  head: () => ({ meta: [{ title: "Orders | Truth Weaver Merchant" }, { name: "description", content: "Truth Weaver Shopify orders with customer details hidden by default." }] }),
+  head: () => ({ meta: [{ title: "Orders | Truth Weaver Merchant" }, { name: "description", content: "Truth Weaver Shopify orders with customer details hidden by default." }, { property: "og:title", content: "Orders | Truth Weaver Merchant" }, { property: "og:description", content: "Merchant order management with customer details hidden by default." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
   component: OrdersPage,
 });
 
