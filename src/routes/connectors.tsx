@@ -1,5 +1,6 @@
 import { pageHead } from "@/lib/seo";
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
 import { SiteChrome, StatusPill } from "@/components/storefront/site-chrome";
@@ -12,6 +13,7 @@ import { useConnectorStatuses } from "@/lib/connectors/use-connector-status";
 import { useSession } from "@/hooks/use-session";
 import { authed } from "@/lib/merchant/authed-call";
 import { getMerchantAccess } from "@/lib/merchant/portal.functions";
+import { listSources } from "@/lib/counsel";
 
 export const Route = createFileRoute("/connectors")({
   head: () =>
@@ -245,6 +247,37 @@ function OperatorDiagnostics() {
   );
 }
 
+function SourceRegistryPreview() {
+  const query = useQuery({ queryKey: ["sources"], queryFn: listSources });
+  return (
+    <section className="mt-12 border-t border-gold/20 pt-8" data-testid="source-center-registry">
+      <div className="flex flex-wrap items-end justify-between gap-3"><div>
+        <h2 className="font-serif text-3xl text-parchment">Registered legal sources</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-parchment/65">These records describe registered sources; they do not establish complete coverage, currentness, or verification for a particular question.</p></div>
+        <a href="/sources" className="text-sm text-gold underline">Open full source registry</a></div>
+      {query.isLoading ? <p role="status" className="mt-4 text-sm text-parchment/60">Loading registered sources…</p> : null}
+      {query.error ? <p role="alert" className="mt-4 text-sm text-warn">The source registry could not be loaded. Try the full registry page.</p> : null}
+      {query.data?.length === 0 ? <p className="mt-4 text-sm text-parchment/60">No legal sources are currently registered.</p> : null}
+      <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+        {query.data?.map((source) => {
+          let safeUrl: string | null = null;
+          try { const url = new URL(source.base_url || ""); if (url.protocol === "https:" || url.protocol === "http:") safeUrl = url.toString(); } catch { /* Hide malformed links. */ }
+          return <li key={source.id} className="rounded-xl border border-parchment/10 bg-forest-deep/40 p-4">
+            <h3 className="font-semibold text-parchment">{source.name}</h3>
+            {source.issuing_body ? <p className="mt-1 text-xs text-parchment/60">Issuer: {source.issuing_body}</p> : null}
+            {source.coverage_description ? <p className="mt-2 text-sm leading-5 text-parchment/70">{source.coverage_description}</p> : null}
+            <dl className="mt-3 grid gap-1 border-t border-parchment/10 pt-3 text-xs text-parchment/60">
+              <div><dt className="inline font-semibold text-parchment/75">Official-source record: </dt><dd className="inline">{source.is_official === true ? "marked official" : source.is_official === false ? "not marked official" : "not recorded"}</dd></div>
+              <div><dt className="inline font-semibold text-parchment/75">Authenticity record: </dt><dd className="inline">{source.is_authentic === true ? "marked authentic" : source.is_authentic === false ? "not marked authentic" : "not recorded"}</dd></div>
+              {source.authority_weight ? <div><dt className="inline font-semibold text-parchment/75">Authority context: </dt><dd className="inline">{source.authority_weight}</dd></div> : null}</dl>
+            {source.currentness_strategy ? <p className="mt-3 text-xs leading-5 text-parchment/60"><strong className="text-parchment/75">Currentness guidance: </strong>{source.currentness_strategy}</p> : null}
+            {safeUrl ? <a href={safeUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block break-all text-xs text-gold underline">Open source site ↗</a> : <p className="mt-3 text-xs text-parchment/45">No safe HTTP source URL is recorded.</p>}</li>;
+        })}
+      </ul>
+    </section>
+  );
+}
+
 function SourceCenter() {
   const { user } = useSession();
   const [merchantId, setMerchantId] = useState<string | null>(null);
@@ -276,6 +309,7 @@ function SourceCenter() {
           <p className="text-sm leading-6 text-parchment/70"><strong className="text-parchment">Coverage is incomplete.</strong> A registered source is not proof that every law or book has been read. Confirm important deadlines and decisions with official sources and a qualified lawyer. Governing law is the authority.</p>
           <div className="flex flex-wrap gap-4 text-sm text-gold"><a href="/sources" className="underline">Browse registered legal sources</a><a href="/legal-library" className="underline">Browse legal books</a><a href="/#legal-research" className="underline">Start free legal research</a></div>
         </div>
+        <SourceRegistryPreview />
         {userId && merchantId === userId ? <OperatorDiagnostics /> : <div data-testid="witness-gate" data-enabled="false" className="hidden" />}
       </section>
     </SiteChrome>
