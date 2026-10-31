@@ -5,7 +5,7 @@
     "version": "6.0.0",
     "framework": "react",
     "css_framework": "tailwind",
-    "starter_template": "custom_design_system_tailwind",
+    "starter_template": "custom_design_system",
     "theme_files": [
       "src/styles.css"
     ],
@@ -685,21 +685,6 @@
       "name": "SheetDescription",
       "file": "src/components/ui/sheet",
       "import_path": ""
-    },
-    {
-      "name": "Constants",
-      "file": "src/integrations/supabase/types",
-      "import_path": ""
-    },
-    {
-      "name": "ShopifyAdminUnavailable",
-      "file": "src/lib/merchant/admin.server",
-      "import_path": ""
-    },
-    {
-      "name": "OcrUnreadableError",
-      "file": "src/lib/ocr-notice",
-      "import_path": ""
     }
   ],
   "assets": [
@@ -707,6 +692,36 @@
       "file": "src/assets/hero-sanctum.jpg",
       "kind": "image",
       "format": "jpg"
+    },
+    {
+      "file": "src/assets/fonts/inter-tight-variable.woff2",
+      "kind": "font",
+      "format": "woff2"
+    },
+    {
+      "file": "src/assets/fonts/cormorant-garamond-normal.woff2",
+      "kind": "font",
+      "format": "woff2"
+    },
+    {
+      "file": "src/assets/fonts/cormorant-garamond-italic.woff2",
+      "kind": "font",
+      "format": "woff2"
+    },
+    {
+      "file": "src/assets/fonts/ibm-plex-mono-400.woff2",
+      "kind": "font",
+      "format": "woff2"
+    },
+    {
+      "file": "src/assets/fonts/ibm-plex-mono-500.woff2",
+      "kind": "font",
+      "format": "woff2"
+    },
+    {
+      "file": "src/assets/fonts/great-vibes-regular.woff2",
+      "kind": "font",
+      "format": "woff2"
     }
   ]
 }
