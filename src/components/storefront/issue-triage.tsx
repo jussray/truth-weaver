@@ -27,7 +27,7 @@ export function IssueTriageBanner() {
       setResults(ai);
     } catch {
       if (id !== reqId.current) return;
-      setError("Our AI couldn't sort this right now.");
+      setError("We couldn’t suggest an area right now.");
     } finally {
       if (id === reqId.current) setLoading(false);
     }
@@ -75,8 +75,8 @@ export function IssueTriageBanner() {
             <ul className="flex flex-col gap-2">
               {results.map((r) => (
                 <li key={r.area}>
-                  <a href={`/shop?area=${encodeURIComponent(r.area)}`} className="inline-flex items-center gap-1.5 rounded-full border border-gold/50 px-3 py-1.5 text-gold-soft hover:bg-gold/10">
-                    {r.area} <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                  <a href="#legal-research" className="inline-flex items-center gap-1.5 rounded-full border border-gold/50 px-3 py-1.5 text-gold-soft hover:bg-gold/10">
+                    Research {r.area} <ArrowRight className="h-3.5 w-3.5" aria-hidden />
                   </a>
                   <p className="mt-1 pl-3 text-xs text-parchment/60">{r.reason}</p>
                 </li>
@@ -84,7 +84,7 @@ export function IssueTriageBanner() {
             </ul>
           )}
           <p className="mt-2 text-[11px] leading-4 text-parchment/50">
-            AI suggestion (inferred, non-authorizing). A starting point, not a legal conclusion. Governing law is the authority.{" "}
+            This AI suggestion is a starting point, not a legal conclusion or permission to act. Governing law is the authority.{" "}
             <a href="#legal-research" className="text-gold underline">Research the law for your place</a>.
           </p>
         </div>

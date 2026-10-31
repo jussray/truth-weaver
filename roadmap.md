@@ -1,5 +1,11 @@
 # Roadmap
 
+## Approved public UX cleanup (2026-10-31)
+- [ ] Simplify home, legal research and notice wording; preserve source/legal/privacy guards and Shop access.
+- [ ] Explain source checks on existing Source Center; gate operator diagnostics with existing merchant verification.
+- [ ] Run focused safety tests, lint and desktop/mobile browser paths; capture proof.
+- [ ] Audit canonical repository/runtime and project-scoped database read-only; no publication or infrastructure changes.
+
 ## Launch execution (2026-10-27)
 - [x] Reauthenticate Shopify chat tools and read existing catalog.
 - [x] Run current SEO foundations, database linter, slow-query and security checks.
