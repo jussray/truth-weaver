@@ -1,5 +1,9 @@
 # Roadmap
 
+## Focused private Snapshot retrieval (2026-10-31)
+- [x] Add authenticated, owner-bound, fresh-payment-gated private PDF retrieval and honest fulfillment states; focused tests and desktop/mobile signed-out browser checks pass. Authenticated browser readback blocked: requesting user has no matching test account; no paid order/report fixture created.
+- [ ] Production paid-delivery proof. Blocked: real paid order/report, confirmed production credentials and webhook registration; no external mutations authorized here.
+
 ## Approved public UX cleanup (2026-10-31)
 - [x] Simplify home, legal research and notice wording; preserve source/legal/privacy guards and Shop access.
 - [x] Explain source checks on existing Source Center; gate operator diagnostics with existing merchant verification. Server endpoint authorization is a separate unresolved security boundary, not proved by hiding UI.
