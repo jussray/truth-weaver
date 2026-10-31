@@ -1,7 +1,7 @@
 # Roadmap
 
 ## Focused private Snapshot retrieval (2026-10-31)
-- [ ] Replace signed URLs with bounded private binary transfer and token-only newest-owned-order selection; run focused regression and browser gates.
+- [x] Replace signed URLs with bounded private binary transfer (524288 bytes), token-only newest-owned-order selection and an explicit paid-report check control. 193 Vitest + 2 Node tests and touched lint pass; preview typecheck/build OK; desktop/mobile sign-in gates pass. Authenticated paid retrieval remains unproved without an existing account and real report.
 - [x] Add authenticated, owner-bound, fresh-payment-gated private PDF retrieval and honest fulfillment states; focused tests and desktop/mobile signed-out browser checks pass. Authenticated browser readback blocked: requesting user has no matching test account; no paid order/report fixture created.
 - [ ] Production paid-delivery proof. Blocked: real paid order/report, confirmed production credentials and webhook registration; no external mutations authorized here.
 
