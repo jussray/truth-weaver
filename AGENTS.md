@@ -10,7 +10,7 @@
 <!-- LOVABLE:END -->
 
 - Public research status labels are presentation-only mappings; preserve raw truth states and continuity data in collapsed source-check details so copy never changes legal authority.
-- Snapshot report access stays in server-only adapters behind bearer validation, owner-scoped reads, fresh Shopify proof and private-bucket signing; the testable gate owns sequencing so no client identity or storage path can unlock a report.
+- Snapshot report access stays server-only behind bearer validation, owned selection and fresh Shopify proof; bounded private PDF bytes transfer in memory, never signed links, so client identity or paths cannot unlock reports.
 - Source Center operator diagnostics mount only after existing authenticated merchant verification; anonymous visitors receive source explanations without operational controls.
 
 # Founder Intelligence continuity contract
