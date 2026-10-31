@@ -146,35 +146,46 @@ function PaidSnapshotReports() {
     return () => { active = false; };
   }, [listReports]);
 
-  async function download(orderId: string) {
-    setBusy(orderId);
+  async function download() {
+    setBusy("checking");
     setError("");
     try {
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token;
       if (!token) { setError("Please sign in again to check your report."); return; }
-      const response = await downloadReport({ data: { orderId }, headers: { Authorization: `Bearer ${token}` } });
+      const response = await downloadReport({ headers: { Authorization: `Bearer ${token}` } });
       if (response.state !== "ready") {
         setError(response.state === "not_authenticated" ? "Please sign in again to check your report."
           : "Your report is not available. Payment, account ownership and a stored report must all be verified before download.");
         return;
       }
-      // The short-lived capability is used once; never stored or logged.
+      // Report bytes stay in memory, never browser storage or provider URLs.
+      const binary = atob(response.base64);
+      if (binary.length > 524288 || response.mediaType !== "application/pdf" || !binary.startsWith("%PDF-")) {
+        setError("The report could not be read safely. No file was downloaded."); return;
+      }
+      const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+      const url = URL.createObjectURL(new Blob([bytes], { type: response.mediaType }));
       const link = document.createElement("a");
-      link.href = response.url;
+      link.href = url;
       link.rel = "noreferrer noopener";
       link.referrerPolicy = "no-referrer";
       link.download = "Truth-Weaver-Notice-Snapshot.pdf";
       document.body.appendChild(link);
       link.click();
       link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch { setError("We could not check your report. No download was authorized. Please try again later."); }
     finally { setBusy(null); }
   }
 
   return <section aria-labelledby="paid-report-h" className="mb-6">
     <h2 id="paid-report-h" className="font-serif text-2xl text-parchment">Purchased Notice Snapshot reports</h2>
-    <p className="mt-1 max-w-3xl text-sm leading-6 text-parchment/65">Separate from your free browser PDF. Only your recorded Snapshot purchases appear here. A report must exist, and payment and access are checked again when you request it.</p>
+    <p className="mt-1 max-w-3xl text-sm leading-6 text-parchment/65">Separate from your free browser PDF. We check your newest eligible Snapshot purchase, payment and stored report before downloading. A purchase alone does not mean a report is ready.</p>
+    <Button className={`${tw.btn} mt-4`} onClick={() => void download()} disabled={busy !== null || loading}>
+      {busy ? <LoaderCircle className="animate-spin" aria-hidden /> : <Download aria-hidden />}
+      {busy ? "Checking report…" : "Check and download my paid Snapshot"}
+    </Button>
     <div className="mt-4" aria-live="polite" aria-busy={loading || busy !== null}>
       {loading && <StateBox kind="loading">Checking your account…</StateBox>}
       {!loading && result?.state === "not_authenticated" && <StateBox kind="error">Please sign in again to view your reports.</StateBox>}
@@ -184,10 +195,6 @@ function PaidSnapshotReports() {
       {!loading && result?.state === "ok" && result.orders.length > 0 && <ul className="space-y-3">
         {result.orders.map(order => <li key={order.orderId} className="flex flex-wrap items-center justify-between gap-3 border-b border-gold/20 py-3">
           <div><h3 className="text-parchment">Notice Snapshot · Order {order.orderId.split("/").at(-1)}</h3><p className="text-sm text-parchment/65">Recorded access. Payment and report readiness will be checked.</p></div>
-          <Button className={tw.btn} onClick={() => void download(order.orderId)} disabled={busy !== null}>
-            {busy === order.orderId ? <LoaderCircle className="animate-spin" aria-hidden /> : <Download aria-hidden />}
-            {busy === order.orderId ? "Checking report…" : "Check & download report"}
-          </Button>
         </li>)}
       </ul>}
       {error && <StateBox kind="error">{error}</StateBox>}
