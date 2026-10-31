@@ -22,6 +22,23 @@ function SourcesPage() {
   const q = useQuery({ queryKey: ["sources"], queryFn: listSources });
   return (
     <CounselPage title="Source registry" eyebrow="Registered sources — not exhaustive coverage">
+      <section data-testid="sources-intro" aria-labelledby="sources-intro-title" className="mb-8 max-w-3xl space-y-3 text-sm leading-6 text-parchment/75">
+        <h2 id="sources-intro-title" className="font-serif text-2xl text-parchment">Where does Truth Weaver get its legal information?</h2>
+        <p>
+          When you research a situation, Truth Weaver first works out the place it happened. It then looks only on the
+          official public websites registered for that place, such as legislatures, courts and government publishers,
+          and opens the page to try to match the citation and check its date.
+        </p>
+        <p>
+          Being listed here does not mean a place or subject is fully covered, or that the law is current. Each record
+          below shows who publishes the source, whether it is marked official, and how to check it is up to date. Use
+          "Open source site" to read the official text yourself, and confirm anything important with a qualified lawyer.
+        </p>
+        <p className="flex flex-wrap gap-x-4 gap-y-1">
+          <a href="/connectors#how-we-check-sources" className="text-gold underline-offset-4 hover:underline">How we check sources</a>
+          <a href="/#legal-research" className="text-gold underline-offset-4 hover:underline">Start free legal research</a>
+        </p>
+      </section>
       {q.isLoading && <StateBox kind="loading">Loading sources…</StateBox>}
       {q.error && <StateBox kind="error">{(q.error as Error).message}</StateBox>}
       {q.data?.length === 0 && <StateBox kind="empty">No sources registered.</StateBox>}
