@@ -1,3 +1,4 @@
+import { Faq, HOME_FAQ } from "@/components/storefront/faq";
 import { pageHead, WEBSITE_LD } from "@/lib/seo";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
@@ -537,6 +538,8 @@ function TruthWeaverModule() {
         </section>
 
         <LegalNavigator />
+
+        <Faq id="questions" title="Common questions" items={HOME_FAQ} />
 
         <section className="mx-auto max-w-[96rem] px-5 py-10 text-xs leading-5 text-parchment/55 sm:px-6">
           Books can help explain the law, but do not establish which law applies to you. Older material may no longer apply. Check the edition, relevant date, and official sources.

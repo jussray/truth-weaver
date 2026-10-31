@@ -1,3 +1,4 @@
+import { Faq, NOTICE_FAQ } from "@/components/storefront/faq";
 import { pageHead } from "@/lib/seo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
@@ -302,6 +303,7 @@ function NoticeAnalyzerPage() {
           </div>
         </div>
       </section>
+      <Faq id="notice-questions" title="Questions about the Notice Analyzer" items={NOTICE_FAQ} />
     </SiteChrome>
   );
 }
