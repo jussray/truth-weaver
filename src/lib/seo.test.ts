@@ -33,7 +33,8 @@ describe("robots and sitemap", () => {
   it("sitemap lists exactly the indexable pages, without lastmod", () => {
     const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
     expect(locs).toEqual(INDEXABLE_PATHS.map(canonicalUrl));
-    expect(sitemap).not.toMatch(/lastmod|product\/|merchant|dashboard|\?/);
+    expect(sitemap).not.toMatch(/lastmod|product\/|merchant|dashboard/);
+    expect(locs.some((l) => l!.includes("?"))).toBe(false);
   });
   it("robots declares the absolute sitemap and blocks private areas", () => {
     expect(robots).toContain("Sitemap: https://truthweaver.jussco.company/sitemap.xml");
