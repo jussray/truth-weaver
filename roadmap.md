@@ -1,7 +1,7 @@
 # Roadmap
 
 ## Focused private Snapshot retrieval (2026-10-31)
-- [ ] Add authenticated, owner-bound, fresh-payment-gated private PDF retrieval and honest fulfillment states; focused tests and browser verification.
+- [x] Add authenticated, owner-bound, fresh-payment-gated private PDF retrieval and honest fulfillment states; focused tests and desktop/mobile signed-out browser checks pass. Authenticated browser readback blocked: requesting user has no matching test account; no paid order/report fixture created.
 - [ ] Production paid-delivery proof. Blocked: real paid order/report, confirmed production credentials and webhook registration; no external mutations authorized here.
 
 ## Approved public UX cleanup (2026-10-31)

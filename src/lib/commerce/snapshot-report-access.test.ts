@@ -77,6 +77,12 @@ describe("private Snapshot report retrieval", () => {
     const ports = { ...setup(), sign: vi.fn(async () => null) };
     expect(await accessSnapshotReport("isolated-test-token", order, ports, now)).toEqual({ state: "not_available" });
   });
+  it("rejects expiry occurring during the payment/storage checks", async () => {
+    const ports = { ...setup(), entitlement: vi.fn(async () => ({ ...entitlement, expiresAt: "2026-10-31T20:00:01Z" })) };
+    const clock = vi.fn().mockReturnValueOnce(now).mockReturnValueOnce(new Date("2026-10-31T20:00:02Z"));
+    expect(await accessSnapshotReport("isolated-test-token", order, ports, clock)).toEqual({ state: "not_available" });
+    expect(ports.sign).not.toHaveBeenCalled();
+  });
   it("fails closed on a signing exception", async () => {
     const ports = { ...setup(), sign: async () => { throw new Error(key); } };
     expect(await accessSnapshotReport("isolated-test-token", order, ports, now)).toEqual({ state: "not_available" });

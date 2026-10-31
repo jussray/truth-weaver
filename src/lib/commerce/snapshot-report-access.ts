@@ -31,9 +31,11 @@ export function safeSnapshotKey(key: string): boolean {
 
 /** All ports are server-owned. Isolated tests never create purchases or URLs. */
 export async function accessSnapshotReport(
-  token: string, orderId: string, ports: SnapshotReportPorts, now = new Date(),
+  token: string, orderId: string, ports: SnapshotReportPorts, clock: Date | (() => Date) = () => new Date(),
 ): Promise<ReportAccessResult> {
   const denied = { state: "not_available" } as const;
+  const readTime = () => clock instanceof Date ? clock : clock();
+  const now = readTime();
   if (!token || token.length > 8192) return { state: "not_authenticated" };
   try {
     const userId = await ports.authenticate(token);
@@ -60,7 +62,7 @@ export async function accessSnapshotReport(
     // Re-read mutable access immediately before signing; never reuse cached proof.
     const current = await ports.entitlement(userId, orderId);
     if (!current || current.variantId !== entitlement.variantId ||
-        !decideSnapshotDelivery({ authUserId: userId, binding, entitlement: current, proof, now: new Date(now) }).deliver) return denied;
+        !decideSnapshotDelivery({ authUserId: userId, binding, entitlement: current, proof, now: readTime() }).deliver) return denied;
     const url = await ports.sign(report.key, SNAPSHOT_URL_SECONDS);
     if (!url) return denied;
     const parsed = new URL(url);
