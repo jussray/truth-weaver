@@ -18,6 +18,16 @@ function sourceRecord(value: boolean | null, yes: string, no: string) {
   return "not recorded";
 }
 
+function safeHttpUrl(value: string | null | undefined) {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
 function SourcesPage() {
   const q = useQuery({ queryKey: ["sources"], queryFn: listSources });
   return (
@@ -74,10 +84,12 @@ function SourcesPage() {
                 {s.currentness_strategy}
               </p>
             )}
-            {s.base_url && (
-              <a href={s.base_url} target="_blank" rel="noreferrer" className="mt-3 inline-block break-all text-xs text-gold">
+            {safeHttpUrl(s.base_url) ? (
+              <a href={safeHttpUrl(s.base_url)!} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block break-all text-xs text-gold">
                 Open source site ↗
               </a>
+            ) : (
+              <p className="mt-3 text-xs text-parchment/45">No safe HTTP source URL is recorded.</p>
             )}
           </li>
         ))}
