@@ -1,5 +1,11 @@
 # Roadmap
 
+## Focused Shopify token repair (2026-11-01)
+- [x] Replace static-only Admin acquisition with pinned-shop client credentials, bounded per-instance cache, and denial tests; preserve merchant-only legacy fallback.
+- [x] 112 focused / 227 total Vitest + 2 Node tests pass; touched lint and automatic preview compilation pass. Desktop/mobile fulfillment and merchant sign-in denial and real 503 secret_missing fallback pass without page errors/overflow.
+- [ ] Canonical sync and exact-head production repair proof. GitHub main and successful Vercel deployment still report predecessor 37591bfd; no manual merge/deploy. Full lint blocked by 8 pre-existing merchant any errors; no unrelated typing changes.
+- [ ] Production custom-app payment proof. Blocked: user-owned app creation/installation in the same Shopify organization, secure intended-app credentials and separate webhook secret; no provider changes authorized here.
+
 ## Focused private Snapshot retrieval (2026-10-31)
 - [x] Replace signed URLs with bounded private binary transfer (524288 bytes), token-only newest-owned-order selection and an explicit paid-report check control. 193 Vitest + 2 Node tests and touched lint pass; preview typecheck/build OK; desktop/mobile sign-in gates pass. Authenticated paid retrieval remains unproved without an existing account and real report.
 - [x] Add authenticated, owner-bound, fresh-payment-gated private PDF retrieval and honest fulfillment states; focused tests and desktop/mobile signed-out browser checks pass. Authenticated browser readback blocked: requesting user has no matching test account; no paid order/report fixture created.
