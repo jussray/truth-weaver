@@ -1,5 +1,10 @@
 # Roadmap
 
+## Focused Shopify token repair (2026-11-01)
+- [ ] Replace static-only Admin acquisition with pinned-shop client credentials, bounded per-instance cache, and denial tests; preserve merchant-only legacy fallback.
+- [ ] Verify focused tests, preview checks, signed-out desktop/mobile and canonical GitHub/deployment identity. Live credentials/paid orders are not proof from fixtures.
+- [ ] Production custom-app payment proof. Blocked: user-owned app creation/installation in the same Shopify organization, secure intended-app credentials and separate webhook secret; no provider changes authorized here.
+
 ## Focused private Snapshot retrieval (2026-10-31)
 - [x] Replace signed URLs with bounded private binary transfer (524288 bytes), token-only newest-owned-order selection and an explicit paid-report check control. 193 Vitest + 2 Node tests and touched lint pass; preview typecheck/build OK; desktop/mobile sign-in gates pass. Authenticated paid retrieval remains unproved without an existing account and real report.
 - [x] Add authenticated, owner-bound, fresh-payment-gated private PDF retrieval and honest fulfillment states; focused tests and desktop/mobile signed-out browser checks pass. Authenticated browser readback blocked: requesting user has no matching test account; no paid order/report fixture created.
