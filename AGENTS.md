@@ -1,4 +1,11 @@
 <!-- LOVABLE:BEGIN -->
+
+## Mandatory Broke Founder decision gate (standing founder rule)
+
+For every builder, agent, integration, security or provider choice: assume **$0 incremental spending** until explicit founder authorization for the exact new cost. Reuse verified existing infrastructure before considering paid services. If a provider or connector is missing, **build a secure first-party or open-standard alternative where feasible**, with tests and evidence, rather than treating missing access as impossible. Do not evade external entitlements, authorization, access rules, or payment boundaries.
+
+Preserve Truth Weaver's legal-source truth, authenticated merchant gate, product delivery and privacy controls. Missing first-party parity must be clearly labeled. No auto-payment, subscription, credential, deployment, merge, external sharing, or deletion follows from this policy. Record cost, chosen fallback, exact source SHA, tests and next founder approval gate; policy prose is not machine-side enforcement.
+
 > [!IMPORTANT]
 > This project is connected to [Lovable](https://lovable.dev). Avoid rewriting
 > published git history — force pushing, or rebasing/amending/squashing commits
