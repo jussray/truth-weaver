@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { CounselPage, StateBox, WorkspaceNav, tw } from "@/components/counsel/page";
 import { supabase } from "@/integrations/supabase/client";
 import { readOwnerSearchConsole, reviewOwnerEvidence } from "@/lib/owner-tools.functions";
@@ -46,7 +46,7 @@ function OwnerToolsPage() {
     } finally { setReportLoading(false); }
   }
 
-  async function analyzeClaim(event: React.FormEvent<HTMLFormElement>) {
+  async function analyzeClaim(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setAnalysis(null); setAnalysisError("");
     if (claim.trim().length < 12 || claim.length > 2000 ||
         evidenceLines.length < 1 || evidenceLines.length > 8 ||
