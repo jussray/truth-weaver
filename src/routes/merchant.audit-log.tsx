@@ -14,7 +14,7 @@ type Rows = Awaited<ReturnType<typeof listAuditLog>>;
 
 function auditPrice(value: Json | null): string | null {
   if (value === null || typeof value !== "object" || Array.isArray(value)) return null;
-  return typeof value.price === "string" ? value.price : null;
+  return typeof value["price"] === "string" ? value["price"] : null;
 }
 
 function AuditPage() {
