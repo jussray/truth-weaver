@@ -69,6 +69,8 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Lint
         run: npm run lint
+      - name: Generate route tree through the project build before typecheck
+        run: npm run build
       - name: Typecheck
         run: npm run typecheck
       - name: Run focused merchant regression tests
