@@ -1,6 +1,6 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { verifyFreshTruthWeaverPurchase } from "./shopify-order.server";
-import { accessSnapshotReport, readBoundedSnapshotStream, SNAPSHOT_REPORT_BUCKET, type SnapshotReportPorts } from "./snapshot-report-access";
+import { accessSnapshotReport, readBoundedSnapshotStream, selectOwnedSnapshotOrderId, SNAPSHOT_REPORT_BUCKET, type SnapshotReportPorts } from "./snapshot-report-access";
 
 const ports: SnapshotReportPorts = {
   async authenticate(token) {
@@ -48,13 +48,15 @@ const ports: SnapshotReportPorts = {
   },
 };
 
-export async function retrieveOwnSnapshotReport(token: string) {
-  // No order/customer/key supplied by the caller. Selection is bounded and owned.
+export async function retrieveOwnSnapshotReport(token: string, requestedOrderId: string) {
+  // A caller can choose an order identifier, but not customer identity or storage paths.
+  // Every selection is checked against fresh server-owned entitlements and payment proof.
   const own = await listOwnSnapshotReports(token);
   if (own.state === "not_authenticated") return { state: "not_authenticated" } as const;
-  const newest = own.orders[0];
-  if (!newest) return { state: "not_available" } as const;
-  return accessSnapshotReport(token, newest.orderId, ports);
+  if (own.state !== "ok") return { state: "not_available" } as const;
+  const selected = selectOwnedSnapshotOrderId(own.orders, requestedOrderId);
+  if (!selected) return { state: "not_available" } as const;
+  return accessSnapshotReport(token, selected, ports);
 }
 
 /** Server-owned enumeration exposes no customer identity, PII, or object keys.

@@ -5,6 +5,16 @@ export const SNAPSHOT_REPORT_BUCKET = "tw-snapshot-reports";
 export const SNAPSHOT_MAX_BYTES = 524288;
 export const SNAPSHOT_ORDER_GID = /^gid:\/\/shopify\/Order\/[1-9][0-9]{0,19}$/;
 
+/** No implicit newest-order fallback. The requested order must be in the
+ * server-owned, authenticated entitlement list before any private read. */
+export function selectOwnedSnapshotOrderId(
+  orders: readonly { orderId: string }[],
+  requestedOrderId: string,
+): string | null {
+  if (!SNAPSHOT_ORDER_GID.test(requestedOrderId)) return null;
+  return orders.some(row => row.orderId === requestedOrderId) ? requestedOrderId : null;
+}
+
 /** Cancel oversized/erroring storage streams before retaining excess bytes. */
 export async function readBoundedSnapshotStream(stream: ReadableStream<Uint8Array>): Promise<Blob | null> {
   const reader = stream.getReader();

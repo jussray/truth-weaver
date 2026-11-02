@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { accessSnapshotReport, readBoundedSnapshotStream, safeSnapshotKey, SNAPSHOT_REPORT_BUCKET, SNAPSHOT_MAX_BYTES, type SnapshotReportPorts } from "./snapshot-report-access";
+import { accessSnapshotReport, readBoundedSnapshotStream, safeSnapshotKey, selectOwnedSnapshotOrderId, SNAPSHOT_REPORT_BUCKET, SNAPSHOT_MAX_BYTES, type SnapshotReportPorts } from "./snapshot-report-access";
 import { NOTICE_VARIANTS } from "./shopify-order-proof";
 
 const uid = "123e4567-e89b-42d3-a456-426614174000";
@@ -137,5 +137,19 @@ describe("private binary limits", () => {
   it("rejects tokens longer than 8192 before auth", async () => {
     const ports = await denied({}, "x".repeat(8193));
     expect(ports.authenticate).not.toHaveBeenCalled();
+  });
+});
+
+describe("owned Snapshot order selection (no cross-order downloads)", () => {
+  const own = [{ orderId: "gid://shopify/Order/11" }, { orderId: "gid://shopify/Order/22" }];
+  it("selects the exact requested order rather than the newest order", () => {
+    expect(selectOwnedSnapshotOrderId(own, "gid://shopify/Order/22")).toBe("gid://shopify/Order/22");
+  });
+  it("denies unowned, malformed, and missing order IDs", () => {
+    for (const id of ["gid://shopify/Order/33", "gid://shopify/Order/0",
+      "gid://shopify/Order/11?redirect=1", "", "11"]) {
+      expect(selectOwnedSnapshotOrderId(own, id)).toBeNull();
+    }
+    expect(selectOwnedSnapshotOrderId([], "gid://shopify/Order/11")).toBeNull();
   });
 });

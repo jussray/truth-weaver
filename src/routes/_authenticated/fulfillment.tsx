@@ -146,14 +146,14 @@ function PaidSnapshotReports() {
     return () => { active = false; };
   }, [listReports]);
 
-  async function download() {
-    setBusy("checking");
+  async function download(orderId: string) {
+    setBusy(orderId);
     setError("");
     try {
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token;
       if (!token) { setError("Please sign in again to check your report."); return; }
-      const response = await downloadReport({ headers: { Authorization: `Bearer ${token}` } });
+      const response = await downloadReport({ data: { orderId }, headers: { Authorization: `Bearer ${token}` } });
       if (response.state !== "ready") {
         setError(response.state === "not_authenticated" ? "Please sign in again to check your report."
           : "Your report is not available. Payment, account ownership and a stored report must all be verified before download.");
@@ -170,7 +170,7 @@ function PaidSnapshotReports() {
       link.href = url;
       link.rel = "noreferrer noopener";
       link.referrerPolicy = "no-referrer";
-      link.download = "Truth-Weaver-Notice-Snapshot.pdf";
+      link.download = `Truth-Weaver-Notice-Snapshot-${orderId.split("/").at(-1)}.pdf`;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -181,11 +181,7 @@ function PaidSnapshotReports() {
 
   return <section aria-labelledby="paid-report-h" className="mb-6">
     <h2 id="paid-report-h" className="font-serif text-2xl text-parchment">Purchased Notice Snapshot reports</h2>
-    <p className="mt-1 max-w-3xl text-sm leading-6 text-parchment/65">Separate from your free browser PDF. We check your newest eligible Snapshot purchase, payment and stored report before downloading. A purchase alone does not mean a report is ready.</p>
-    <Button className={`${tw.btn} mt-4`} onClick={() => void download()} disabled={busy !== null || loading}>
-      {busy ? <LoaderCircle className="animate-spin" aria-hidden /> : <Download aria-hidden />}
-      {busy ? "Checking report…" : "Check and download my paid Snapshot"}
-    </Button>
+    <p className="mt-1 max-w-3xl text-sm leading-6 text-parchment/65">Each order has its own protected report. Choose the exact order below; we recheck ownership, payment, and private PDF availability before downloading.</p>
     <div className="mt-4" aria-live="polite" aria-busy={loading || busy !== null}>
       {loading && <StateBox kind="loading">Checking your account…</StateBox>}
       {!loading && result?.state === "not_authenticated" && <StateBox kind="error">Please sign in again to view your reports.</StateBox>}
@@ -195,6 +191,11 @@ function PaidSnapshotReports() {
       {!loading && result?.state === "ok" && result.orders.length > 0 && <ul className="space-y-3">
         {result.orders.map(order => <li key={order.orderId} className="flex flex-wrap items-center justify-between gap-3 border-b border-gold/20 py-3">
           <div><h3 className="text-parchment">Notice Snapshot · Order {order.orderId.split("/").at(-1)}</h3><p className="text-sm text-parchment/65">Recorded access. Payment and report readiness will be checked.</p></div>
+          <Button className={tw.btn} disabled={busy !== null} onClick={() => void download(order.orderId)}
+            aria-label={`Check and download report for order ${order.orderId.split("/").at(-1)}`}>
+            {busy === order.orderId ? <LoaderCircle className="animate-spin" aria-hidden /> : <Download aria-hidden />}
+            {busy === order.orderId ? "Checking…" : "Check & download PDF"}
+          </Button>
         </li>)}
       </ul>}
       {error && <StateBox kind="error">{error}</StateBox>}
