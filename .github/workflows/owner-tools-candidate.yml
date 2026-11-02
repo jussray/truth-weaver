@@ -1,0 +1,38 @@
+name: Owner tools candidate verification
+
+on:
+  push:
+    branches:
+      - feat/owner-search-console-evidence-gate-20261102
+
+permissions:
+  contents: read
+
+jobs:
+  verify-owner-tools:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout exact candidate SHA
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify exact SHA
+        run: test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Install
+        run: npm install --no-audit --no-fund
+      - name: Focused owner-tools tests
+        run: npx vitest run src/lib/owner-tools.shared.test.ts
+      - name: Focused lint
+        run: npx eslint src/lib/owner-tools.shared.ts src/lib/owner-tools.shared.test.ts src/lib/owner-tools.server.ts src/lib/owner-tools.functions.ts src/routes/_authenticated/owner-tools.tsx
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Verify design-system guard
+        run: npm run verify:design-system
+      - name: Build, no deployment
+        run: npm run build
