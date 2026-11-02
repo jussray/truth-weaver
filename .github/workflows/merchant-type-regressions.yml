@@ -7,6 +7,8 @@ on:
       - 'src/routes/merchant.*.tsx'
       - 'src/routes/_authenticated/vendor-invite.tsx'
       - 'e2e/**'
+      - 'scripts/ensure-cloudflare-preview-config.mjs'
+      - 'test/cloudflare-preview-config.test.mjs'
       - 'src/integrations/supabase/types.ts'
       - 'package.json'
       - '.github/workflows/merchant-type-regressions.yml'
@@ -16,6 +18,8 @@ on:
       - 'src/routes/merchant.*.tsx'
       - 'src/routes/_authenticated/vendor-invite.tsx'
       - 'e2e/**'
+      - 'scripts/ensure-cloudflare-preview-config.mjs'
+      - 'test/cloudflare-preview-config.test.mjs'
       - 'src/integrations/supabase/types.ts'
       - 'package.json'
       - '.github/workflows/merchant-type-regressions.yml'
@@ -73,6 +77,8 @@ jobs:
         run: npm run verify:founder-intelligence
       - name: Design system contract
         run: npm run verify:design-system
+      - name: Generated Wrangler preview config regression tests
+        run: node --test test/cloudflare-preview-config.test.mjs
       - name: Full repository unit and contract tests
         run: npm test
       - name: Build production artifact locally (not deploy)
