@@ -4,6 +4,7 @@ import { z } from "zod";
 export const claimInputSchema = z.object({
   claim: z.string().trim().min(12).max(2000),
   evidence: z.array(z.string().trim().min(10).max(1200)).min(1).max(8),
+  consent: z.literal(true),
 }).strict();
 
 const short = z.string().trim().min(3).max(350);
