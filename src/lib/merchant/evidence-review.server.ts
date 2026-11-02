@@ -1,7 +1,7 @@
 import { parseEvidenceReview, type evidenceReviewInputSchema } from "./owner-intelligence";
 import type { z } from "zod";
 
-const DEFAULT_MODEL = "@cf/meta/llama-3.1-8b-instruct";
+const DEFAULT_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 
 type ReviewInput = z.infer<typeof evidenceReviewInputSchema>;
 
@@ -32,6 +32,8 @@ export async function analyzeProjectEvidence(input: ReviewInput) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
         "cf-aig-gateway-id": gateway,
+        "cf-aig-collect-log": "false",
+        "cf-aig-skip-cache": "true",
       },
       body: JSON.stringify({
         model,
