@@ -4,6 +4,12 @@ on:
   push:
     paths:
       - 'src/lib/merchant/**'
+      - 'src/lib/search-console*'
+      - 'src/lib/claim-review*'
+      - 'src/routes/merchant.search-console.tsx'
+      - 'src/routes/merchant.claim-review.tsx'
+      - 'public/llms.txt'
+      - 'docs/OWNER_EVIDENCE_SEARCH_CONSOLE.md'
       - 'src/routes/merchant.*.tsx'
       - 'src/routes/_authenticated/vendor-invite.tsx'
       - 'e2e/**'
@@ -15,6 +21,12 @@ on:
   pull_request:
     paths:
       - 'src/lib/merchant/**'
+      - 'src/lib/search-console*'
+      - 'src/lib/claim-review*'
+      - 'src/routes/merchant.search-console.tsx'
+      - 'src/routes/merchant.claim-review.tsx'
+      - 'public/llms.txt'
+      - 'docs/OWNER_EVIDENCE_SEARCH_CONSOLE.md'
       - 'src/routes/merchant.*.tsx'
       - 'src/routes/_authenticated/vendor-invite.tsx'
       - 'e2e/**'
