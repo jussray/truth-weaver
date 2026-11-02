@@ -2,7 +2,7 @@ import { createServerFn } from '@tanstack/react-start';
 import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
 import {
   PUBLIC_URLS, type EvidenceReview, type InspectionStatus, type SitemapStatus,
-  normalizeInspection, normalizeSitemaps, parseEvidenceReview, validateClaimInput,
+  normalizeInspection, normalizeSitemaps, parseEvidenceReview, validateClaimInput, mapConcurrent,
 } from './owner-review';
 
 /** A vendor merchant role alone does not grant project-owner access. */
@@ -107,20 +107,19 @@ export const getOwnerSearchConsole = createServerFn({ method: 'POST' })
     } catch (error) {
       sitemapError = safeError(error, 'Sitemap status could not be retrieved.');
     }
-    const inspections: InspectionStatus[] = [];
-    for (const url of PUBLIC_URLS) {
+    const inspections = await mapConcurrent(PUBLIC_URLS, 3, async (url): Promise<InspectionStatus> => {
       try {
         const raw = await googleJson<unknown>('https://searchconsole.googleapis.com/v1/urlInspection/index:inspect', token,
           { inspectionUrl: url, siteUrl: property, languageCode: 'en-US' });
-        inspections.push(normalizeInspection(url, raw));
+        return normalizeInspection(url, raw);
       } catch (error) {
-        inspections.push({
+        return {
           url, verdict: 'UNKNOWN', coverage: 'Unknown', indexing: 'Unknown', fetch: 'Unknown',
           lastCrawl: null, googleCanonical: null, indexed: null,
           error: safeError(error, 'URL inspection failed. No index status verified.'),
-        });
+        };
       }
-    }
+    });
     return { property, checkedAt: new Date().toISOString(), sitemaps, inspections, sitemapError,
       inspectionErrors: inspections.filter((x) => x.error).length };
   });
