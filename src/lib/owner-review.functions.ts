@@ -18,6 +18,14 @@ function safeError(error: unknown, fallback: string): string {
     ? error.message.slice(0, 200) : fallback;
 }
 
+/** Read-only boolean for navigation; authorization still runs on every sensitive server call. */
+export const getOwnerFeatureAccess = createServerFn({ method: 'POST' })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ isOwner: boolean }> => {
+    try { await requireProjectOwner(context); return { isOwner: true }; }
+    catch { return { isOwner: false }; }
+  });
+
 /** Model output is untrusted evidence analysis, never authority. No persistent data writes. */
 export const reviewOwnerEvidence = createServerFn({ method: 'POST' })
   .middleware([requireSupabaseAuth])
