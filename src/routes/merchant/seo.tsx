@@ -27,7 +27,7 @@ function OwnerSeoPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div><p className="text-xs uppercase tracking-[.2em] text-gold">Owner intelligence · private</p>
           <h1 id="sc-title" className="mt-1 font-serif text-3xl">Search Console monitoring</h1>
-          <p className="mt-2 max-w-3xl text-sm text-parchment/70">Google's latest reported sitemap processing and URL-index inspection. This is not a live crawl, and submission is not indexing.</p>
+          <p className="mt-2 max-w-3xl text-sm text-parchment/70">Google's latest reported sitemap processing and URL-index inspection. This is not a live crawl, submission is not indexing, and a different Google-selected canonical does not prove the submitted URL is indexed.</p>
         </div>
         <button type="button" onClick={() => void load()} disabled={busy} className="rounded-full bg-gold px-5 py-2 text-sm font-semibold text-ink disabled:opacity-50">{busy ? 'Checking…' : 'Refresh Google status'}</button>
       </div>
@@ -42,19 +42,19 @@ function OwnerSeoPage() {
           {data.sitemaps.map((s) => <article key={s.url} className="rounded-xl border border-gold/20 bg-forest-deep/40 p-5">
             <h3 className="break-all font-semibold">{s.url}</h3>
             <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
-              <div><dt className="text-parchment/60">Processing</dt><dd>{s.pending ? 'Pending' : 'Not pending'}</dd></div>
+              <div><dt className="text-parchment/60">Processing</dt><dd>{s.pending === null ? 'Not reported' : s.pending ? 'Pending' : 'Not pending'}</dd></div>
               <div><dt className="text-parchment/60">Submitted</dt><dd>{date(s.submitted)}</dd></div>
               <div><dt className="text-parchment/60">Last downloaded</dt><dd>{date(s.downloaded)}</dd></div>
               <div><dt className="text-parchment/60">URLs submitted</dt><dd>{s.submittedUrls ?? 'Not reported'}</dd></div>
-              <div><dt className="text-parchment/60">Errors</dt><dd>{s.errors}</dd></div>
-              <div><dt className="text-parchment/60">Warnings</dt><dd>{s.warnings}</dd></div>
+              <div><dt className="text-parchment/60">Errors</dt><dd>{s.errors ?? 'Not reported'}</dd></div>
+              <div><dt className="text-parchment/60">Warnings</dt><dd>{s.warnings ?? 'Not reported'}</dd></div>
             </dl>
           </article>)}
         </section>
         <section aria-label="URL indexing" className="space-y-3">
           <h2 className="font-serif text-2xl">Page indexing</h2>
           {data.inspections.map((p) => <article key={p.url} className="rounded-xl border border-gold/20 bg-forest-deep/40 p-5">
-            <div className="flex flex-wrap justify-between gap-2"><h3 className="break-all font-semibold">{p.url}</h3><span className="text-sm text-gold">{p.indexed === true ? 'Google reports indexed' : p.indexed === false ? 'Not indexed in inspection' : 'Unknown'}</span></div>
+            <div className="flex flex-wrap justify-between gap-2"><h3 className="break-all font-semibold">{p.url}</h3><span className="text-sm text-gold">{p.indexed === true ? 'Google reports indexed' : p.indexed === false ? 'Not indexed in inspection' : 'Unverified / different canonical'}</span></div>
             <p className="mt-2 text-sm text-parchment/75">{p.coverage} · Indexing: {p.indexing} · Fetch: {p.fetch}</p>
             <p className="mt-1 text-xs text-parchment/60">Google last crawl: {date(p.lastCrawl)} · Canonical: {p.googleCanonical ?? 'Not reported'}</p>
             {p.error && <p role="alert" className="mt-2 text-sm text-red-200">{p.error}</p>}
