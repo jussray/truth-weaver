@@ -78,6 +78,8 @@ test("image-only PDF does not pretend to have been transcribed", async ({ page }
     mimeType: "application/pdf",
     buffer: textPdf(""),
   });
-  await expect(page.getByTestId("notice-file-status")).toContainText(/Could not read enough text|No sufficient selectable text|Scanned PDFs are limited/i, { timeout: 60000 });
+  await expect(page.getByTestId("notice-file-status")).toContainText("Scan rejected. Nothing was analyzed.", { timeout: 60000 });
+  await expect(page.getByTestId("ocr-retake")).toBeVisible();
   await expect(page.getByTestId("notice-text")).toHaveValue("");
+  await expect(page.getByTestId("analysis-result")).toHaveCount(0);
 });
