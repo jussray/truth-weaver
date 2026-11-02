@@ -83,4 +83,3 @@ jobs:
           MERCHANT_SESSION_JSON: ''
           MERCHANT_STORAGE_KEY: ''
           TRUTH_WEAVER_LIVE_URL: ''
-          PLAYWRIGHT_BASE_URL: ''
