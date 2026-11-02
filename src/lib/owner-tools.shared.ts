@@ -85,24 +85,24 @@ export function normalizeSearchConsoleStatus(input: {
     sitemaps: input.sitemaps.map(raw => {
       const v = obj(raw);
       return {
-        path: str(v.path) ?? "",
-        lastSubmitted: str(v.lastSubmitted),
-        isPending: typeof v.isPending === "boolean" ? v.isPending : null,
-        errors: nonnegative(v.errors),
-        warnings: nonnegative(v.warnings),
-        submitted: sumCounts(v.contents, "submitted"),
-        indexed: sumCounts(v.contents, "indexed"),
+        path: str(v["path"]) ?? "",
+        lastSubmitted: str(v["lastSubmitted"]),
+        isPending: typeof v["isPending"] === "boolean" ? v["isPending"] : null,
+        errors: nonnegative(v["errors"]),
+        warnings: nonnegative(v["warnings"]),
+        submitted: sumCounts(v["contents"], "submitted"),
+        indexed: sumCounts(v["contents"], "indexed"),
       };
     }),
     pages: input.pages.map(({url, result, error}) => {
       const status = obj(obj(result)["indexStatusResult"]);
       return {
         url,
-        coverageState: str(status.coverageState) ?? "Unknown",
-        verdict: str(status.verdict) ?? "UNKNOWN",
-        lastCrawlTime: str(status.lastCrawlTime),
-        robotsTxtState: str(status.robotsTxtState),
-        indexingState: str(status.indexingState),
+        coverageState: str(status["coverageState"]) ?? "Unknown",
+        verdict: str(status["verdict"]) ?? "UNKNOWN",
+        lastCrawlTime: str(status["lastCrawlTime"]),
+        robotsTxtState: str(status["robotsTxtState"]),
+        indexingState: str(status["indexingState"]),
         error: error ?? null,
       };
     }),
