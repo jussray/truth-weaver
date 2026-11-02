@@ -41,10 +41,10 @@ describe("Search Console report normalization", () => {
       sitemaps: [{path:"https://truthweaver.jussco.company/sitemap.xml",isPending:false,errors:0,warnings:0}],
       pages: [{url:"https://truthweaver.jussco.company/",result:{indexStatusResult:{verdict:"PASS",coverageState:"Submitted and indexed",lastCrawlTime:"2026-11-01T10:00:00Z"}}}],
     });
-    expect(result.sitemaps[0].submitted).toBeNull();
-    expect(result.sitemaps[0].indexed).toBeNull();
-    expect(result.pages[0].coverageState).toBe("Submitted and indexed");
-    expect(result.pages[0].verdict).toBe("PASS");
+    expect(result.sitemaps[0]!.submitted).toBeNull();
+    expect(result.sitemaps[0]!.indexed).toBeNull();
+    expect(result.pages[0]!.coverageState).toBe("Submitted and indexed");
+    expect(result.pages[0]!.verdict).toBe("PASS");
     expect(result.kind).toBe("sampled_url_inspections");
   });
   it("retains errors without inventing an indexed page count", () => {
@@ -52,7 +52,7 @@ describe("Search Console report normalization", () => {
       checkedAt:"2026-11-02T20:00:00.000Z",property:"https://truthweaver.jussco.company/",
       sitemaps:[],pages:[{url:"https://truthweaver.jussco.company/sources",error:"inspection_unavailable"}],
     });
-    expect(result.pages[0].verdict).toBe("UNKNOWN");
-    expect(result.pages[0].error).toBe("inspection_unavailable");
+    expect(result.pages[0]!.verdict).toBe("UNKNOWN");
+    expect(result.pages[0]!.error).toBe("inspection_unavailable");
   });
 });
