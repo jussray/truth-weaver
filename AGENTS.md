@@ -102,3 +102,10 @@ Any movement in the bound head, runtime identity, material source registry, cite
 ### Output shape
 
 Return a concise proof-led status brief that separates verified capability from planned/unproved work, flags blockers and stale assumptions, and ends with exactly one smallest safe next verification step worth advancing.
+
+## Owner-only Search Console and Evidence Challenge
+- Private routes `/merchant/seo` and `/merchant/evidence` are not legal authority, public SEO landing pages, or proof of successful indexing/model use. Keep `noindex` and existing `robots.txt` merchant exclusion; never add them to the public sitemap.
+- Their server calls require current Supabase authentication, merchant-role verification **and** an explicit server-side `TW_OWNER_USER_IDS` allowlist. Merchant/vendor roles alone never grant founder/project-owner authority; unset owner configuration denies access.
+- Search Console statuses come from a verified property through read-only OAuth. Sitemap `contents[].indexed` is deprecated; per-URL URL Inspection must be checked separately and missing/error results remain UNKNOWN. No Google access token or refresh token in client code.
+- Evidence-gap, attack-question and next-gate suggestions from Lovable AI Gateway are `AI_ANALYSIS / NON_AUTHORIZING` and cannot promote sources or legal claims to VERIFIED LAW. Input URLs are references and never fetched by this feature. No external publishing or provider writes follow from a model recommendation.
+- Branch-specific setup, limits, test receipts and fail-closed release gate: `docs/owner-intelligence.md`. No PR, production release or merge until exact-head green checks and founder authorization.
