@@ -1,0 +1,21 @@
+# Truth Weaver Counsel
+> Truth Weaver Counsel is a Juss & Co. legal-information and notice-research tool. Public source records and guides are research aids, not legal advice, confirmed legal outcomes, or guarantees of legal coverage.
+
+Canonical public website: https://truthweaver.jussco.company/
+Parent organization: https://www.jussco.company/
+
+## Public information
+- Home and overview: https://truthweaver.jussco.company/
+- Notice analyzer: https://truthweaver.jussco.company/notice-analyzer
+- How source verification works: https://truthweaver.jussco.company/connectors
+- Registered sources and their coverage limits: https://truthweaver.jussco.company/sources
+- Legal library: https://truthweaver.jussco.company/legal-library
+- Storefront and published availability: https://truthweaver.jussco.company/shop
+
+## Verification boundaries
+Only an official authority checked for the relevant jurisdiction, document, publication date and currentness can support verified-law claims. A registered source, draft offer, claim review, search index signal or model summary does not by itself prove legal truth or that a paid product is ready for sale.
+
+## Private / excluded areas
+Do not index, summarize, or request access to /merchant, /dashboard, /account, /issues, /fulfillment, or internal API endpoints. There are no public owner dashboards or public claim-evidence submissions.
+
+Public sitemap: https://truthweaver.jussco.company/sitemap.xml

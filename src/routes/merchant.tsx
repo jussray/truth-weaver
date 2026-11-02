@@ -1,7 +1,7 @@
 import { pageHead } from "@/lib/seo";
 import { Link, Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ClipboardList, Lock, Package, ScrollText, ShieldCheck } from "lucide-react";
+import { ClipboardList, Lock, Package, ScrollText, ShieldCheck, Search, FileQuestion } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { authed } from "@/lib/merchant/authed-call";
@@ -23,6 +23,8 @@ const NAV = [
   { to: "/merchant/products", label: "Products", icon: Package },
   { to: "/merchant/orders", label: "Orders", icon: ClipboardList },
   { to: "/merchant/audit-log", label: "Activity log", icon: ScrollText },
+  { to: "/merchant/search-console", label: "Search Console", icon: Search },
+  { to: "/merchant/claim-review", label: "Evidence challenge", icon: FileQuestion },
 ] as const;
 
 function MerchantLayout() {
