@@ -6,6 +6,7 @@ Disallow: /dashboard
 Disallow: /account
 Disallow: /issues/
 Disallow: /fulfillment
+Disallow: /owner-tools
 Disallow: /vendor-invite
 
 Sitemap: https://truthweaver.jussco.company/sitemap.xml
