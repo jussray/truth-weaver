@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - 'src/lib/merchant/**'
+      - 'src/lib/commerce/shopify-order.server.ts'
+      - 'src/lib/commerce/shopify-order-proof.test.ts'
       - 'src/lib/search-console*'
       - 'src/lib/claim-review*'
       - 'src/routes/merchant.search-console.tsx'
@@ -21,6 +23,8 @@ on:
   pull_request:
     paths:
       - 'src/lib/merchant/**'
+      - 'src/lib/commerce/shopify-order.server.ts'
+      - 'src/lib/commerce/shopify-order-proof.test.ts'
       - 'src/lib/search-console*'
       - 'src/lib/claim-review*'
       - 'src/routes/merchant.search-console.tsx'
