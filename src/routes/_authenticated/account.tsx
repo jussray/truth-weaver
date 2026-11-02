@@ -1,5 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { getOwnerToolsAccess } from "@/lib/owner-tools.functions";
 
 import { CounselPage, StateBox, WorkspaceNav, tw } from "@/components/counsel/page";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +26,16 @@ function AccountPage() {
   const { user } = Route.useRouteContext();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const [ownerToolsVisible, setOwnerToolsVisible] = useState(false);
+  useEffect(() => {
+    let active = true;
+    void supabase.auth.getSession().then(async ({data}) => {
+      if (!data.session) return;
+      const access = await getOwnerToolsAccess({data:{authAccessToken:data.session.access_token}});
+      if (active) setOwnerToolsVisible(access.authorized);
+    }).catch(() => {if (active) setOwnerToolsVisible(false);});
+    return () => { active = false; };
+  }, []);
   async function signOut() {
     await qc.cancelQueries();
     qc.clear();
@@ -37,6 +49,7 @@ function AccountPage() {
         <section className={tw.card}>
           <p className={tw.label}>Email</p>
           <p className="mt-1">{user.email}</p>
+          {ownerToolsVisible && <Link to="/owner-tools" className={`${tw.ghost} mt-4 mr-2`}>Private owner tools</Link>}
           <button onClick={signOut} className={`${tw.ghost} mt-4`}>Sign out</button>
         </section>
         <section className={tw.card}>
