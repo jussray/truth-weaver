@@ -95,7 +95,7 @@ export function normalizeSearchConsoleStatus(input: {
       };
     }),
     pages: input.pages.map(({url, result, error}) => {
-      const status = obj(obj(result).indexStatusResult);
+      const status = obj(obj(result)["indexStatusResult"]);
       return {
         url,
         coverageState: str(status.coverageState) ?? "Unknown",
