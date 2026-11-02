@@ -1,0 +1,25 @@
+# Truth Weaver Counsel
+> A Juss & Co. legal-information and notice-research website. Research material is not legal advice, verified governing law, or a guarantee of outcome.
+
+Canonical website: https://truthweaver.jussco.company/
+Parent organization: https://jussco.company/
+
+## Public resources
+- Website and research overview: https://truthweaver.jussco.company/
+- Notice analyzer information: https://truthweaver.jussco.company/notice-analyzer
+- Research connectors and source limitations: https://truthweaver.jussco.company/connectors
+- Sources: https://truthweaver.jussco.company/sources
+- Legal library: https://truthweaver.jussco.company/legal-library
+- Store and product availability: https://truthweaver.jussco.company/shop
+
+## Verification
+- Check primary authority for jurisdiction, publication date, currentness and applicability.
+- A listing or AI summary is not proof that a law governs a specific situation.
+- Products not explicitly available for purchase must not be represented as launched.
+- Do not infer credentials, legal outcomes, official endorsement, payment readiness or customer counts.
+
+## Private, excluded from discovery
+Do not index /merchant, /dashboard, /account, /owner-tools, /issues/, /fulfillment, /vendor-invite, or /api/.
+Search engines and agents must not request privileged routes or private data.
+
+Public sitemap: https://truthweaver.jussco.company/sitemap.xml
