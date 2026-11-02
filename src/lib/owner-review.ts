@@ -121,3 +121,24 @@ export function normalizeInspection(url: string, data: unknown): InspectionStatu
     indexed: verdict === 'PASS' ? (typeof x.googleCanonical === 'string' && !sameCanonical(url, x.googleCanonical) ? null : true) : verdict === 'FAIL' || verdict === 'NEUTRAL' ? false : null,
   };
 }
+
+/** Bounded parallel requests with deterministic ordering; avoids long serial Google API waits. */
+export async function mapConcurrent<T, R>(
+  items: readonly T[],
+  concurrency: number,
+  task: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 8) {
+    throw new Error('Invalid concurrency limit.');
+  }
+  const values: R[] = new Array(items.length);
+  let cursor = 0;
+  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+    while (true) {
+      const index = cursor++;
+      if (index >= items.length) return;
+      values[index] = await task(items[index]!, index);
+    }
+  }));
+  return values;
+}
