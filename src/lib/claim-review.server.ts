@@ -21,7 +21,6 @@ function outputText(r: unknown): string {
 }
 export async function reviewClaimWithGateway(input: EvidenceReviewInput): Promise<ReviewResult> {
   const safe = evidenceReviewInput.parse(input);
-  if (!process.env["LOVABLE_API_KEY"]) throw new Error("AI Gateway is not configured; no claim was reviewed.");
   let raw: string;
   try {
     const response = await generateResponse({
