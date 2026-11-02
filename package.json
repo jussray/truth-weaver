@@ -18,7 +18,8 @@
     "lint": "eslint .",
     "format:check": "prettier --check .",
     "format": "prettier --write .",
-    "verify:design-system": "node scripts/verify-design-system.mjs"
+    "verify:design-system": "node scripts/verify-design-system.mjs",
+    "pretypecheck": "npm run build"
   },
   "overrides": {
     "rolldown": "1.2.1"
