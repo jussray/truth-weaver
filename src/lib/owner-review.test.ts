@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { validateClaimInput, parseEvidenceReview, normalizeSitemaps, normalizeInspection, PUBLIC_URLS } from './owner-review';
+import { validateClaimInput, parseEvidenceReview, normalizeSitemaps, normalizeInspection, PUBLIC_URLS, mapConcurrent } from './owner-review';
 
 describe('owner feature boundaries', () => {
   it('validates bounded evidence and rejects unsafe URLs', () => {
@@ -47,5 +47,20 @@ describe('owner feature boundaries', () => {
     expect(normalizeInspection(url, {
       inspectionResult: { indexStatusResult: { verdict: 'PASS', googleCanonical: PUBLIC_URLS[0] } },
     }).indexed).toBeNull();
+  });
+
+  it('caps simultaneous URL inspections without reordering returned pages', async () => {
+    let active = 0;
+    let peak = 0;
+    const values = await mapConcurrent([20, 10, 30, 5], 2, async (delay) => {
+      active += 1;
+      peak = Math.max(peak, active);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      active -= 1;
+      return delay * 2;
+    });
+    expect(values).toEqual([40, 20, 60, 10]);
+    expect(peak).toBe(2);
+    await expect(mapConcurrent([1], 0, async (x) => x)).rejects.toThrow('Invalid concurrency');
   });
 });
