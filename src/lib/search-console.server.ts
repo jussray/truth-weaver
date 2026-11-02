@@ -46,7 +46,7 @@ async function readGoogle(url: string, token: string, body?: Record<string, stri
   const response = await fetch(url, {
     method: body ? "POST" : "GET",
     headers: { Authorization: "Bearer " + token, ...(body ? { "Content-Type": "application/json" } : {}) },
-    body: body ? JSON.stringify(body) : undefined,
+    ...(body ? { body: JSON.stringify(body) } : {}),
     signal: AbortSignal.timeout(9000),
   });
   if (!response.ok) {
