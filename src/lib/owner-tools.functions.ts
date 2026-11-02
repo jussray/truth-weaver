@@ -19,3 +19,12 @@ export const reviewOwnerEvidence = createServerFn({ method:"POST" })
     await assertTruthWeaverOwner(data.authAccessToken);
     return getEvidenceGateReview(data.input);
   });
+
+/** For navigation visibility only; never substitutes for authorization on each action. */
+export const getOwnerToolsAccess = createServerFn({ method:"POST" })
+  .validator(ownerAuth)
+  .handler(async ({data}) => {
+    const {assertTruthWeaverOwner} = await import("./owner-tools.server");
+    try { await assertTruthWeaverOwner(data.authAccessToken); return {authorized:true as const}; }
+    catch { return {authorized:false as const}; }
+  });
