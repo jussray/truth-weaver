@@ -31,6 +31,7 @@ function OwnerToolsPage() {
   const [claim,setClaim] = useState("");
   const [evidence,setEvidence] = useState("");
   const [analysis,setAnalysis] = useState<EvidenceAssessment | null>(null);
+  const [consent,setConsent] = useState(false);
   const [analysisError,setAnalysisError] = useState("");
   const [analysisLoading,setAnalysisLoading] = useState(false);
   const evidenceLines = evidence.split("\n").map(line=>line.trim()).filter(Boolean);
@@ -48,6 +49,10 @@ function OwnerToolsPage() {
 
   async function analyzeClaim(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setAnalysis(null); setAnalysisError("");
+    if (!consent) {
+      setAnalysisError("Confirm consent before sending your claim and evidence to the AI provider.");
+      return;
+    }
     if (claim.trim().length < 12 || claim.length > 2000 ||
         evidenceLines.length < 1 || evidenceLines.length > 8 ||
         evidenceLines.some(line => line.length < 10 || line.length > 1200)) {
@@ -57,7 +62,7 @@ function OwnerToolsPage() {
     setAnalysisLoading(true);
     try {
       const response = await reviewOwnerEvidence({
-        data:{authAccessToken:await accessToken(),input:{claim:claim.trim(),evidence:evidenceLines}},
+        data:{authAccessToken:await accessToken(),input:{claim:claim.trim(),evidence:evidenceLines,consent:true}},
       });
       setAnalysis(response);
     } catch (err) {
@@ -135,6 +140,10 @@ function OwnerToolsPage() {
             <textarea className={`${tw.input} mt-1 min-h-36`} value={evidence}
               onChange={e=>setEvidence(e.target.value)} required
               placeholder="Source name, timestamp, exact observed outcome, and receipt reference (no secrets)." />
+          </label>
+          <label className="flex items-start gap-2 text-sm text-parchment/80">
+            <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} required className="mt-1" />
+            I authorize sending this claim and its evidence to the configured AI provider for this review. I have excluded sensitive customer details and secrets.
           </label>
           <button className={tw.btn} disabled={analysisLoading} type="submit">
             {analysisLoading ? "Evaluating…" : "Challenge evidence"}
