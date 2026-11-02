@@ -16,9 +16,11 @@ describe("project-owner evidence review contracts", () => {
     },
   };
   it("accepts bounded claims and evidence", () => {
-    expect(claimInputSchema.safeParse({claim:"This published page is reachable",evidence:["HTTP readback recorded at 12:00 UTC"]}).success).toBe(true);
-    expect(claimInputSchema.safeParse({claim:"short",evidence:[]}).success).toBe(false);
-    expect(claimInputSchema.safeParse({claim:"x".repeat(2100),evidence:["evidence present"]}).success).toBe(false);
+    expect(claimInputSchema.safeParse({claim:"This published page is reachable",evidence:["HTTP readback recorded at 12:00 UTC"],consent:true}).success).toBe(true);
+    expect(claimInputSchema.safeParse({claim:"short",evidence:[],consent:true}).success).toBe(false);
+    expect(claimInputSchema.safeParse({claim:"x".repeat(2100),evidence:["evidence present"],consent:true}).success).toBe(false);
+    expect(claimInputSchema.safeParse({claim:"This published page is reachable",evidence:["HTTP readback recorded at 12:00 UTC"],consent:false}).success).toBe(false);
+    expect(claimInputSchema.safeParse({claim:"This published page is reachable",evidence:["HTTP readback recorded at 12:00 UTC"]}).success).toBe(false);
   });
   it("accepts structured review without claiming validation of evidence", () => {
     expect(parseEvidenceAssessment(JSON.stringify(valid))).toEqual(valid);
