@@ -19,7 +19,7 @@ import {
 
 type Ctx = { supabase: SupabaseClient<Database>; userId: string };
 
-async function assertMerchant({ supabase, userId }: Ctx) {
+export async function assertMerchant({ supabase, userId }: Ctx) {
   const { data, error } = await supabase.rpc("has_role", { _user_id: userId, _role: "merchant" });
   if (error || data !== true) throw new Error("Merchant authorization required.");
 }
