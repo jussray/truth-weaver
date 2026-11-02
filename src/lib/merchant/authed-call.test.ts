@@ -38,10 +38,19 @@ describe("authenticated merchant server calls", () => {
   });
 
   it("does not call the protected operation when session lookup fails", async () => {
-    getSession.mockRejectedValue(new Error("Session provider unavailable"));
+    getSession.mockImplementation(async () => {
+      throw new Error("Session provider unavailable");
+    });
     const operation = vi.fn(async () => ({ ok: true }));
 
-    await expect(authed(operation)).rejects.toThrow("Session provider unavailable");
+    let failure: unknown;
+    try {
+      await authed(operation);
+    } catch (error) {
+      failure = error;
+    }
+    expect(failure).toBeInstanceOf(Error);
+    expect((failure as Error).message).toBe("Session provider unavailable");
     expect(operation).not.toHaveBeenCalled();
   });
 });
