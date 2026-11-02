@@ -55,29 +55,56 @@ export function parseEvidenceReview(raw: string): EvidenceReview {
     limitations: strings(o.limitations, 'Limitations'),
   };
 }
-export type SitemapStatus = { url: string; pending: boolean; submitted: string | null; downloaded: string | null; errors: number; warnings: number; submittedUrls: number | null };
+export type SitemapStatus = { url: string; pending: boolean | null; submitted: string | null; downloaded: string | null; errors: number | null; warnings: number | null; submittedUrls: number | null };
 export type InspectionStatus = { url: string; verdict: string; coverage: string; indexing: string; fetch: string; lastCrawl: string | null; googleCanonical: string | null; indexed: boolean | null; error?: string };
 export const CANONICAL_PATHS = ['/', '/notice-analyzer', '/connectors', '/sources', '/legal-library', '/shop'] as const;
 export const SITE_ORIGIN = 'https://truthweaver.jussco.company';
 export const PUBLIC_URLS = CANONICAL_PATHS.map((p) => `${SITE_ORIGIN}${p}`);
-function count(value: unknown): number {
+function count(value: unknown): number | null {
+  if (typeof value !== 'number' && (typeof value !== 'string' || !/^\d+$/.test(value))) return null;
   const n = Number(value);
-  return Number.isSafeInteger(n) && n >= 0 ? n : 0;
+  return Number.isSafeInteger(n) && n >= 0 ? n : null;
+}
+function isSiteSitemap(value: unknown): value is {path: string; [key: string]: unknown} {
+  if (!value || typeof value !== 'object' || typeof (value as {path?: unknown}).path !== 'string') return false;
+  try {
+    const url = new URL((value as {path: string}).path);
+    return url.origin === SITE_ORIGIN && !url.username && !url.password;
+  } catch { return false; }
+}
+function submittedWebCount(contents: unknown): number | null {
+  if (!Array.isArray(contents)) return null;
+  const web = contents.filter((entry) => entry && entry.type === 'web');
+  if (web.length === 0) return null;
+  const counts = web.map((entry) => count(entry.submitted));
+  return counts.some((n) => n === null) ? null : counts.reduce((sum: number, n: number | null) => sum + (n ?? 0), 0);
 }
 export function normalizeSitemaps(data: unknown): SitemapStatus[] {
-  const entries = (data as { sitemap?: unknown })?.sitemap;
+  const entries = (data as { sitemap?: unknown } | null)?.sitemap;
   if (!Array.isArray(entries)) return [];
-  return entries.filter((v) => v && typeof v.path === 'string' && v.path.startsWith('https://')).slice(0, 50).map((v) => ({
+  return entries.filter(isSiteSitemap).slice(0, 50).map((v) => ({
     url: v.path,
-    pending: v.isPending === true,
+    pending: typeof v.isPending === 'boolean' ? v.isPending : null,
     submitted: typeof v.lastSubmitted === 'string' ? v.lastSubmitted : null,
     downloaded: typeof v.lastDownloaded === 'string' ? v.lastDownloaded : null,
     errors: count(v.errors),
     warnings: count(v.warnings),
-    // Do not read deprecated contents[].indexed or synthesize an indexed count.
-    submittedUrls: Array.isArray(v.contents) ? v.contents.filter((c: {type?: string}) => c.type === 'web').reduce((sum: number, c: {submitted?: unknown}) => sum + count(c.submitted), 0) : null,
+    // Sitemap indexing totals are deprecated; only report web URLs submitted.
+    submittedUrls: submittedWebCount(v.contents),
   }));
 }
+function sameCanonical(a: string, b: string): boolean {
+  try {
+    const normalize = (value: string) => {
+      const url = new URL(value);
+      if (url.username || url.password || url.hash) return null;
+      return `${url.origin}${url.pathname.replace(/\/+$/, '')}${url.search}`;
+    };
+    const left = normalize(a);
+    return left !== null && left === normalize(b);
+  } catch { return false; }
+}
+
 export function normalizeInspection(url: string, data: unknown): InspectionStatus {
   if (!PUBLIC_URLS.includes(url)) throw new Error('URL is outside the approved sitemap.');
   const x = (data as { inspectionResult?: { indexStatusResult?: Record<string, unknown> } })?.inspectionResult?.indexStatusResult;
@@ -91,6 +118,6 @@ export function normalizeInspection(url: string, data: unknown): InspectionStatu
     lastCrawl: typeof x.lastCrawlTime === 'string' ? x.lastCrawlTime : null,
     googleCanonical: typeof x.googleCanonical === 'string' ? x.googleCanonical : null,
     // PASS refers to Google's indexed-version inspection result, not a live indexability test.
-    indexed: verdict === 'PASS' ? true : verdict === 'FAIL' || verdict === 'NEUTRAL' ? false : null,
+    indexed: verdict === 'PASS' ? (typeof x.googleCanonical === 'string' && !sameCanonical(url, x.googleCanonical) ? null : true) : verdict === 'FAIL' || verdict === 'NEUTRAL' ? false : null,
   };
 }
