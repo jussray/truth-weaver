@@ -1,0 +1,45 @@
+name: Merchant Type Regressions
+
+on:
+  push:
+    paths:
+      - 'src/lib/merchant/**'
+      - 'src/integrations/supabase/types.ts'
+      - 'package.json'
+      - '.github/workflows/merchant-type-regressions.yml'
+  pull_request:
+    paths:
+      - 'src/lib/merchant/**'
+      - 'src/integrations/supabase/types.ts'
+      - 'package.json'
+      - '.github/workflows/merchant-type-regressions.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  merchant-proof:
+    name: Merchant lint, typecheck and authenticated-call tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out exact source head without persisted credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Verify checkout identity
+        run: test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - name: Set up Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Install dependencies without audit telemetry
+        run: npm install --no-audit --no-fund
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Run focused merchant regression tests
+        run: npx vitest run src/lib/merchant/policy.test.ts src/lib/merchant/authed-call.test.ts
