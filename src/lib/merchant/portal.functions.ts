@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -15,7 +16,7 @@ import {
 
 /* Every handler re-checks the merchant role server-side. The route guard is UX only. */
 
-type Ctx = { supabase: any; userId: string };
+type Ctx = { supabase: SupabaseClient; userId: string };
 
 async function assertMerchant({ supabase, userId }: Ctx) {
   const { data, error } = await supabase.rpc("has_role", { _user_id: userId, _role: "merchant" });
@@ -43,7 +44,7 @@ function storeError(e: unknown) {
 export const getMerchantAccess = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data } = await (context.supabase as any).rpc("has_role", { _user_id: context.userId, _role: "merchant" });
+    const { data } = await (context.supabase as SupabaseClient).rpc("has_role", { _user_id: context.userId, _role: "merchant" });
     return { isMerchant: data === true };
   });
 
@@ -167,13 +168,13 @@ export const listAuditLog = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertMerchant(context as Ctx);
-    const { data, error } = await (context.supabase as any)
+    const { data, error } = await (context.supabase as SupabaseClient)
       .from("merchant_audit_log")
       .select("id, action, target, before_state, requested_state, outcome, detail, created_at")
       .order("created_at", { ascending: false })
       .limit(100);
     if (error) throw new Error("Could not read the activity log.");
-    return data as Array<{ id: string; action: string; target: string; before_state: any; requested_state: any; outcome: string; detail: string | null; created_at: string }>;
+    return data as Array<{ id: string; action: string; target: string; before_state: unknown; requested_state: unknown; outcome: string; detail: string | null; created_at: string }>;
   });
 
 export const createVendorInvite = createServerFn({ method: "POST" })
@@ -181,7 +182,7 @@ export const createVendorInvite = createServerFn({ method: "POST" })
   .inputValidator(z.object({ label: z.string().trim().min(2).max(120) }).parse)
   .handler(async ({ data, context }) => {
     await assertMerchant(context as Ctx);
-    const { data: code, error } = await (context.supabase as any).rpc("create_merchant_invite", { _label: data.label });
+    const { data: code, error } = await (context.supabase as SupabaseClient).rpc("create_merchant_invite", { _label: data.label });
     if (error) throw new Error("Could not create the invite.");
     return { code: code as string };
   });
@@ -190,6 +191,6 @@ export const redeemVendorInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ code: z.string().trim().regex(/^[0-9a-f]{36}$/) }).parse)
   .handler(async ({ data, context }) => {
-    const { data: ok, error } = await (context.supabase as any).rpc("redeem_merchant_invite", { _code: data.code });
+    const { data: ok, error } = await (context.supabase as SupabaseClient).rpc("redeem_merchant_invite", { _code: data.code });
     return { ok: !error && ok === true };
   });
