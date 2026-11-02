@@ -32,4 +32,20 @@ describe('owner feature boundaries', () => {
     expect(normalizeInspection(PUBLIC_URLS[0]!, { inspectionResult: { indexStatusResult: { verdict: 'UNKNOWN' } } }).indexed).toBeNull();
     expect(() => normalizeInspection('https://other.example/', { inspectionResult: { indexStatusResult: { verdict: 'PASS' } } })).toThrow();
   });
+
+  it('scopes sitemaps to Truth Weaver and distinguishes missing values from zero', () => {
+    const rows = normalizeSitemaps({ sitemap: [
+      { path: 'https://other.jussco.company/sitemap.xml', isPending: false, errors: 0 },
+      { path: 'https://truthweaver.jussco.company/sitemap.xml', contents: [] },
+    ] });
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ pending: null, errors: null, warnings: null, submittedUrls: null });
+  });
+
+  it('does not count a different Google-selected canonical as indexing the requested URL', () => {
+    const url = PUBLIC_URLS[1]!;
+    expect(normalizeInspection(url, {
+      inspectionResult: { indexStatusResult: { verdict: 'PASS', googleCanonical: PUBLIC_URLS[0] } },
+    }).indexed).toBeNull();
+  });
 });
