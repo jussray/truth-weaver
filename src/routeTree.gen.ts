@@ -27,6 +27,8 @@ import { Route as AuthenticatedFulfillmentRouteImport } from './routes/_authenti
 import { Route as AuthenticatedVendorInviteRouteImport } from './routes/_authenticated/vendor-invite'
 import { Route as MerchantIndexRouteImport } from './routes/merchant.index'
 import { Route as MerchantAuditLogRouteImport } from './routes/merchant.audit-log'
+import { Route as MerchantEvidenceReviewRouteImport } from './routes/merchant.evidence-review'
+import { Route as MerchantSearchConsoleRouteImport } from './routes/merchant.search-console'
 import { Route as MerchantOrdersRouteImport } from './routes/merchant.orders'
 import { Route as MerchantProductsRouteImport } from './routes/merchant.products'
 import { Route as ProductHandleRouteImport } from './routes/product.$handle'
@@ -125,6 +127,16 @@ const MerchantAuditLogRoute = MerchantAuditLogRouteImport.update({
   path: '/audit-log',
   getParentRoute: () => MerchantRoute,
 } as any)
+const MerchantEvidenceReviewRoute = MerchantEvidenceReviewRouteImport.update({
+  id: '/evidence-review',
+  path: '/evidence-review',
+  getParentRoute: () => MerchantRoute,
+} as any)
+const MerchantSearchConsoleRoute = MerchantSearchConsoleRouteImport.update({
+  id: '/search-console',
+  path: '/search-console',
+  getParentRoute: () => MerchantRoute,
+} as any)
 const MerchantOrdersRoute = MerchantOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
@@ -175,6 +187,8 @@ export interface FileRoutesByFullPath {
   '/fulfillment': typeof AuthenticatedFulfillmentRoute
   '/vendor-invite': typeof AuthenticatedVendorInviteRoute
   '/merchant/audit-log': typeof MerchantAuditLogRoute
+  '/merchant/evidence-review': typeof MerchantEvidenceReviewRoute
+  '/merchant/search-console': typeof MerchantSearchConsoleRoute
   '/merchant/orders': typeof MerchantOrdersRoute
   '/merchant/products': typeof MerchantProductsRoute
   '/product/$handle': typeof ProductHandleRoute
@@ -199,6 +213,8 @@ export interface FileRoutesByTo {
   '/fulfillment': typeof AuthenticatedFulfillmentRoute
   '/vendor-invite': typeof AuthenticatedVendorInviteRoute
   '/merchant/audit-log': typeof MerchantAuditLogRoute
+  '/merchant/evidence-review': typeof MerchantEvidenceReviewRoute
+  '/merchant/search-console': typeof MerchantSearchConsoleRoute
   '/merchant/orders': typeof MerchantOrdersRoute
   '/merchant/products': typeof MerchantProductsRoute
   '/product/$handle': typeof ProductHandleRoute
@@ -226,6 +242,8 @@ export interface FileRoutesById {
   '/_authenticated/fulfillment': typeof AuthenticatedFulfillmentRoute
   '/_authenticated/vendor-invite': typeof AuthenticatedVendorInviteRoute
   '/merchant/audit-log': typeof MerchantAuditLogRoute
+  '/merchant/evidence-review': typeof MerchantEvidenceReviewRoute
+  '/merchant/search-console': typeof MerchantSearchConsoleRoute
   '/merchant/orders': typeof MerchantOrdersRoute
   '/merchant/products': typeof MerchantProductsRoute
   '/product/$handle': typeof ProductHandleRoute
@@ -253,6 +271,8 @@ export interface FileRouteTypes {
     | '/fulfillment'
     | '/vendor-invite'
     | '/merchant/audit-log'
+    | '/merchant/evidence-review'
+    | '/merchant/search-console'
     | '/merchant/orders'
     | '/merchant/products'
     | '/product/$handle'
@@ -277,6 +297,8 @@ export interface FileRouteTypes {
     | '/fulfillment'
     | '/vendor-invite'
     | '/merchant/audit-log'
+    | '/merchant/evidence-review'
+    | '/merchant/search-console'
     | '/merchant/orders'
     | '/merchant/products'
     | '/product/$handle'
@@ -303,6 +325,8 @@ export interface FileRouteTypes {
     | '/_authenticated/fulfillment'
     | '/_authenticated/vendor-invite'
     | '/merchant/audit-log'
+    | '/merchant/evidence-review'
+    | '/merchant/search-console'
     | '/merchant/orders'
     | '/merchant/products'
     | '/product/$handle'
@@ -457,6 +481,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MerchantAuditLogRouteImport
       parentRoute: typeof MerchantRoute
     }
+    '/merchant/evidence-review': {
+      id: '/merchant/evidence-review'
+      path: '/evidence-review'
+      fullPath: '/merchant/evidence-review'
+      preLoaderRoute: typeof MerchantEvidenceReviewRouteImport
+      parentRoute: typeof MerchantRoute
+    }
+    '/merchant/search-console': {
+      id: '/merchant/search-console'
+      path: '/search-console'
+      fullPath: '/merchant/search-console'
+      preLoaderRoute: typeof MerchantSearchConsoleRouteImport
+      parentRoute: typeof MerchantRoute
+    }
     '/merchant/orders': {
       id: '/merchant/orders'
       path: '/orders'
@@ -525,6 +563,8 @@ const AuthenticatedRouteRouteWithChildren =
 
 interface MerchantRouteChildren {
   MerchantAuditLogRoute: typeof MerchantAuditLogRoute
+  MerchantEvidenceReviewRoute: typeof MerchantEvidenceReviewRoute
+  MerchantSearchConsoleRoute: typeof MerchantSearchConsoleRoute
   MerchantOrdersRoute: typeof MerchantOrdersRoute
   MerchantProductsRoute: typeof MerchantProductsRoute
   MerchantIndexRoute: typeof MerchantIndexRoute
@@ -532,6 +572,8 @@ interface MerchantRouteChildren {
 
 const MerchantRouteChildren: MerchantRouteChildren = {
   MerchantAuditLogRoute: MerchantAuditLogRoute,
+  MerchantEvidenceReviewRoute: MerchantEvidenceReviewRoute,
+  MerchantSearchConsoleRoute: MerchantSearchConsoleRoute,
   MerchantOrdersRoute: MerchantOrdersRoute,
   MerchantProductsRoute: MerchantProductsRoute,
   MerchantIndexRoute: MerchantIndexRoute,
