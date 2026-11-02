@@ -6,6 +6,7 @@ import { ClipboardList, Lock, Package, ScrollText, ShieldCheck, SearchCheck, Sca
 import { supabase } from "@/integrations/supabase/client";
 import { authed } from "@/lib/merchant/authed-call";
 import { getMerchantAccess } from "@/lib/merchant/portal.functions";
+import { getOwnerFeatureAccess } from "@/lib/owner-review.functions";
 
 export const Route = createFileRoute("/merchant")({
   ssr: false,
@@ -23,6 +24,9 @@ const NAV = [
   { to: "/merchant/products", label: "Products", icon: Package },
   { to: "/merchant/orders", label: "Orders", icon: ClipboardList },
   { to: "/merchant/audit-log", label: "Activity log", icon: ScrollText },
+] as const;
+
+const OWNER_NAV = [
   { to: "/merchant/seo", label: "Search Console", icon: SearchCheck },
   { to: "/merchant/evidence", label: "Evidence challenge", icon: ScanSearch },
 ] as const;
@@ -30,11 +34,18 @@ const NAV = [
 function MerchantLayout() {
   const { email } = Route.useRouteContext();
   const [access, setAccess] = useState<"checking" | "yes" | "no" | "error">("checking");
+  const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
     authed(getMerchantAccess)
       .then((r) => setAccess(r.isMerchant ? "yes" : "no"))
       .catch(() => setAccess("error"));
+  }, []);
+
+  useEffect(() => {
+    authed(getOwnerFeatureAccess)
+      .then((result) => setIsOwner(result.isOwner))
+      .catch(() => setIsOwner(false));
   }, []);
 
   if (access === "checking") {
@@ -65,7 +76,7 @@ function MerchantLayout() {
         <Link to="/" className="block font-serif text-xl text-gold">Truth Weaver</Link>
         <p className="text-[11px] uppercase tracking-[0.2em] text-parchment/50">Merchant portal</p>
         <nav aria-label="Merchant" className="mt-6 flex gap-1 overflow-x-auto md:flex-col">
-          {NAV.map(({ to, label, icon: Icon }) => (
+          {[...NAV, ...(isOwner ? OWNER_NAV : [])].map(({ to, label, icon: Icon }) => (
             <Link
               key={to}
               to={to}
