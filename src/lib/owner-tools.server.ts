@@ -5,7 +5,6 @@ import {
   type ClaimInput, type EvidenceAssessment, type SearchConsoleReport,
 } from "./owner-tools.shared";
 
-const GOOGLE_SCOPE = "https://www.googleapis.com/auth/webmasters.readonly";
 const GOOGLE_TOKEN = "https://oauth2.googleapis.com/token";
 const GOOGLE_SITEMAPS = "https://www.googleapis.com/webmasters/v3/sites/";
 const GOOGLE_INSPECTION = "https://searchconsole.googleapis.com/v1/urlInspection/index:inspect";
@@ -62,8 +61,7 @@ export async function getSearchConsoleOwnerReport(): Promise<SearchConsoleReport
   const entries = Array.isArray(body.sitemap) ? body.sitemap.slice(0, 20) : [];
   const urls = INDEXABLE_PATHS.map(path => canonicalUrl(path));
   // Bounded parallel inspections; not the aggregate indexing coverage report.
-  const inspections: SearchConsoleReport["pages"] extends infer _T
-    ? Array<{url:string;result?:unknown;error?:string}> : never = [];
+  const inspections: Array<{url:string;result?:unknown;error?:string}> = [];
   for (let i = 0; i < urls.length; i += 2) {
     const current = urls.slice(i, i + 2);
     const responses = await Promise.all(current.map(async url => {
@@ -93,7 +91,7 @@ export async function getEvidenceGateReview(raw: ClaimInput): Promise<EvidenceAs
   const token = process.env["CLOUDFLARE_AI_API_TOKEN"];
   const account = process.env["CLOUDFLARE_ACCOUNT_ID"];
   const gateway = process.env["CLOUDFLARE_AI_GATEWAY_ID"];
-  const model = process.env["CLOUDFLARE_AI_MODEL"] ?? "@cf/meta/llama-3.1-8b-instruct";
+  const model = process.env["CLOUDFLARE_AI_MODEL"] ?? "openai/gpt-4.1-mini";
   if (!token || !account || !gateway) throw new Error("AI Gateway is not configured.");
   if (!/^[a-f0-9]{32}$/.test(account) || !/^[a-zA-Z0-9_-]{1,64}$/.test(gateway) ||
       !/^(?:@cf\/[a-zA-Z0-9._/-]+|openai\/[a-zA-Z0-9._-]+)$/.test(model))
