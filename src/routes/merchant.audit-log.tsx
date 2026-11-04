@@ -49,8 +49,8 @@ function AuditPage() {
             <span className="font-semibold text-gold">{r.action}</span> · {r.outcome} · <span className="text-parchment/60">{new Date(r.created_at).toLocaleString()}</span>
             <div className="text-parchment/70">
               {r.target.split("/").pop()}
-              {r.before_state?.price && ` · $${r.before_state.price}`}
-              {r.requested_state?.price && ` → $${r.requested_state.price}`}
+              {priceOf(r.before_state) && ` · $${priceOf(r.before_state)}`}
+              {priceOf(r.requested_state) && ` → $${priceOf(r.requested_state)}`}
               {r.detail && ` · ${r.detail}`}
             </div>
           </li>
