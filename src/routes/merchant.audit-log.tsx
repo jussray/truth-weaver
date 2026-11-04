@@ -60,3 +60,10 @@ function AuditPage() {
     </section>
   );
 }
+
+/** Audit states are untyped JSON; only a string `price` field is displayed. */
+function priceOf(state: Json | null): string | null {
+  if (!state || typeof state !== "object" || Array.isArray(state)) return null;
+  const price = state["price"];
+  return typeof price === "string" && price ? price : null;
+}
