@@ -1,5 +1,22 @@
 # Roadmap
 
+## Paid reports + catalog launch (2026-11-04, founder approved)
+- [x] Fix the 8 merchant `any` typing errors (full lint: 0 errors).
+- [ ] Report catalog: Guide / Templates / Course / Bundle offers, each delivering its own paid PDF built from the buyer's saved analysis.
+- [ ] Server-side PDF renderer + per-kind report builders with tests.
+- [ ] Database: saved analyses (opt-in, server-written), purchase claims, one report per paid order (service-role only).
+- [ ] Notice Analyzer: signed-in opt-in "save to my account" path.
+- [ ] Cart: report products require sign-in + a saved analysis; checkout carries a hidden server-issued claim.
+- [ ] Paid-order processing: webhook + "check for my purchase" reconcile → fresh Admin proof → generate + store PDF.
+- [ ] /fulfillment: paid reports per order, analysis view, bounded private download.
+- [ ] Shop + product pages: new catalog, delivery explanation.
+- [ ] Create the 4 Shopify products (needs Shopify re-login + approval cards).
+- [ ] Merchant store setup: order-notification registration + publish/draft control (works once the custom app is installed).
+- [ ] Verify GitHub link end to end (repo main == project head). Connecting/switching sync is a Lovable settings step only the founder can do.
+- [ ] Install the user-owned custom Shopify app. Blocked: founder action in Shopify Dev Dashboard (token probe 2026-11-04: `app_not_installed`).
+- [ ] Publish Snapshot + real paid checkout end to end. Blocked: app install, then founder pays with a real card.
+
+
 ## Focused Shopify token repair (2026-11-01)
 - [x] Replace static-only Admin acquisition with pinned-shop client credentials, bounded per-instance cache, and denial tests; preserve merchant-only legacy fallback.
 - [x] 112 focused / 227 total Vitest + 2 Node tests pass; touched lint and automatic preview compilation pass. Desktop/mobile fulfillment and merchant sign-in denial and real 503 secret_missing fallback pass without page errors/overflow.
