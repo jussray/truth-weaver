@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
+import type { Json } from "@/integrations/supabase/types";
 import { authed } from "@/lib/merchant/authed-call";
 import { createVendorInvite, listAuditLog } from "@/lib/merchant/portal.functions";
 
