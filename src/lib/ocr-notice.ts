@@ -62,6 +62,20 @@ export async function ocrNoticePdf(file: File, onProgress: OcrProgress) {
       await page.render({ canvas, viewport }).promise;
       canvases.push(canvas);
     }
+    // Avoid loading OCR for a wholly blank PDF. Rendering can succeed even when
+    // there are no pixels to recognize (e.g. a PDF containing an empty text run).
+    // Treat transparent and near-white pixels as paper, not extracted evidence.
+    const hasInk = canvases.some((canvas) => {
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return true; // If inspection is unavailable, do not guess blank.
+      const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      for (let i = 0; i < pixels.length; i += 4) {
+        if (pixels[i + 3] > 12 &&
+            (pixels[i] < 245 || pixels[i + 1] < 245 || pixels[i + 2] < 245)) return true;
+      }
+      return false;
+    });
+    if (!hasInk) throw new Error("Blank PDF has no visible text or imagery to read. Paste the notice text or choose a readable scan.");
     const result = await recognize(canvases, onProgress);
     return { ...result, text: checkText(result.text) };
   } finally {
