@@ -6,6 +6,13 @@ on:
   pull_request:
   merge_group:
     types: [checks_requested]
+  workflow_dispatch:
+    inputs:
+      require_live_catalog:
+        description: "Fail unless the canonical public Shop displays a product"
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -62,6 +69,7 @@ jobs:
         run: bun run test:e2e
         env:
           TRUTH_WEAVER_LIVE_URL: https://truthweaver.jussco.company
+          TRUTH_WEAVER_REQUIRE_CATALOG: ${{ github.event_name == 'workflow_dispatch' && inputs.require_live_catalog && 'true' || 'false' }}
 
       - name: Record exact-stage outcomes even when verification fails
         if: always()
