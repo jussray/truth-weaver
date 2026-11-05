@@ -70,8 +70,11 @@ export async function ocrNoticePdf(file: File, onProgress: OcrProgress) {
       if (!ctx) return true; // If inspection is unavailable, do not guess blank.
       const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
       for (let i = 0; i < pixels.length; i += 4) {
-        if (pixels[i + 3] > 12 &&
-            (pixels[i] < 245 || pixels[i + 1] < 245 || pixels[i + 2] < 245)) return true;
+        const alpha = pixels[i + 3] ?? 0;
+        const red = pixels[i] ?? 255;
+        const green = pixels[i + 1] ?? 255;
+        const blue = pixels[i + 2] ?? 255;
+        if (alpha > 12 && (red < 245 || green < 245 || blue < 245)) return true;
       }
       return false;
     });
