@@ -9,6 +9,11 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
+- Public research status labels are presentation-only mappings; preserve raw truth states and continuity data in collapsed source-check details so copy never changes legal authority.
+- Snapshot report access stays server-only behind bearer validation, owned selection and fresh Shopify proof; bounded private PDF bytes transfer in memory, never signed links, so client identity or paths cannot unlock reports.
+- All Shopify Admin callers resolve tokens through the server-only pinned-shop resolver; the legacy connector fallback remains merchant-only so connector access cannot silently become payment proof.
+- Source Center operator diagnostics mount only after existing authenticated merchant verification; anonymous visitors receive source explanations without operational controls.
+
 # Founder Intelligence continuity contract
 
 Founder Control Room is the upstream continuity/governance source for this repository. It does not override stronger local product, legal, safety, evidence, or authorization constraints.

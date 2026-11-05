@@ -6,7 +6,7 @@ import { authed } from "@/lib/merchant/authed-call";
 import { redeemVendorInvite } from "@/lib/merchant/portal.functions";
 
 export const Route = createFileRoute("/_authenticated/vendor-invite")({
-  head: () => ({ meta: [{ title: "Vendor Invite | Truth Weaver" }, { name: "description", content: "Redeem a one-time vendor invite to join the Truth Weaver merchant portal." }] }),
+  head: () => ({ meta: [{ title: "Vendor Invite | Truth Weaver" }, { name: "description", content: "Redeem a one-time vendor invite to join the Truth Weaver merchant portal." }, { property: "og:title", content: "Vendor Invite | Truth Weaver" }, { property: "og:description", content: "Redeem a one-time invite for merchant access." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }),
   component: VendorInvite,
 });
 

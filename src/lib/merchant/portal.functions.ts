@@ -1,7 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database, Json } from "@/integrations/supabase/types";
 import {
   ORDER_GID,
   PRODUCT_GID,
@@ -15,7 +18,7 @@ import {
 
 /* Every handler re-checks the merchant role server-side. The route guard is UX only. */
 
-type Ctx = { supabase: any; userId: string };
+type Ctx = { supabase: SupabaseClient<Database>; userId: string };
 
 async function assertMerchant({ supabase, userId }: Ctx) {
   const { data, error } = await supabase.rpc("has_role", { _user_id: userId, _role: "merchant" });
@@ -24,7 +27,7 @@ async function assertMerchant({ supabase, userId }: Ctx) {
 
 async function audit(
   { supabase, userId }: Ctx,
-  row: { action: string; target: string; before_state?: unknown; requested_state?: unknown; outcome: string; detail?: string },
+  row: { action: string; target: string; before_state?: Json; requested_state?: Json; outcome: string; detail?: string },
 ) {
   const { error } = await supabase.from("merchant_audit_log").insert({ actor_id: userId, ...row });
   if (error) throw new Error("Audit log write failed; change not attempted.");
@@ -43,7 +46,7 @@ function storeError(e: unknown) {
 export const getMerchantAccess = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data } = await (context.supabase as any).rpc("has_role", { _user_id: context.userId, _role: "merchant" });
+    const { data } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "merchant" });
     return { isMerchant: data === true };
   });
 
@@ -167,13 +170,13 @@ export const listAuditLog = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertMerchant(context as Ctx);
-    const { data, error } = await (context.supabase as any)
+    const { data, error } = await context.supabase
       .from("merchant_audit_log")
       .select("id, action, target, before_state, requested_state, outcome, detail, created_at")
       .order("created_at", { ascending: false })
       .limit(100);
     if (error) throw new Error("Could not read the activity log.");
-    return data as Array<{ id: string; action: string; target: string; before_state: any; requested_state: any; outcome: string; detail: string | null; created_at: string }>;
+    return data as Array<{ id: string; action: string; target: string; before_state: Json | null; requested_state: Json | null; outcome: string; detail: string | null; created_at: string }>;
   });
 
 export const createVendorInvite = createServerFn({ method: "POST" })
@@ -181,7 +184,7 @@ export const createVendorInvite = createServerFn({ method: "POST" })
   .inputValidator(z.object({ label: z.string().trim().min(2).max(120) }).parse)
   .handler(async ({ data, context }) => {
     await assertMerchant(context as Ctx);
-    const { data: code, error } = await (context.supabase as any).rpc("create_merchant_invite", { _label: data.label });
+    const { data: code, error } = await context.supabase.rpc("create_merchant_invite", { _label: data.label });
     if (error) throw new Error("Could not create the invite.");
     return { code: code as string };
   });
@@ -190,6 +193,6 @@ export const redeemVendorInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ code: z.string().trim().regex(/^[0-9a-f]{36}$/) }).parse)
   .handler(async ({ data, context }) => {
-    const { data: ok, error } = await (context.supabase as any).rpc("redeem_merchant_invite", { _code: data.code });
+    const { data: ok, error } = await context.supabase.rpc("redeem_merchant_invite", { _code: data.code });
     return { ok: !error && ok === true };
   });

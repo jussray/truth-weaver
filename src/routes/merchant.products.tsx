@@ -11,7 +11,7 @@ import {
 } from "@/lib/merchant/portal.functions";
 
 export const Route = createFileRoute("/merchant/products")({
-  head: () => ({ meta: [{ title: "Products | Truth Weaver Merchant" }, { name: "description", content: "Edit Truth Weaver product prices with confirmation and audit." }] }),
+  head: () => ({ meta: [{ title: "Products | Truth Weaver Merchant" }, { name: "description", content: "Edit Truth Weaver product prices with confirmation and audit." }, { property: "og:title", content: "Products | Truth Weaver Merchant" }, { property: "og:description", content: "Product price management with confirmation and audit." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
   component: ProductsPage,
 });
 

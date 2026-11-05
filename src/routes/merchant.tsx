@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/seo";
 import { Link, Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ClipboardList, Lock, Package, ScrollText, ShieldCheck } from "lucide-react";
@@ -13,13 +14,8 @@ export const Route = createFileRoute("/merchant")({
     if (!data.user) throw redirect({ to: "/login", search: { redirect: location.pathname } });
     return { email: data.user.email ?? "" };
   },
-  head: () => ({
-    meta: [
-      { title: "Merchant Portal | Truth Weaver" },
-      { name: "description", content: "Merchant-only store management for Truth Weaver: prices, orders and the activity log." },
-      { name: "robots", content: "noindex" },
-    ],
-  }),
+  head: () =>
+    pageHead({ path: '/merchant', title: 'Merchant Portal | Truth Weaver', description: 'Private Truth Weaver account page.', noindex: true }),
   component: MerchantLayout,
 });
 
