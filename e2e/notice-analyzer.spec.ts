@@ -70,7 +70,7 @@ test("extracts a real text PDF before analysis, without sending or inventing leg
   await expect(page.getByTestId("analysis-result")).toHaveCount(0);
 });
 
-test("image-only PDF does not pretend to have been transcribed", async ({ page }) => {
+test("blank PDF is rejected without starting slow OCR or inventing text", async ({ page }) => {
   await page.goto("/notice-analyzer");
   await expect(page.locator('input[type="file"]')).toBeEnabled();
   await page.locator('input[type="file"]').setInputFiles({
@@ -78,7 +78,7 @@ test("image-only PDF does not pretend to have been transcribed", async ({ page }
     mimeType: "application/pdf",
     buffer: textPdf(""),
   });
-  await expect(page.getByTestId("notice-file-status")).toContainText(/Could not read enough text|No sufficient selectable text|Scanned PDFs are limited/i, { timeout: 60000 });
+  await expect(page.getByTestId("notice-file-status")).toContainText("Blank PDF has no visible text or imagery to read.", { timeout: 15000 });
   await expect(page.getByTestId("notice-text")).toHaveValue("");
 });
 
