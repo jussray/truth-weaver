@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/seo";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
@@ -9,16 +10,8 @@ const safePath = (p?: string) => (p && p.startsWith("/") && !p.startsWith("//") 
 
 export const Route = createFileRoute("/login")({
   validateSearch: z.object({ redirect: z.string().optional() }),
-  head: () => ({
-    meta: [
-      { title: "Sign in — Truth Weaver Counsel" },
-      { name: "description", content: "Sign in to your Truth Weaver legal research workspace." },
-      { property: "og:title", content: "Sign in — Truth Weaver Counsel" },
-      { property: "og:description", content: "Access your saved legal issues and research." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () =>
+    pageHead({ path: '/login', title: 'Sign in — Truth Weaver Counsel', description: 'Private Truth Weaver account page.', noindex: true }),
   component: LoginPage,
 });
 

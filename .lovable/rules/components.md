@@ -56,6 +56,12 @@ import { IssueTriageBanner } from "@ws-0dfe240cdcdbfcf99736/8ef43cd3-8d93-4494-a
 import { LegalNavigator } from "@ws-0dfe240cdcdbfcf99736/8ef43cd3-8d93-4494-a685-59ce0f795614"
 ```
 
+### OcrUnreadableError
+
+```ts
+import { OcrUnreadableError } from "@ws-0dfe240cdcdbfcf99736/8ef43cd3-8d93-4494-a685-59ce0f795614"
+```
+
 ### Panel
 
 ```ts
@@ -67,6 +73,18 @@ import { Panel } from "@ws-0dfe240cdcdbfcf99736/8ef43cd3-8d93-4494-a685-59ce0f79
 ```ts
 import { ProductCard } from "@ws-0dfe240cdcdbfcf99736/8ef43cd3-8d93-4494-a685-59ce0f795614"
 ```
+
+### RelatedProducts
+
+```ts
+import { RelatedProducts } from "@ws-0dfe240cdcdbfcf99736/8ef43cd3-8d93-4494-a685-59ce0f795614"
+```
+
+**Props:**
+
+| Prop | Type | Default |
+|---|---|---|
+| `handle` | string | `—` |
 
 ### Sheet
 
@@ -132,6 +150,12 @@ import { SheetTitle } from "@ws-0dfe240cdcdbfcf99736/8ef43cd3-8d93-4494-a685-59c
 
 ```ts
 import { SheetTrigger } from "@ws-0dfe240cdcdbfcf99736/8ef43cd3-8d93-4494-a685-59ce0f795614"
+```
+
+### ShopifyAdminUnavailable
+
+```ts
+import { ShopifyAdminUnavailable } from "@ws-0dfe240cdcdbfcf99736/8ef43cd3-8d93-4494-a685-59ce0f795614"
 ```
 
 ### ShopifyCustomerConnect

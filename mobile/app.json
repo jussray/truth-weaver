@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Truth Weaver",
+    "slug": "truth-weaver",
+    "scheme": "truthweaver",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "updates": { "enabled": false },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.jussray.truthweaver",
+      "buildNumber": "1"
+    },
+    "android": {
+      "package": "com.jussray.truthweaver",
+      "versionCode": 1
+    },
+    "plugins": ["expo-router"]
+  }
+}
