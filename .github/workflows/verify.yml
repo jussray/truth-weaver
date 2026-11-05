@@ -4,13 +4,19 @@ on:
   push:
     branches: [main]
   pull_request:
+  merge_group:
+    types: [checks_requested]
 
 permissions:
   contents: read
 
 env:
-  EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+  EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+concurrency:
+  group: truth-weaver-verify-${{ github.event.pull_request.number || github.event.merge_group.head_sha || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   verify:
@@ -40,6 +46,8 @@ jobs:
           bun install --frozen-lockfile
       - id: founder
         run: bun run verify:founder-intelligence
+      - id: design
+        run: bun run verify:design-system
       - id: lint
         run: bun run lint
       - id: typecheck
@@ -61,6 +69,7 @@ jobs:
         env:
           OUTCOME_DEPS: ${{ steps.dependencies.outcome }}
           OUTCOME_FOUNDER: ${{ steps.founder.outcome }}
+          OUTCOME_DESIGN: ${{ steps.design.outcome }}
           OUTCOME_LINT: ${{ steps.lint.outcome }}
           OUTCOME_TYPECHECK: ${{ steps.typecheck.outcome }}
           OUTCOME_UNIT: ${{ steps.unit.outcome }}
@@ -73,7 +82,7 @@ jobs:
           mkdir -p artifacts
           node --input-type=module <<'NODE'
           import { writeFileSync } from "node:fs";
-          const names = ["deps","founder","lint","typecheck","unit","build","browsers","e2e"];
+          const names = ["deps","founder","design","lint","typecheck","unit","build","browsers","e2e"];
           const steps = Object.fromEntries(names.map((n) => [n, process.env["OUTCOME_" + n.toUpperCase()] || "not_run"]));
           const data = {
             schema: "juss/ci-step-outcomes@v1",
