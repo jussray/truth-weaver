@@ -540,6 +540,39 @@ export type Database = {
         }
         Relationships: []
       }
+      merchant_invites: {
+        Row: {
+          code_hash: string
+          created_at: string
+          created_by: string
+          expires_at: string
+          id: string
+          label: string | null
+          redeemed_at: string | null
+          redeemed_by: string | null
+        }
+        Insert: {
+          code_hash: string
+          created_at?: string
+          created_by: string
+          expires_at?: string
+          id?: string
+          label?: string | null
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+        }
+        Update: {
+          code_hash?: string
+          created_at?: string
+          created_by?: string
+          expires_at?: string
+          id?: string
+          label?: string | null
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+        }
+        Relationships: []
+      }
       red_team_checks: {
         Row: {
           category: string
@@ -679,89 +712,229 @@ export type Database = {
           },
         ]
       }
+      tw_order_reports: {
+        Row: {
+          analysis_id: string | null
+          byte_size: number | null
+          claim_nonce: string
+          created_at: string
+          failure_reason: string | null
+          offers: string[]
+          order_created_at: string
+          order_gid: string
+          order_name: string
+          private_storage_key: string | null
+          ready_at: string | null
+          revoked_at: string | null
+          shopify_verified_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          analysis_id?: string | null
+          byte_size?: number | null
+          claim_nonce: string
+          created_at?: string
+          failure_reason?: string | null
+          offers: string[]
+          order_created_at: string
+          order_gid: string
+          order_name: string
+          private_storage_key?: string | null
+          ready_at?: string | null
+          revoked_at?: string | null
+          shopify_verified_at: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          analysis_id?: string | null
+          byte_size?: number | null
+          claim_nonce?: string
+          created_at?: string
+          failure_reason?: string | null
+          offers?: string[]
+          order_created_at?: string
+          order_gid?: string
+          order_name?: string
+          private_storage_key?: string | null
+          ready_at?: string | null
+          revoked_at?: string | null
+          shopify_verified_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tw_order_reports_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "tw_saved_analyses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tw_purchase_claims: {
+        Row: {
+          analysis_id: string
+          consumed_order_gid: string | null
+          created_at: string
+          expires_at: string
+          nonce: string
+          user_id: string
+        }
+        Insert: {
+          analysis_id: string
+          consumed_order_gid?: string | null
+          created_at?: string
+          expires_at: string
+          nonce: string
+          user_id: string
+        }
+        Update: {
+          analysis_id?: string
+          consumed_order_gid?: string | null
+          created_at?: string
+          expires_at?: string
+          nonce?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tw_purchase_claims_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "tw_saved_analyses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tw_saved_analyses: {
+        Row: {
+          created_at: string
+          id: string
+          metadata: Json
+          result: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metadata: Json
+          result: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metadata?: Json
+          result?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       tw_shopify_customer_bindings: {
         Row: {
           auth_user_id: string
+          created_at: string
           shopify_customer_gid: string
           verification_method: string
           verified_at: string
-          created_at: string
         }
         Insert: {
           auth_user_id: string
+          created_at?: string
           shopify_customer_gid: string
           verification_method: string
           verified_at: string
-          created_at?: string
         }
         Update: {
           auth_user_id?: string
+          created_at?: string
           shopify_customer_gid?: string
           verification_method?: string
           verified_at?: string
-          created_at?: string
         }
         Relationships: []
       }
       tw_snapshot_entitlements: {
         Row: {
-          order_gid: string
           auth_user_id: string
-          variant_gid: string
-          offer: string
-          shopify_verified_at: string
-          granted_at: string
-          revoked_at: string | null
-          expires_at: string | null
           created_at: string
+          expires_at: string | null
+          granted_at: string
+          offer: string
+          order_gid: string
+          revoked_at: string | null
+          shopify_verified_at: string
+          variant_gid: string
         }
         Insert: {
-          order_gid: string
           auth_user_id: string
-          variant_gid: string
-          offer?: string
-          shopify_verified_at: string
-          granted_at?: string
-          revoked_at?: string | null
-          expires_at?: string | null
           created_at?: string
+          expires_at?: string | null
+          granted_at?: string
+          offer?: string
+          order_gid: string
+          revoked_at?: string | null
+          shopify_verified_at: string
+          variant_gid: string
         }
         Update: {
-          order_gid?: string
           auth_user_id?: string
-          variant_gid?: string
-          offer?: string
-          shopify_verified_at?: string
-          granted_at?: string
-          revoked_at?: string | null
-          expires_at?: string | null
           created_at?: string
+          expires_at?: string | null
+          granted_at?: string
+          offer?: string
+          order_gid?: string
+          revoked_at?: string | null
+          shopify_verified_at?: string
+          variant_gid?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tw_snapshot_entitlements_auth_user_id_fkey"
+            columns: ["auth_user_id"]
+            isOneToOne: false
+            referencedRelation: "tw_shopify_customer_bindings"
+            referencedColumns: ["auth_user_id"]
+          },
+        ]
       }
       tw_snapshot_report_locations: {
         Row: {
-          order_gid: string
           auth_user_id: string
-          private_storage_key: string
-          media_type: string
           created_at: string
+          media_type: string
+          order_gid: string
+          private_storage_key: string
         }
         Insert: {
-          order_gid: string
           auth_user_id: string
-          private_storage_key: string
-          media_type: string
           created_at?: string
+          media_type: string
+          order_gid: string
+          private_storage_key: string
         }
         Update: {
-          order_gid?: string
           auth_user_id?: string
-          private_storage_key?: string
-          media_type?: string
           created_at?: string
+          media_type?: string
+          order_gid?: string
+          private_storage_key?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tw_snapshot_report_owner_fk"
+            columns: ["order_gid", "auth_user_id"]
+            isOneToOne: false
+            referencedRelation: "tw_snapshot_entitlements"
+            referencedColumns: ["order_gid", "auth_user_id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -789,6 +962,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_merchant_invite: { Args: { _label: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -796,6 +970,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      redeem_merchant_invite: { Args: { _code: string }; Returns: boolean }
     }
     Enums: {
       app_role: "merchant"

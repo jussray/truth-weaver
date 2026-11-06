@@ -15,6 +15,7 @@ import { Route as ConnectorsRouteImport } from './routes/connectors'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LegalLibraryRouteImport } from './routes/legal-library'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as MerchantRouteImport } from './routes/merchant'
 import { Route as NoticeAnalyzerRouteImport } from './routes/notice-analyzer'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ShopRouteImport } from './routes/shop'
@@ -24,9 +25,15 @@ import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedFulfillmentRouteImport } from './routes/_authenticated/fulfillment'
 import { Route as AuthenticatedMerchantRouteImport } from './routes/_authenticated/merchant'
+import { Route as AuthenticatedVendorInviteRouteImport } from './routes/_authenticated/vendor-invite'
+import { Route as MerchantIndexRouteImport } from './routes/merchant.index'
+import { Route as MerchantAuditLogRouteImport } from './routes/merchant.audit-log'
+import { Route as MerchantOrdersRouteImport } from './routes/merchant.orders'
+import { Route as MerchantProductsRouteImport } from './routes/merchant.products'
 import { Route as ProductHandleRouteImport } from './routes/product.$handle'
 import { Route as AuthenticatedIssuesIssueIdRouteImport } from './routes/_authenticated/issues.$issueId'
 import { Route as AuthenticatedIssuesNewRouteImport } from './routes/_authenticated/issues.new'
+import { Route as ApiPublicShopifyOrdersPaidRouteImport } from './routes/api/public/shopify/orders-paid'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -55,6 +62,11 @@ const LegalLibraryRoute = LegalLibraryRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MerchantRoute = MerchantRouteImport.update({
+  id: '/merchant',
+  path: '/merchant',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NoticeAnalyzerRoute = NoticeAnalyzerRouteImport.update({
@@ -102,6 +114,31 @@ const AuthenticatedMerchantRoute = AuthenticatedMerchantRouteImport.update({
   id: '/merchant',
   path: '/merchant',
   getParentRoute: () => AuthenticatedRouteRoute,
+const AuthenticatedVendorInviteRoute =
+  AuthenticatedVendorInviteRouteImport.update({
+    id: '/vendor-invite',
+    path: '/vendor-invite',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const MerchantIndexRoute = MerchantIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MerchantRoute,
+} as any)
+const MerchantAuditLogRoute = MerchantAuditLogRouteImport.update({
+  id: '/audit-log',
+  path: '/audit-log',
+  getParentRoute: () => MerchantRoute,
+} as any)
+const MerchantOrdersRoute = MerchantOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => MerchantRoute,
+} as any)
+const MerchantProductsRoute = MerchantProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => MerchantRoute,
 } as any)
 const ProductHandleRoute = ProductHandleRouteImport.update({
   id: '/product/$handle',
@@ -119,6 +156,12 @@ const AuthenticatedIssuesNewRoute = AuthenticatedIssuesNewRouteImport.update({
   path: '/issues/new',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicShopifyOrdersPaidRoute =
+  ApiPublicShopifyOrdersPaidRouteImport.update({
+    id: '/api/public/shopify/orders-paid',
+    path: '/api/public/shopify/orders-paid',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -126,6 +169,7 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof ForgotPasswordRoute
   '/legal-library': typeof LegalLibraryRoute
   '/login': typeof LoginRoute
+  '/merchant': typeof MerchantRouteWithChildren
   '/notice-analyzer': typeof NoticeAnalyzerRoute
   '/reset-password': typeof ResetPasswordRoute
   '/shop': typeof ShopRoute
@@ -135,9 +179,15 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/fulfillment': typeof AuthenticatedFulfillmentRoute
   '/merchant': typeof AuthenticatedMerchantRoute
+  '/vendor-invite': typeof AuthenticatedVendorInviteRoute
+  '/merchant/audit-log': typeof MerchantAuditLogRoute
+  '/merchant/orders': typeof MerchantOrdersRoute
+  '/merchant/products': typeof MerchantProductsRoute
   '/product/$handle': typeof ProductHandleRoute
+  '/merchant/': typeof MerchantIndexRoute
   '/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/issues/new': typeof AuthenticatedIssuesNewRoute
+  '/api/public/shopify/orders-paid': typeof ApiPublicShopifyOrdersPaidRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -154,9 +204,15 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/fulfillment': typeof AuthenticatedFulfillmentRoute
   '/merchant': typeof AuthenticatedMerchantRoute
+  '/vendor-invite': typeof AuthenticatedVendorInviteRoute
+  '/merchant/audit-log': typeof MerchantAuditLogRoute
+  '/merchant/orders': typeof MerchantOrdersRoute
+  '/merchant/products': typeof MerchantProductsRoute
   '/product/$handle': typeof ProductHandleRoute
+  '/merchant': typeof MerchantIndexRoute
   '/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/issues/new': typeof AuthenticatedIssuesNewRoute
+  '/api/public/shopify/orders-paid': typeof ApiPublicShopifyOrdersPaidRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -166,6 +222,7 @@ export interface FileRoutesById {
   '/forgot-password': typeof ForgotPasswordRoute
   '/legal-library': typeof LegalLibraryRoute
   '/login': typeof LoginRoute
+  '/merchant': typeof MerchantRouteWithChildren
   '/notice-analyzer': typeof NoticeAnalyzerRoute
   '/reset-password': typeof ResetPasswordRoute
   '/shop': typeof ShopRoute
@@ -175,9 +232,15 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/fulfillment': typeof AuthenticatedFulfillmentRoute
   '/_authenticated/merchant': typeof AuthenticatedMerchantRoute
+  '/_authenticated/vendor-invite': typeof AuthenticatedVendorInviteRoute
+  '/merchant/audit-log': typeof MerchantAuditLogRoute
+  '/merchant/orders': typeof MerchantOrdersRoute
+  '/merchant/products': typeof MerchantProductsRoute
   '/product/$handle': typeof ProductHandleRoute
+  '/merchant/': typeof MerchantIndexRoute
   '/_authenticated/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/_authenticated/issues/new': typeof AuthenticatedIssuesNewRoute
+  '/api/public/shopify/orders-paid': typeof ApiPublicShopifyOrdersPaidRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -187,6 +250,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/legal-library'
     | '/login'
+    | '/merchant'
     | '/notice-analyzer'
     | '/reset-password'
     | '/shop'
@@ -196,9 +260,15 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/fulfillment'
     | '/merchant'
+    | '/vendor-invite'
+    | '/merchant/audit-log'
+    | '/merchant/orders'
+    | '/merchant/products'
     | '/product/$handle'
+    | '/merchant/'
     | '/issues/$issueId'
     | '/issues/new'
+    | '/api/public/shopify/orders-paid'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -215,9 +285,15 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/fulfillment'
     | '/merchant'
+    | '/vendor-invite'
+    | '/merchant/audit-log'
+    | '/merchant/orders'
+    | '/merchant/products'
     | '/product/$handle'
+    | '/merchant'
     | '/issues/$issueId'
     | '/issues/new'
+    | '/api/public/shopify/orders-paid'
   id:
     | '__root__'
     | '/'
@@ -226,6 +302,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/legal-library'
     | '/login'
+    | '/merchant'
     | '/notice-analyzer'
     | '/reset-password'
     | '/shop'
@@ -235,9 +312,15 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/fulfillment'
     | '/_authenticated/merchant'
+    | '/_authenticated/vendor-invite'
+    | '/merchant/audit-log'
+    | '/merchant/orders'
+    | '/merchant/products'
     | '/product/$handle'
+    | '/merchant/'
     | '/_authenticated/issues/$issueId'
     | '/_authenticated/issues/new'
+    | '/api/public/shopify/orders-paid'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -247,12 +330,14 @@ export interface RootRouteChildren {
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LegalLibraryRoute: typeof LegalLibraryRoute
   LoginRoute: typeof LoginRoute
+  MerchantRoute: typeof MerchantRouteWithChildren
   NoticeAnalyzerRoute: typeof NoticeAnalyzerRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ShopRoute: typeof ShopRoute
   SignupRoute: typeof SignupRoute
   SourcesRoute: typeof SourcesRoute
   ProductHandleRoute: typeof ProductHandleRoute
+  ApiPublicShopifyOrdersPaidRoute: typeof ApiPublicShopifyOrdersPaidRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -297,6 +382,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/merchant': {
+      id: '/merchant'
+      path: '/merchant'
+      fullPath: '/merchant'
+      preLoaderRoute: typeof MerchantRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notice-analyzer': {
@@ -362,6 +454,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMerchantRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/vendor-invite': {
+      id: '/_authenticated/vendor-invite'
+      path: '/vendor-invite'
+      fullPath: '/vendor-invite'
+      preLoaderRoute: typeof AuthenticatedVendorInviteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/merchant/': {
+      id: '/merchant/'
+      path: '/'
+      fullPath: '/merchant/'
+      preLoaderRoute: typeof MerchantIndexRouteImport
+      parentRoute: typeof MerchantRoute
+    }
+    '/merchant/audit-log': {
+      id: '/merchant/audit-log'
+      path: '/audit-log'
+      fullPath: '/merchant/audit-log'
+      preLoaderRoute: typeof MerchantAuditLogRouteImport
+      parentRoute: typeof MerchantRoute
+    }
+    '/merchant/orders': {
+      id: '/merchant/orders'
+      path: '/orders'
+      fullPath: '/merchant/orders'
+      preLoaderRoute: typeof MerchantOrdersRouteImport
+      parentRoute: typeof MerchantRoute
+    }
+    '/merchant/products': {
+      id: '/merchant/products'
+      path: '/products'
+      fullPath: '/merchant/products'
+      preLoaderRoute: typeof MerchantProductsRouteImport
+      parentRoute: typeof MerchantRoute
+    }
     '/product/$handle': {
       id: '/product/$handle'
       path: '/product/$handle'
@@ -383,6 +510,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIssuesNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/shopify/orders-paid': {
+      id: '/api/public/shopify/orders-paid'
+      path: '/api/public/shopify/orders-paid'
+      fullPath: '/api/public/shopify/orders-paid'
+      preLoaderRoute: typeof ApiPublicShopifyOrdersPaidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -391,6 +525,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedFulfillmentRoute: typeof AuthenticatedFulfillmentRoute
   AuthenticatedMerchantRoute: typeof AuthenticatedMerchantRoute
+  AuthenticatedVendorInviteRoute: typeof AuthenticatedVendorInviteRoute
   AuthenticatedIssuesIssueIdRoute: typeof AuthenticatedIssuesIssueIdRoute
   AuthenticatedIssuesNewRoute: typeof AuthenticatedIssuesNewRoute
 }
@@ -400,12 +535,31 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedFulfillmentRoute: AuthenticatedFulfillmentRoute,
   AuthenticatedMerchantRoute: AuthenticatedMerchantRoute,
+  AuthenticatedVendorInviteRoute: AuthenticatedVendorInviteRoute,
   AuthenticatedIssuesIssueIdRoute: AuthenticatedIssuesIssueIdRoute,
   AuthenticatedIssuesNewRoute: AuthenticatedIssuesNewRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
+interface MerchantRouteChildren {
+  MerchantAuditLogRoute: typeof MerchantAuditLogRoute
+  MerchantOrdersRoute: typeof MerchantOrdersRoute
+  MerchantProductsRoute: typeof MerchantProductsRoute
+  MerchantIndexRoute: typeof MerchantIndexRoute
+}
+
+const MerchantRouteChildren: MerchantRouteChildren = {
+  MerchantAuditLogRoute: MerchantAuditLogRoute,
+  MerchantOrdersRoute: MerchantOrdersRoute,
+  MerchantProductsRoute: MerchantProductsRoute,
+  MerchantIndexRoute: MerchantIndexRoute,
+}
+
+const MerchantRouteWithChildren = MerchantRoute._addFileChildren(
+  MerchantRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -414,12 +568,14 @@ const rootRouteChildren: RootRouteChildren = {
   ForgotPasswordRoute: ForgotPasswordRoute,
   LegalLibraryRoute: LegalLibraryRoute,
   LoginRoute: LoginRoute,
+  MerchantRoute: MerchantRouteWithChildren,
   NoticeAnalyzerRoute: NoticeAnalyzerRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ShopRoute: ShopRoute,
   SignupRoute: SignupRoute,
   SourcesRoute: SourcesRoute,
   ProductHandleRoute: ProductHandleRoute,
+  ApiPublicShopifyOrdersPaidRoute: ApiPublicShopifyOrdersPaidRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

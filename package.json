@@ -1,7 +1,9 @@
 {
   "name": "tanstack_start_ts",
   "private": true,
-  "sideEffects": false,
+  "sideEffects": [
+    "**/*.css"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite dev",
@@ -10,11 +12,14 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run src/domain/law.test.ts src/lib/connectors/connectors.test.ts src/lib/connectors/custody.test.ts src/lib/notice-analyzer.test.ts src/lib/continuity.test.ts src/lib/legal-navigator.test.ts src/lib/shopify.test.ts src/lib/notice-offers.test.ts src/lib/notice-report.test.ts src/lib/commerce/shopify-order-proof.test.ts src/lib/issue-research.test.ts src/lib/commerce/snapshot-entitlement.test.ts src/lib/commerce/shopify-customer-link.test.ts src/lib/commerce/snapshot-reconciliation.test.ts src/lib/merchant/policy.test.ts src/lib/merchant/portal-contract.test.ts",
+    "test": "vitest run src/lib/commerce/shopify-admin-token.test.ts src/lib/commerce/shopify-token-callers.test.ts src/lib/seo.test.ts src/domain/law.test.ts src/lib/connectors/connectors.test.ts src/lib/connectors/custody.test.ts src/lib/notice-analyzer.test.ts src/lib/continuity.test.ts src/lib/legal-navigator.test.ts src/lib/shopify.test.ts src/lib/notice-offers.test.ts src/lib/notice-report.test.ts src/lib/commerce/shopify-order-proof.test.ts src/lib/issue-research.test.ts src/lib/commerce/snapshot-entitlement.test.ts src/lib/commerce/snapshot-report-access.test.ts src/lib/commerce/shopify-customer-link.test.ts src/lib/commerce/snapshot-reconciliation.test.ts src/lib/counsel-document.test.ts src/lib/recommendations.test.ts src/lib/ocr-quality.test.ts src/lib/merchant/policy.test.ts src/lib/commerce/shopify-webhook.test.ts && node --test test/muse-provider.test.mjs",
     "test:e2e": "playwright test",
+    "test:shopify-token": "vitest run src/lib/commerce/shopify-admin-token.test.ts src/lib/commerce/shopify-token-callers.test.ts",
     "verify:founder-intelligence": "node scripts/verify-founder-intelligence.mjs",
     "lint": "eslint .",
     "format:check": "prettier --check .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "verify:design-system": "node scripts/verify-design-system.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"
@@ -22,6 +27,7 @@
   "dependencies": {
     "@ai-sdk/openai": "^4.0.78",
     "@hookform/resolvers": "^5.2.2",
+    "@lovable.dev/ai-gateway": "^0.1.10",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-aspect-ratio": "^1.1.8",
@@ -61,7 +67,9 @@
     "date-fns": "^4.1.0",
     "embla-carousel-react": "^8.6.0",
     "input-otp": "^1.4.2",
+    "jspdf": "^4.2.1",
     "lucide-react": "^0.575.0",
+    "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^5.4.149",
     "react": "^19.2.0",
     "react-day-picker": "^9.14.0",
@@ -81,7 +89,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
-    "@lovable.dev/vite-tanstack-config": "2.25.3",
+    "@lovable.dev/vite-tanstack-config": "2.26.5",
     "@playwright/test": "1.63.0",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
@@ -89,6 +97,8 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.2.0",
+    "drizzle-kit": "0.x",
+    "drizzle-orm": "0.x",
     "eslint": "^9.32.0",
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-prettier": "^5.2.6",
@@ -97,6 +107,7 @@
     "globals": "^15.15.0",
     "jsdom": "^30.1.0",
     "nitro": "3.0.260603-beta",
+    "postgres": "^3.4.9",
     "prettier": "^3.7.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",

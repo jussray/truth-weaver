@@ -1,23 +1,17 @@
+import { pageHead } from "@/lib/seo";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { RelatedProducts } from "@/components/storefront/related-products";
 import { SiteChrome } from "@/components/storefront/site-chrome";
 import { fetchProductByHandle, formatPrice } from "@/lib/shopify";
 import { useCartStore } from "@/stores/cart-store";
 
 export const Route = createFileRoute("/product/$handle")({
-  head: () => ({
-    meta: [
-      { title: "Legal Tool | Truth Weaver Counsel" },
-      { name: "description", content: "A legal guide, template or course from the Truth Weaver Counsel store." },
-      { property: "og:title", content: "Legal Tool | Truth Weaver Counsel" },
-      { property: "og:description", content: "A legal guide, template or course from the Truth Weaver Counsel store." },
-      { property: "og:type", content: "product" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () =>
+    pageHead({ path: '/shop', title: 'Legal Tool | Truth Weaver Counsel', description: 'A legal guide, template or course from the Truth Weaver Counsel store.', noindex: true }),
   component: ProductPage,
 });
 
@@ -68,6 +62,7 @@ function ProductPage() {
             </div>
           </div>
         )}
+        {p ? <RelatedProducts handle={p.handle} /> : null}
       </section>
     </SiteChrome>
   );
