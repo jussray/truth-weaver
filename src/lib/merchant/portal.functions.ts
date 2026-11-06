@@ -42,6 +42,8 @@ export const changeMerchantVariantPrice = createServerFn({ method: "POST" })
     return updateMerchantVariantPrice(
       data.authAccessToken, data.productId, data.variantId, data.price, data.confirmation, data.expectedCurrentPrice,
     );
+  });
+
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
