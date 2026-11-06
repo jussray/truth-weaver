@@ -114,6 +114,7 @@ const AuthenticatedMerchantRoute = AuthenticatedMerchantRouteImport.update({
   id: '/merchant',
   path: '/merchant',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedVendorInviteRoute =
   AuthenticatedVendorInviteRouteImport.update({
     id: '/vendor-invite',
