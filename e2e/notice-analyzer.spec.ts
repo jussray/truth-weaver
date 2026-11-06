@@ -102,9 +102,13 @@ test("a failed local file read preserves the previous draft but requires renewed
   await page.goto("/notice-analyzer");
   const input = page.locator('input[type="file"]');
   const noticeText = page.getByTestId("notice-text");
+  // Wait for SSR hydration before typing: otherwise React can overwrite a pre-hydration draft.
+  await expect(input).toBeEnabled();
   const draft = "Existing pasted notice content should not disappear when the replacement file is too large.";
   await noticeText.fill(draft);
+  await expect(noticeText).toHaveValue(draft);
   await page.getByTestId("notice-consent").check();
+  await expect(noticeText).toHaveValue(draft);
 
   await input.setInputFiles({
     name: "oversized.txt",
