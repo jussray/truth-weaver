@@ -50,3 +50,15 @@ test("custody witness on connector route fails closed unless the operator gate i
 
   expect(errors).toEqual([]);
 });
+
+
+test("legal issue entry preserves visitor words when continuing to research on mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  const issue = "My landlord kept my security deposit after I moved.";
+  await page.getByTestId("triage-input").fill(issue);
+  await page.getByTestId("triage-continue").click();
+  await expect(page.getByTestId("legal-question")).toHaveValue(issue);
+  await expect(page.getByTestId("legal-place")).toBeVisible();
+  await expect(page).toHaveURL(/#legal-research$/);
+});
