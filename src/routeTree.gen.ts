@@ -24,7 +24,7 @@ import { Route as SourcesRouteImport } from './routes/sources'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedFulfillmentRouteImport } from './routes/_authenticated/fulfillment'
-import { Route as AuthenticatedMerchantRouteImport } from './routes/_authenticated/merchant'
+import { Route as MerchantManageRouteImport } from './routes/merchant.manage'
 import { Route as AuthenticatedVendorInviteRouteImport } from './routes/_authenticated/vendor-invite'
 import { Route as MerchantIndexRouteImport } from './routes/merchant.index'
 import { Route as MerchantAuditLogRouteImport } from './routes/merchant.audit-log'
@@ -110,10 +110,10 @@ const AuthenticatedFulfillmentRoute =
     path: '/fulfillment',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedMerchantRoute = AuthenticatedMerchantRouteImport.update({
-  id: '/merchant',
-  path: '/merchant',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const MerchantManageRoute = MerchantManageRouteImport.update({
+  id: '/manage',
+  path: '/manage',
+  getParentRoute: () => MerchantRoute,
 } as any)
 const AuthenticatedVendorInviteRoute =
   AuthenticatedVendorInviteRouteImport.update({
@@ -179,7 +179,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof AuthenticatedAccountRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/fulfillment': typeof AuthenticatedFulfillmentRoute
-  '/merchant': typeof AuthenticatedMerchantRoute
+  '/merchant/manage': typeof MerchantManageRoute
   '/vendor-invite': typeof AuthenticatedVendorInviteRoute
   '/merchant/audit-log': typeof MerchantAuditLogRoute
   '/merchant/orders': typeof MerchantOrdersRoute
@@ -204,7 +204,7 @@ export interface FileRoutesByTo {
   '/account': typeof AuthenticatedAccountRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/fulfillment': typeof AuthenticatedFulfillmentRoute
-  '/merchant': typeof AuthenticatedMerchantRoute
+  '/merchant/manage': typeof MerchantManageRoute
   '/vendor-invite': typeof AuthenticatedVendorInviteRoute
   '/merchant/audit-log': typeof MerchantAuditLogRoute
   '/merchant/orders': typeof MerchantOrdersRoute
@@ -232,7 +232,7 @@ export interface FileRoutesById {
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/fulfillment': typeof AuthenticatedFulfillmentRoute
-  '/_authenticated/merchant': typeof AuthenticatedMerchantRoute
+  '/merchant/manage': typeof MerchantManageRoute
   '/_authenticated/vendor-invite': typeof AuthenticatedVendorInviteRoute
   '/merchant/audit-log': typeof MerchantAuditLogRoute
   '/merchant/orders': typeof MerchantOrdersRoute
@@ -260,7 +260,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/dashboard'
     | '/fulfillment'
-    | '/merchant'
+    | '/merchant/manage'
     | '/vendor-invite'
     | '/merchant/audit-log'
     | '/merchant/orders'
@@ -285,7 +285,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/dashboard'
     | '/fulfillment'
-    | '/merchant'
+    | '/merchant/manage'
     | '/vendor-invite'
     | '/merchant/audit-log'
     | '/merchant/orders'
@@ -312,7 +312,7 @@ export interface FileRouteTypes {
     | '/_authenticated/account'
     | '/_authenticated/dashboard'
     | '/_authenticated/fulfillment'
-    | '/_authenticated/merchant'
+    | '/merchant/manage'
     | '/_authenticated/vendor-invite'
     | '/merchant/audit-log'
     | '/merchant/orders'
@@ -448,12 +448,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFulfillmentRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/merchant': {
-      id: '/_authenticated/merchant'
-      path: '/merchant'
-      fullPath: '/merchant'
-      preLoaderRoute: typeof AuthenticatedMerchantRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/merchant/manage': {
+      id: '/merchant/manage'
+      path: '/manage'
+      fullPath: '/merchant/manage'
+      preLoaderRoute: typeof MerchantManageRouteImport
+      parentRoute: typeof MerchantRoute
     }
     '/_authenticated/vendor-invite': {
       id: '/_authenticated/vendor-invite'
@@ -525,7 +525,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedFulfillmentRoute: typeof AuthenticatedFulfillmentRoute
-  AuthenticatedMerchantRoute: typeof AuthenticatedMerchantRoute
   AuthenticatedVendorInviteRoute: typeof AuthenticatedVendorInviteRoute
   AuthenticatedIssuesIssueIdRoute: typeof AuthenticatedIssuesIssueIdRoute
   AuthenticatedIssuesNewRoute: typeof AuthenticatedIssuesNewRoute
@@ -535,7 +534,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedFulfillmentRoute: AuthenticatedFulfillmentRoute,
-  AuthenticatedMerchantRoute: AuthenticatedMerchantRoute,
   AuthenticatedVendorInviteRoute: AuthenticatedVendorInviteRoute,
   AuthenticatedIssuesIssueIdRoute: AuthenticatedIssuesIssueIdRoute,
   AuthenticatedIssuesNewRoute: AuthenticatedIssuesNewRoute,
@@ -545,6 +543,7 @@ const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 interface MerchantRouteChildren {
+  MerchantManageRoute: typeof MerchantManageRoute
   MerchantAuditLogRoute: typeof MerchantAuditLogRoute
   MerchantOrdersRoute: typeof MerchantOrdersRoute
   MerchantProductsRoute: typeof MerchantProductsRoute
@@ -552,6 +551,7 @@ interface MerchantRouteChildren {
 }
 
 const MerchantRouteChildren: MerchantRouteChildren = {
+  MerchantManageRoute: MerchantManageRoute,
   MerchantAuditLogRoute: MerchantAuditLogRoute,
   MerchantOrdersRoute: MerchantOrdersRoute,
   MerchantProductsRoute: MerchantProductsRoute,

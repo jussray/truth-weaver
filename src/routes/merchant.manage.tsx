@@ -9,7 +9,7 @@ import type { MerchantProduct, MerchantOrder } from "@/lib/merchant/portal.serve
 type Status = "ACTIVE" | "DRAFT" | "ARCHIVED";
 type Dashboard = { products: MerchantProduct[]; productsHasMore: boolean; orders: MerchantOrder[]; ordersUnavailable: boolean };
 
-export const Route = createFileRoute("/_authenticated/merchant")({
+export const Route = createFileRoute("/merchant/manage")({
   head: () => ({ meta: [{ title: "Truth Weaver merchant management" }, { name: "robots", content: "noindex,nofollow" }] }),
   component: MerchantPage,
 });
