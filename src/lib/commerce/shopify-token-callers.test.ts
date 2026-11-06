@@ -15,7 +15,7 @@ beforeEach(() => { vi.clearAllMocks(); mocks.resolve.mockResolvedValue(null); vi
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
 function request(signed = true) {
   const body = JSON.stringify({ admin_graphql_api_id: "gid://shopify/Order/123", customer: { admin_graphql_api_id: "gid://shopify/Customer/9" } });
-  return new Request("https://truthweaver.jussco.company/api/public/shopify/orders-paid", { method: "POST", body,
+  return new Request("https://www.truthweaver.jussco.company/api/public/shopify/orders-paid", { method: "POST", body,
     headers: { "x-shopify-shop-domain": TRUTH_WEAVER_SHOPIFY_DOMAIN, "x-shopify-topic": "orders/paid",
       "x-shopify-hmac-sha256": createHmac("sha256", signed ? "fixture-hmac" : "wrong").update(body).digest("base64") } });
 }
