@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Compass } from "lucide-react";
 
 import { triageIssueWithAi, type AiTriageResult } from "@/lib/issue-triage.functions";
@@ -6,6 +6,9 @@ import { triageIssueWithAi, type AiTriageResult } from "@/lib/issue-triage.funct
 // Classification is only a starting point. Research requires place, dates and sources.
 export function IssueTriageBanner({ onContinue }: { onContinue: (description: string) => void }) {
   const [text, setText] = useState("");
+  // SSR markup must not accept typing until client handlers preserve it.
+  const [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
   const [results, setResults] = useState<AiTriageResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -48,6 +51,7 @@ export function IssueTriageBanner({ onContinue }: { onContinue: (description: st
         <textarea
           id="triage-input"
           data-testid="triage-input"
+          disabled={!ready}
           value={text}
           rows={2}
           maxLength={1200}
@@ -62,7 +66,7 @@ export function IssueTriageBanner({ onContinue }: { onContinue: (description: st
           className="w-full min-w-0 resize-y rounded-xl border border-parchment/15 bg-ink px-4 py-3 text-sm text-parchment outline-none placeholder:text-parchment/35 focus:border-gold/60"
         />
         <div className="flex flex-wrap items-center gap-3">
-          <button type="submit" disabled={loading} data-testid="triage-submit" className="rounded-full bg-gold px-5 py-2.5 text-sm font-bold text-ink disabled:opacity-60">
+          <button type="submit" disabled={loading || !ready} data-testid="triage-submit" className="rounded-full bg-gold px-5 py-2.5 text-sm font-bold text-ink disabled:opacity-60">
             {loading ? "Checking…" : "Find a starting point"}
           </button>
           {canContinue ? (
