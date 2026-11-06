@@ -78,6 +78,10 @@ test("image-only PDF does not pretend to have been transcribed", async ({ page }
     mimeType: "application/pdf",
     buffer: textPdf(""),
   });
-  await expect(page.getByTestId("notice-file-status")).toContainText(/Could not read enough text|No sufficient selectable text|Scanned PDFs are limited/i, { timeout: 60000 });
+  // The application may return a direct parser error or a low-confidence OCR refusal.
+  // Both must leave the notice empty and the analysis unpublished.
+  await expect(page.getByTestId("notice-file-status")).toContainText(/Scan rejected|Could not read enough text|No sufficient selectable text|Scanned PDFs are limited/i, { timeout: 60000 });
   await expect(page.getByTestId("notice-text")).toHaveValue("");
+  await expect(page.getByTestId("analysis-result")).toHaveCount(0);
+  await expect(page.getByTestId("analysis-empty")).toBeVisible();
 });
