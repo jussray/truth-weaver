@@ -6,7 +6,7 @@ import { checkMySnapshotPurchases } from "@/lib/commerce/snapshot-reconciliation
 import { trustedShopifyEndpoint } from "@/lib/commerce/shopify-customer-link";
 
 const SHOP_HOST = "fcr-truth-weaver-esimv-203acj81.myshopify.com";
-const ACCOUNT_REDIRECT = "https://truthweaver.jussco.company/account";
+const ACCOUNT_REDIRECT = "https://www.truthweaver.jussco.company/account";
 const STORAGE_KEY = "tw-shopify-oauth-pkce";
 const MAX_OAUTH_AGE_MS = 5 * 60 * 1000;
 const clientId: string = import.meta.env["VITE_SHOPIFY_CUSTOMER_ACCOUNT_CLIENT_ID"] ?? "";
