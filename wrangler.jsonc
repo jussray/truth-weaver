@@ -1,0 +1,12 @@
+{
+  "name": "truth-weaver",
+  "compatibility_date": "2026-10-25",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "nodejs_compat_populate_process_env"
+  ],
+  "observability": {
+    "enabled": true
+  },
+  "previews": {}
+}
