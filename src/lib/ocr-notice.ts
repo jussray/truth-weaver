@@ -1,4 +1,10 @@
 import { NOTICE_TEXT_MAX } from "./notice-analyzer";
+import { assessOcrQuality } from "./ocr-quality";
+
+/** Unreadable OCR must block legal notice analysis. */
+export class OcrUnreadableError extends Error {
+  override name = "OcrUnreadableError";
+}
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const MAX_OCR_PAGES = 6;
@@ -23,6 +29,8 @@ async function recognize(images: Array<Blob | HTMLCanvasElement>, onProgress: Oc
       confidence.push(data.confidence);
     }
     const text = parts.join("\n\n").trim();
+    const quality = assessOcrQuality(confidence);
+    if (!quality.ok) throw new OcrUnreadableError(quality.reason);
     const averageConfidence = confidence.reduce((sum, value) => sum + value, 0) / confidence.length;
     return { text, averageConfidence };
   } finally {
