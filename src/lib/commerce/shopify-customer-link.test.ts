@@ -6,7 +6,7 @@ const input = {
   supabaseAccessToken: "valid-session",
   authorizationCode: "shopify-code",
   codeVerifier: "x".repeat(64),
-  redirectUri: "https://truthweaver.jussco.company/account",
+  redirectUri: "https://www.truthweaver.jussco.company/account",
 };
 function deps() {
   return {
