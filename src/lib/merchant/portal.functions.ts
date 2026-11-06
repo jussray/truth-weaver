@@ -69,10 +69,17 @@ async function assertMerchant({ supabase, userId }: Ctx) {
 }
 
 async function audit(
-  { supabase, userId }: Ctx,
+  ctx: Ctx,
   row: { action: string; target: string; before_state?: Json; requested_state?: Json; outcome: string; detail?: string },
 ) {
-  const { error } = await supabase.from("merchant_audit_log").insert({ actor_id: userId, ...row });
+  // The browser's authenticated Supabase client has no audit INSERT permission.
+  // Recheck the role before a trusted server-only insert; never grant browser writes.
+  await assertMerchant(ctx);
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { error } = await supabaseAdmin.from("merchant_audit_log").insert({
+    actor_id: ctx.userId,
+    ...row,
+  });
   if (error) throw new Error("Audit log write failed; change not attempted.");
 }
 
