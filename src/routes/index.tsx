@@ -538,7 +538,7 @@ function TruthWeaverModule() {
           </p>
         </section>
 
-        <LegalNavigator key={issueDescription} initialValues={issueDescription ? { question: issueDescription } : undefined} />
+        <LegalNavigator key={issueDescription} initialValues={{ question: issueDescription }} />
 
         <Faq id="questions" title="Common questions" items={HOME_FAQ} />
 
