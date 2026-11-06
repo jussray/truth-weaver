@@ -48,16 +48,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database, Json } from "@/integrations/supabase/types";
-import {
-  ORDER_GID,
-  PRODUCT_GID,
-  VARIANT_GID,
-  confirmationPhrase,
-  priceChangeMessage,
-  redactOrder,
-  requiresTypedConfirmation,
-  validatePrice,
-} from "./policy";
+import { ORDER_GID, redactOrder } from "./policy";
 
 /* Every handler re-checks the merchant role server-side. The route guard is UX only. */
 
@@ -118,61 +109,6 @@ export const listMerchantProducts = createServerFn({ method: "POST" })
       };
     } catch (e) {
       return { products: [], error: storeError(e) };
-    }
-  });
-
-export const updateVariantPrice = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator(
-    z.object({
-      productId: z.string().regex(PRODUCT_GID),
-      variantId: z.string().regex(VARIANT_GID),
-      price: z.string(),
-      confirmation: z.string().max(80).optional(),
-    }).parse,
-  )
-  .handler(async ({ data, context }) => {
-    const ctx = context as Ctx;
-    await assertMerchant(ctx);
-    const price = validatePrice(data.price);
-    if (!price) return { ok: false as const, message: "Enter a price like 12.00 between 0.50 and 10000.00." };
-
-    const { adminGraphql } = await admin();
-    let before: { price: string; title: string; product: { title: string } };
-    try {
-      const read = await adminGraphql<{ productVariant: typeof before | null }>(
-        `query($id: ID!) { productVariant(id: $id) { price title product { title } } }`,
-        { id: data.variantId },
-      );
-      if (!read.productVariant) return { ok: false as const, message: "That product option no longer exists." };
-      before = read.productVariant;
-    } catch (e) {
-      return { ok: false as const, message: storeError(e) };
-    }
-
-    const target = data.variantId;
-    if (requiresTypedConfirmation(before.price, price) && data.confirmation !== confirmationPhrase("price", target, price)) {
-      await audit(ctx, { action: "price.update", target, before_state: { price: before.price }, requested_state: { price }, outcome: "denied", detail: "typed confirmation missing or mismatched" });
-      return { ok: false as const, message: "This is a large change. Type the confirmation phrase exactly to continue." };
-    }
-
-    await audit(ctx, { action: "price.update", target, before_state: { price: before.price }, requested_state: { price }, outcome: "attempted" });
-    try {
-      const res = await adminGraphql<{ productVariantsBulkUpdate: { productVariants: Array<{ id: string; price: string }> | null; userErrors: Array<{ message: string }> } }>(
-        `mutation($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
-          productVariantsBulkUpdate(productId: $productId, variants: $variants) { productVariants { id price } userErrors { message } }
-        }`,
-        { productId: data.productId, variants: [{ id: data.variantId, price }] },
-      );
-      const r = res.productVariantsBulkUpdate;
-      const after = r.productVariants?.[0]?.price;
-      if (r.userErrors.length || after !== price) throw new Error(r.userErrors[0]?.message ?? "Shopify did not confirm the new price.");
-      await audit(ctx, { action: "price.update", target, before_state: { price: before.price }, requested_state: { price }, outcome: "succeeded" });
-      const label = `${before.product.title} — ${before.title}`;
-      return { ok: true as const, before: before.price, after, message: priceChangeMessage(label, before.price, after) };
-    } catch (e) {
-      await audit(ctx, { action: "price.update", target, before_state: { price: before.price }, requested_state: { price }, outcome: "failed", detail: e instanceof Error ? e.message.slice(0, 200) : "unknown" });
-      return { ok: false as const, message: storeError(e) };
     }
   });
 

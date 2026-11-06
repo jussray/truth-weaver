@@ -159,6 +159,29 @@ describe("Truth Weaver merchant isolation", () => {
     expect(result.ordersUnavailable).toBe(true);
     expect(result.orders).toEqual([]);
   });
+  it("blocks price mutations if the attempted audit receipt cannot be stored", async () => {
+    merchantSession();
+    mocks.graphql.mockResolvedValueOnce({ productVariant: {
+      id: variantId, sku: "OTHER", price: "20.00", product: { id: productId },
+    } });
+    mocks.auditInsert.mockResolvedValueOnce({ error: { message: "permission denied" } });
+    await expect(updateMerchantVariantPrice(
+      "valid", productId, variantId, "22.00",
+      confirmationPhrase("price", variantId, "22.00"), "20.00",
+    )).rejects.toThrow("Merchant audit receipt unavailable");
+    expect(mocks.graphql).toHaveBeenCalledTimes(1);
+    expect(mocks.auditInsert).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the existing products page on the hardened merchant write path", () => {
+    const page = readFileSync(resolve(process.cwd(), "src/routes/merchant.products.tsx"), "utf8");
+    const handlers = readFileSync(resolve(process.cwd(), "src/lib/merchant/portal.functions.ts"), "utf8");
+    expect(page).toContain("changeMerchantVariantPrice");
+    expect(page).toContain("expectedCurrentPrice: pending.variant.price");
+    expect(page).toContain("typed !== phrase");
+    expect(handlers).not.toContain("export const updateVariantPrice");
+  });
+
   it("requires the reviewed audit migration to disable browser-generated success receipts", () => {
     const sql = readFileSync(
       resolve(process.cwd(), "supabase/migrations/20261014151500_tw_merchant_audit_server_only.sql"),
