@@ -1,11 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { gateOrdersPaidWebhook } from "@/lib/commerce/shopify-webhook";
+import { ungrantedStatus } from "@/lib/commerce/shopify-webhook-status";
 
 /**
  * Shopify `orders/paid` → Counsel entitlement. Fail-closed:
  * - no SHOPIFY_WEBHOOK_SECRET → 503, nothing recorded
  * - bad signature / wrong shop → 401
- * - no Admin token, unbound customer, or failed fresh paid check → 202, nothing recorded
+ * - unresolved (no Admin token, guest checkout, unbound customer, Admin or DB failure) → 503 so Shopify retries
+ * - deliberate permanent non-grant (test order, other product, currency, refunded) → 202, nothing recorded
+ * Shopify treats any 2xx as delivered and never retries it, so 202 is never used for unresolved cases.
  * The webhook payload is never trusted as payment proof; a fresh Admin read decides.
  */
 export const Route = createFileRoute("/api/public/shopify/orders-paid")({
@@ -25,20 +28,22 @@ export const Route = createFileRoute("/api/public/shopify/orders-paid")({
         });
         if (!gate.ok) return Response.json({ recorded: false, reason: gate.reason }, { status: gate.status });
         if (!gate.customerGid)
-          return Response.json({ recorded: false, reason: "not_verifiable" }, { status: 202 });
+          return Response.json({ recorded: false, reason: "not_verifiable" }, { status: 503 });
 
         try {
           const { getTruthWeaverShopifyAdminToken } = await import("@/lib/commerce/shopify-admin-token.server");
           const adminToken = await getTruthWeaverShopifyAdminToken();
-          if (!adminToken) return Response.json({ recorded: false, reason: "not_verifiable" }, { status: 202 });
+          if (!adminToken) return Response.json({ recorded: false, reason: "not_verifiable" }, { status: 503 });
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const { verifyFreshTruthWeaverPurchase } = await import("@/lib/commerce/shopify-order.server");
           const { NOTICE_VARIANTS } = await import("@/lib/commerce/shopify-order-proof");
           const { data: binding, error } = await supabaseAdmin.from("tw_shopify_customer_bindings")
             .select("auth_user_id, shopify_customer_gid").eq("shopify_customer_gid", gate.customerGid).maybeSingle();
-          if (error || !binding) return Response.json({ recorded: false, reason: "customer_not_bound" }, { status: 202 });
+          if (error) return Response.json({ recorded: false, reason: "unavailable" }, { status: 503 });
+          if (!binding) return Response.json({ recorded: false, reason: "customer_not_bound" }, { status: 503 });
           const proof = await verifyFreshTruthWeaverPurchase(gate.orderGid, "snapshot", binding.shopify_customer_gid, { adminToken });
-          if (!proof.granted) return Response.json({ recorded: false, reason: proof.reason }, { status: 202 });
+          if (!proof.granted)
+            return Response.json({ recorded: false, reason: proof.reason }, { status: ungrantedStatus(proof.reason) });
           const { data: existing } = await supabaseAdmin.from("tw_snapshot_entitlements")
             .select("order_gid").eq("order_gid", proof.orderId).maybeSingle();
           if (existing) return Response.json({ recorded: false, reason: "already_recorded" }, { status: 200 });
