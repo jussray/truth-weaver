@@ -2,16 +2,16 @@
   "meta": {
     "name": "Truth Weaver",
     "package": "@ws-0dfe240cdcdbfcf99736/8ef43cd3-8d93-4494-a685-59ce0f795614",
-    "version": "5.0.0",
+    "version": "6.0.0",
     "framework": "react",
     "css_framework": "tailwind",
-    "starter_template": "custom_design_system_tailwind",
+    "starter_template": "custom_design_system",
     "theme_files": [
       "src/styles.css"
     ],
     "source_type": "local",
     "source_manifest": {
-      "#enrichment": "3367744b57b84a73656b5ff133fbc0b6abeb7f8ffd65ced0e4ca20af038306ea",
+      "#enrichment": "9e005d6e037d5d6234416a0e43ba62db878ffc2c52f27196221044e62168f8c7",
       ".control-room/agent-contract.v1.json": "928cbc16c6e872f6768fa8bbfbeb7f4f",
       ".control-room/model-capabilities.v1.json": "038f986ca54d0c56ae26f11b26dc7e70",
       ".github/workflows/agent-contract-v1.yml": "2f95c5eff6660a2982719b43fdbf80bd",
@@ -42,12 +42,14 @@
       "e2e/notice-analyzer.spec.ts": "e0d207deffb1a32da9f87fb4333cfae7",
       "e2e/shopify-cart.spec.ts": "bb261944f80434a74bb2467f85770617",
       "eslint.config.js": "d7ed73654ac1bcd4665fcc81e541f6a3",
-      "package.json": "f588aecdb2c1d39be931f684ba40f197",
+      "package.json": "2ade35fe630cf48633fb28b589394230",
       "playwright.config.ts": "c398841f4ca1b3a85c5e31adf104bdaf",
       "public/favicon.ico": "9f504444f85a5af2eef9264b02ae40be",
       "public/robots.txt": "f9dff89adf98833e676de2205921996a",
-      "roadmap.md": "9d53ecda87b32f549f192905279521e8",
+      "roadmap.md": "0ef2e85bf247c9ea9697daad1637064f",
       "scripts/verify-founder-intelligence.mjs": "fbfb5e694f5e69c29c9215ee6456ce8d",
+      "server/muse-provider.ts": "f574d45ac3e4fdac46c768c55fcd51ca",
+      "src/ai-gateway.types.ts": "0a11dcb04c06fbe90382a1d2f35e3e30",
       "src/assets/hero-sanctum.jpg": "dd7cff9c6d6a2921378a9a7c30afa80a",
       "src/components/commerce/shopify-customer-connect.tsx": "35e87cc85b78b796175a77b2919b30ee",
       "src/components/counsel/app-shell.tsx": "d6720efe1805514997f9c0bcf1d40bcd",
@@ -57,6 +59,7 @@
       "src/components/storefront/cart-drawer.tsx": "fc8d91fa3616d8e03c34283e05e774e8",
       "src/components/storefront/issue-triage.tsx": "5e71a44c274eae2b73ad7cd6001b5363",
       "src/components/storefront/product-card.tsx": "6c93796753f9d1d8272b80aafb23604d",
+      "src/components/storefront/related-products.tsx": "380c3aba211709c8c1d5faea382e5eec",
       "src/components/storefront/site-chrome.tsx": "5feb87fb23b1c9e7f812d627af079c29",
       "src/components/ui/accordion.tsx": "55f9dda62b4e3913c9b23e5015a86aef",
       "src/components/ui/alert-dialog.tsx": "96350e949e9b7b674545430a410ab89c",
@@ -106,9 +109,11 @@
       "src/components/ui/tooltip.tsx": "67d71db5a1ab935695d1def497f5b8a6",
       "src/domain/law.test.ts": "90bbcd38441530a7bad9154ef5d90383",
       "src/domain/law.ts": "4a463b8059fe201e2019a30576817707",
+      "src/generated/ai-gateway/models.d.cts": "1efb1b89b544365722c7c1fc3cca891b",
+      "src/generated/ai-gateway/models.d.ts": "1efb1b89b544365722c7c1fc3cca891b",
       "src/hooks/use-mobile.tsx": "c0a0bdd4638c391a1dd06ac82074e60b",
       "src/hooks/use-session.ts": "4010edf122b0831160705aeb260d511a",
-      "src/index.ts": "af765e1de7bb57aba6cbf71c58a2ab98",
+      "src/index.ts": "9d3d84ac098f45ad8f7837c219020484",
       "src/integrations/supabase/auth-middleware.ts": "eabaf8c8ba32205717921ce5f255185e",
       "src/integrations/supabase/client.server.ts": "23f838ab7633e0a97e695f3c500d91aa",
       "src/integrations/supabase/client.ts": "8af43e12f1332b440278c7ea7e4cb1e8",
@@ -141,6 +146,9 @@
       "src/lib/connectors/use-connector-status.ts": "08356957c9f6bb73f2d1b7b27c20a679",
       "src/lib/continuity.test.ts": "4120c611e698b88edb57fac324004c89",
       "src/lib/continuity.ts": "94c272355831dc1b00d1828986acbe02",
+      "src/lib/counsel-document.test.ts": "e22b3147d484610fc3a00227a194ae78",
+      "src/lib/counsel-document.ts": "7696341c073f721aa5a64d20b269a22a",
+      "src/lib/counsel-pdf.ts": "d277413a121f43f92eb79f285deaf5b6",
       "src/lib/counsel.ts": "b423945ca2f75dcd76f3e327e9860ee7",
       "src/lib/error-capture.ts": "f630d9686a9a989170f22eff4de7b30d",
       "src/lib/error-page.ts": "8da0ddd7569bac2676b9a5c8edff8a36",
@@ -171,6 +179,12 @@
       "src/lib/ocr-notice.ts": "0009f34b74273841035fe25f71b3928a",
       "src/lib/ocr-quality.test.ts": "31fce3c83d454d292f088f30e71519df",
       "src/lib/ocr-quality.ts": "452ecd0e2dcb15a69a99ecd3ba174481",
+      "src/lib/recommendations.functions.ts": "0ffd97d81d9d235eb678270a47da830e",
+      "src/lib/recommendations.server.ts": "59d095a50e65fb3d1ef00f58d9874423",
+      "src/lib/recommendations.test.ts": "32a1fbcba52b7afe571861d7ffd54621",
+      "src/lib/recommendations.ts": "5a2d8ccf721dd725a5d469dd29cb1d31",
+      "src/lib/shop-categories.test.ts": "5e375c25b9c64f0d0237287fff54eaef",
+      "src/lib/shop-categories.ts": "dea793b0d89166716e3e8de83fa5a700",
       "src/lib/shopify.test.ts": "ae32190b010e25518af2339554cedbbe",
       "src/lib/shopify.ts": "ff5f033f331aafbbe502c399655de2d1",
       "src/lib/utils.ts": "d9837f38cc05303254571985e3164050",
@@ -180,7 +194,7 @@
       "src/routes/__root.tsx": "d7452ad84f498d34b996439c19185141",
       "src/routes/_authenticated/account.tsx": "385cf4ac736402c69dc98a0d8529f03c",
       "src/routes/_authenticated/dashboard.tsx": "40dbae0af18be54ea3fdcaa8a26472fc",
-      "src/routes/_authenticated/fulfillment.tsx": "715be8c893389a996b89a853b29b0f5e",
+      "src/routes/_authenticated/fulfillment.tsx": "409269401563128db9f658f2f1803727",
       "src/routes/_authenticated/issues.$issueId.tsx": "f9cc9d659d3db8fb0cd068cd9351956d",
       "src/routes/_authenticated/issues.new.tsx": "ebfe52267f210e45751d33b9dfa36bf5",
       "src/routes/_authenticated/route.tsx": "dfbb6b58841ee2f39b945b892f82a0b2",
@@ -195,10 +209,10 @@
       "src/routes/merchant.orders.tsx": "b3df70185b1ad528792b76dfb6e0c926",
       "src/routes/merchant.products.tsx": "62c3132c813650cb9e91e63bbac3bda7",
       "src/routes/merchant.tsx": "5fe775116f07cbfdab596985912541c8",
-      "src/routes/notice-analyzer.tsx": "a280858bb928966c17d17611b0461c20",
-      "src/routes/product.$handle.tsx": "5a6808597251fd81c2ef27565d834819",
+      "src/routes/notice-analyzer.tsx": "33b1507ff64294b3caafbf1cd5eca4f8",
+      "src/routes/product.$handle.tsx": "b80731465f9a3ee61cd02ac6213e1bc5",
       "src/routes/reset-password.tsx": "92727968ff6aff7a3fb26d19ce9f63cb",
-      "src/routes/shop.tsx": "6ef8a2b2f793bf533008652538d8d3c0",
+      "src/routes/shop.tsx": "cdeda970f71564ca8c05e4331f9c43e1",
       "src/routes/signup.tsx": "b066ef427f03b318f912e5d94d8aff78",
       "src/routes/sources.tsx": "6a97a22beaef9ce2b71683ecbecdc5e7",
       "src/server.ts": "c7bbc49bb70e318af618d92775ee0f27",
@@ -212,6 +226,7 @@
       "supabase/migrations/20261014030242_cef5eec2-77b7-4df1-b280-52f1f1e02784.sql": "b538d672e0a074a5c4bf0e9038bd3255",
       "supabase/migrations/20261014030252_1f92d6fa-56f2-4b58-a946-e483910e227b.sql": "d981bcbf8eb0e89415195ed273469301",
       "supabase/migrations/20261014095600_tw_snapshot_persistence.sql": "1043f820972faaebef2596477b0e390f",
+      "test/muse-provider.test.mjs": "30750f5d3395fa0a2ba50349f7257275",
       "tsconfig.json": "e84e5c7fe88e3c5a4d54f55a816d42c1",
       "vite.config.ts": "d67e8217e5f31b87c276b6357c9aedcf"
     },
@@ -587,6 +602,18 @@
       "import_path": ""
     },
     {
+      "name": "RelatedProducts",
+      "file": "src/components/storefront/related-products",
+      "import_path": "",
+      "props": [
+        {
+          "name": "handle",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
       "name": "SiteChrome",
       "file": "src/components/storefront/site-chrome",
       "import_path": ""
@@ -658,21 +685,6 @@
       "name": "SheetDescription",
       "file": "src/components/ui/sheet",
       "import_path": ""
-    },
-    {
-      "name": "Constants",
-      "file": "src/integrations/supabase/types",
-      "import_path": ""
-    },
-    {
-      "name": "ShopifyAdminUnavailable",
-      "file": "src/lib/merchant/admin.server",
-      "import_path": ""
-    },
-    {
-      "name": "OcrUnreadableError",
-      "file": "src/lib/ocr-notice",
-      "import_path": ""
     }
   ],
   "assets": [
@@ -680,6 +692,36 @@
       "file": "src/assets/hero-sanctum.jpg",
       "kind": "image",
       "format": "jpg"
+    },
+    {
+      "file": "src/assets/fonts/inter-tight-variable.woff2",
+      "kind": "font",
+      "format": "woff2"
+    },
+    {
+      "file": "src/assets/fonts/cormorant-garamond-normal.woff2",
+      "kind": "font",
+      "format": "woff2"
+    },
+    {
+      "file": "src/assets/fonts/cormorant-garamond-italic.woff2",
+      "kind": "font",
+      "format": "woff2"
+    },
+    {
+      "file": "src/assets/fonts/ibm-plex-mono-400.woff2",
+      "kind": "font",
+      "format": "woff2"
+    },
+    {
+      "file": "src/assets/fonts/ibm-plex-mono-500.woff2",
+      "kind": "font",
+      "format": "woff2"
+    },
+    {
+      "file": "src/assets/fonts/great-vibes-regular.woff2",
+      "kind": "font",
+      "format": "woff2"
     }
   ]
 }
