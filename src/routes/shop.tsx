@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/seo";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { BookOpen, Check, FileText, GraduationCap, Package } from "lucide-react";
@@ -16,16 +17,8 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/shop")({
   validateSearch: (s) => searchSchema.parse(s),
-  head: () => ({
-    meta: [
-      { title: "Shop Legal Guides, Templates & Courses | Truth Weaver Counsel" },
-      { name: "description", content: "Legal guides, templates, courses and bundles that help you understand the law and check official sources. Sold through our Shopify store." },
-      { property: "og:title", content: "Shop Legal Guides, Templates & Courses | Truth Weaver Counsel" },
-      { property: "og:description", content: "Legal guides, templates, courses and bundles that help you understand the law and check official sources." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () =>
+    pageHead({ path: '/shop', title: 'Legal Guides, Templates & Courses | Truth Weaver Counsel', description: 'Guides, templates, courses and bundles that help you understand the law and check official sources. Items marked not for sale are still being prepared.', breadcrumbs: [{ name: "Home", path: "/" }, { name: 'Shop', path: '/shop' }] }),
   component: ShopPage,
 });
 
@@ -53,6 +46,23 @@ function ShopPage() {
           {category ? category.label : area ? area : "The Counsel Store"}
         </h1>
         {area && category ? <p className="mt-2 text-parchment/70">Legal area: {area}</p> : null}
+
+        <div data-testid="shop-intro" className="mt-6 max-w-3xl space-y-3 text-base leading-7 text-parchment/75">
+          <p>
+            <strong className="text-parchment">What you can use today, for free:</strong> research a legal situation by
+            location, and read a legal notice to see its dates, demands and questions to ask a lawyer. Neither needs an
+            account.
+          </p>
+          <p>
+            The store is where educational guides, templates, courses and bundles will be listed. Products not marked
+            for sale are still being prepared and can't be bought yet. Once they are on sale, they will explain the law
+            and help you check official sources. They are not legal advice and don't replace a lawyer.
+          </p>
+          <div className="flex flex-wrap gap-3 pt-1 text-sm">
+            <a href="/#legal-research" className="rounded-full border border-gold/50 px-4 py-2 font-semibold text-gold hover:bg-gold/10">Start free legal research</a>
+            <a href="/notice-analyzer" className="rounded-full border border-parchment/25 px-4 py-2 text-parchment hover:border-gold/50">Review a legal notice</a>
+          </div>
+        </div>
 
         <nav aria-label="Store categories" className="mt-8 flex flex-wrap gap-2">
           <a href={area ? `/shop?area=${encodeURIComponent(area)}` : "/shop"} aria-current={!category ? "page" : undefined} className={pill(!category)}>All</a>

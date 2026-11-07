@@ -712,6 +712,130 @@ export type Database = {
           },
         ]
       }
+      tw_order_reports: {
+        Row: {
+          analysis_id: string | null
+          byte_size: number | null
+          claim_nonce: string
+          created_at: string
+          failure_reason: string | null
+          offers: string[]
+          order_created_at: string
+          order_gid: string
+          order_name: string
+          private_storage_key: string | null
+          ready_at: string | null
+          revoked_at: string | null
+          shopify_verified_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          analysis_id?: string | null
+          byte_size?: number | null
+          claim_nonce: string
+          created_at?: string
+          failure_reason?: string | null
+          offers: string[]
+          order_created_at: string
+          order_gid: string
+          order_name: string
+          private_storage_key?: string | null
+          ready_at?: string | null
+          revoked_at?: string | null
+          shopify_verified_at: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          analysis_id?: string | null
+          byte_size?: number | null
+          claim_nonce?: string
+          created_at?: string
+          failure_reason?: string | null
+          offers?: string[]
+          order_created_at?: string
+          order_gid?: string
+          order_name?: string
+          private_storage_key?: string | null
+          ready_at?: string | null
+          revoked_at?: string | null
+          shopify_verified_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tw_order_reports_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "tw_saved_analyses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tw_purchase_claims: {
+        Row: {
+          analysis_id: string
+          consumed_order_gid: string | null
+          created_at: string
+          expires_at: string
+          nonce: string
+          user_id: string
+        }
+        Insert: {
+          analysis_id: string
+          consumed_order_gid?: string | null
+          created_at?: string
+          expires_at: string
+          nonce: string
+          user_id: string
+        }
+        Update: {
+          analysis_id?: string
+          consumed_order_gid?: string | null
+          created_at?: string
+          expires_at?: string
+          nonce?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tw_purchase_claims_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "tw_saved_analyses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tw_saved_analyses: {
+        Row: {
+          created_at: string
+          id: string
+          metadata: Json
+          result: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metadata: Json
+          result: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metadata?: Json
+          result?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       tw_shopify_customer_bindings: {
         Row: {
           auth_user_id: string

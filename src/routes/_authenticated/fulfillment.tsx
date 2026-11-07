@@ -1,6 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Download, FileText, LoaderCircle, Printer, Trash2 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { downloadMySnapshotReport, getMySnapshotReports } from "@/lib/commerce/snapshot-report.functions";
 
 import { CounselPage, StateBox, WorkspaceNav, tw } from "@/components/counsel/page";
 import {
@@ -20,6 +24,10 @@ export const Route = createFileRoute("/_authenticated/fulfillment")({
     meta: [
       { title: "Counsel documents & orders — Truth Weaver Counsel" },
       { name: "description", content: "Download your Truth Weaver Counsel notice brief and open your verified Shopify orders." },
+      { property: "og:title", content: "Counsel documents & orders — Truth Weaver Counsel" },
+      { property: "og:description", content: "Your notice brief and links to store orders. Downloading a brief is not payment verification." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -57,9 +65,9 @@ function FulfillmentPage() {
       <WorkspaceNav />
 
       <section aria-labelledby="counsel-doc-h" className="mb-6">
-        <h2 id="counsel-doc-h" className="font-serif text-2xl text-parchment">Truth Weaver Counsel document</h2>
+        <h2 id="counsel-doc-h" className="font-serif text-2xl text-parchment">Free browser Counsel PDF</h2>
         <p className="mt-1 max-w-3xl text-sm leading-6 text-parchment/65">
-          A branded brief compiled from your latest Notice Analyzer result in this browser tab. Your notice text itself is never stored or included.
+          A free brief compiled from your latest Notice Analyzer result in this browser tab. This is not a purchased Notice Snapshot report. Your notice text itself is never stored or included.
         </p>
         <div className="mt-4">
           {state.status === "loading" && <StateBox kind="loading">Loading your latest analysis…</StateBox>}
@@ -81,6 +89,8 @@ function FulfillmentPage() {
         </div>
       </section>
 
+      <PaidSnapshotReports />
+
       <div className="grid gap-4 md:grid-cols-2">
         <section className={tw.card}>
           <p className={tw.label}>Your actual orders</p>
@@ -100,7 +110,7 @@ function FulfillmentPage() {
             Downloadable products have no shipping tracking. Shopify shows return or refund actions only when offered for that order.
           </p>
           <div className="mt-4"><StateBox kind="empty">
-            This page does not yet link your account to Shopify orders, so it does not show any order as paid, delivered, refunded or returned.
+            A recorded purchase does not prove a report is ready. Each paid-report download requires a new payment and account check. Shopify holds the full order status.
           </StateBox></div>
         </section>
       </div>
@@ -109,6 +119,87 @@ function FulfillmentPage() {
       </p>
     </CounselPage>
   );
+}
+
+function PaidSnapshotReports() {
+  const listReports = useServerFn(getMySnapshotReports);
+  const downloadReport = useServerFn(downloadMySnapshotReport);
+  const [result, setResult] = useState<Awaited<ReturnType<typeof getMySnapshotReports>> | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    void (async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        const token = data.session?.access_token;
+        const next = token ? await listReports({ headers: { Authorization: `Bearer ${token}` } })
+          : { state: "not_authenticated" as const, orders: [] };
+        if (active) setResult(next);
+      } catch {
+        if (active) setResult({ state: "unavailable", orders: [] });
+      } finally { if (active) setLoading(false); }
+    })();
+    return () => { active = false; };
+  }, [listReports]);
+
+  async function download() {
+    setBusy("checking");
+    setError("");
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (!token) { setError("Please sign in again to check your report."); return; }
+      const response = await downloadReport({ headers: { Authorization: `Bearer ${token}` } });
+      if (response.state !== "ready") {
+        setError(response.state === "not_authenticated" ? "Please sign in again to check your report."
+          : "Your report is not available. Payment, account ownership and a stored report must all be verified before download.");
+        return;
+      }
+      // Report bytes stay in memory, never browser storage or provider URLs.
+      const binary = atob(response.base64);
+      if (binary.length > 524288 || response.mediaType !== "application/pdf" || !binary.startsWith("%PDF-")) {
+        setError("The report could not be read safely. No file was downloaded."); return;
+      }
+      const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+      const url = URL.createObjectURL(new Blob([bytes], { type: response.mediaType }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.rel = "noreferrer noopener";
+      link.referrerPolicy = "no-referrer";
+      link.download = "Truth-Weaver-Notice-Snapshot.pdf";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch { setError("We could not check your report. No download was authorized. Please try again later."); }
+    finally { setBusy(null); }
+  }
+
+  return <section aria-labelledby="paid-report-h" className="mb-6">
+    <h2 id="paid-report-h" className="font-serif text-2xl text-parchment">Purchased Notice Snapshot reports</h2>
+    <p className="mt-1 max-w-3xl text-sm leading-6 text-parchment/65">Separate from your free browser PDF. We check your newest eligible Snapshot purchase, payment and stored report before downloading. A purchase alone does not mean a report is ready.</p>
+    <Button className={`${tw.btn} mt-4`} onClick={() => void download()} disabled={busy !== null || loading}>
+      {busy ? <LoaderCircle className="animate-spin" aria-hidden /> : <Download aria-hidden />}
+      {busy ? "Checking report…" : "Check and download my paid Snapshot"}
+    </Button>
+    <div className="mt-4" aria-live="polite" aria-busy={loading || busy !== null}>
+      {loading && <StateBox kind="loading">Checking your account…</StateBox>}
+      {!loading && result?.state === "not_authenticated" && <StateBox kind="error">Please sign in again to view your reports.</StateBox>}
+      {!loading && result?.state === "not_linked" && <StateBox kind="empty">Your Shopify account has not been verified with this account. No paid report is available here yet. You can still check your orders with Shopify below.</StateBox>}
+      {!loading && result?.state === "unavailable" && <StateBox kind="error">We could not check your purchases. No payment or report availability has been confirmed.</StateBox>}
+      {!loading && result?.state === "ok" && result.orders.length === 0 && <StateBox kind="empty">No eligible Snapshot purchase is recorded for your account. No paid report is available here.</StateBox>}
+      {!loading && result?.state === "ok" && result.orders.length > 0 && <ul className="space-y-3">
+        {result.orders.map(order => <li key={order.orderId} className="flex flex-wrap items-center justify-between gap-3 border-b border-gold/20 py-3">
+          <div><h3 className="text-parchment">Notice Snapshot · Order {order.orderId.split("/").at(-1)}</h3><p className="text-sm text-parchment/65">Recorded access. Payment and report readiness will be checked.</p></div>
+        </li>)}
+      </ul>}
+      {error && <StateBox kind="error">{error}</StateBox>}
+    </div>
+  </section>;
 }
 
 function CounselDocumentView({ stored, onClear }: { stored: StoredCounselAnalysis; onClear: () => void }) {
