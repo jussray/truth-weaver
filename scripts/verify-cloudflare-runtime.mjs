@@ -67,6 +67,7 @@ if (manifestText === null) {
 }
 
 const manifestNames = new Set();
+const manifestClasses = new Map();
 let worker = null;
 let scanDirs = [];
 if (manifest) {
@@ -92,6 +93,7 @@ if (manifest) {
     }
     if (!ENTRY_CLASSES.has(entry.class)) fail(`manifest ${entry.name} has invalid class`);
     manifestNames.add(entry.name);
+    manifestClasses.set(entry.name, entry.class);
   }
 }
 
@@ -126,9 +128,17 @@ if (wrangler) {
   if (!wrangler.previews || typeof wrangler.previews !== "object" || Array.isArray(wrangler.previews)) {
     fail("wrangler.jsonc must include a previews object for Cloudflare PR preview deployments");
   }
-  // Secrets and vars must never be declared in git-tracked config.
-  for (const key of ["vars", "secrets"]) {
-    if (key in wrangler) fail(`"${key}" must not be declared in wrangler.jsonc (values stay out of git)`);
+  // Secrets never live in git-tracked config. Plain vars may carry only
+  // manifest-declared config/public values (e.g. the Supabase URL and publishable key).
+  if ("secrets" in wrangler) fail('"secrets" must not be declared in wrangler.jsonc (values stay out of git)');
+  if ("vars" in wrangler) {
+    const vars = wrangler.vars;
+    if (!vars || typeof vars !== "object" || Array.isArray(vars)) fail('"vars" in wrangler.jsonc must be an object');
+    for (const name of Object.keys(vars ?? {})) {
+      const cls = manifestClasses.get(name);
+      if (cls === undefined) fail(`wrangler.jsonc vars.${name} is not declared in ${MANIFEST_PATH}`);
+      else if (cls === "secret") fail(`wrangler.jsonc vars.${name} is a secret: set it with \`wrangler secret put\`, never in git`);
+    }
   }
   if (!("main" in wrangler)) {
     unknowns.push("UNKNOWN main entry not declared: `wrangler deploy` is blocked until a build-output readback sets it");

@@ -1,21 +1,58 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+/** Browser supplies its Supabase access token only. Server independently
+ * validates the session and the owner-assigned merchant role on every action.
+ */
+const auth = z.object({ authAccessToken: z.string().min(1).max(8192) });
+const productGid = z.string().regex(/^gid:\/\/shopify\/Product\/[1-9][0-9]*$/);
+const variantGid = z.string().regex(/^gid:\/\/shopify\/ProductVariant\/[1-9][0-9]*$/);
+
+export const readMerchantDashboard = createServerFn({ method: "POST" })
+  .validator(auth)
+  .handler(async ({ data }) => {
+    const { readMerchantDashboard } = await import("./portal.server");
+    return readMerchantDashboard(data.authAccessToken);
+  });
+
+export const changeMerchantProductStatus = createServerFn({ method: "POST" })
+  .validator(auth.extend({
+    productId: productGid,
+    nextStatus: z.enum(["ACTIVE", "DRAFT", "ARCHIVED"]),
+    expectedCurrentStatus: z.enum(["ACTIVE", "DRAFT", "ARCHIVED"]),
+    confirmation: z.string().min(1).max(128),
+  }))
+  .handler(async ({ data }) => {
+    const { updateMerchantProductStatus } = await import("./portal.server");
+    return updateMerchantProductStatus(
+      data.authAccessToken, data.productId, data.nextStatus, data.confirmation, data.expectedCurrentStatus,
+    );
+  });
+
+export const changeMerchantVariantPrice = createServerFn({ method: "POST" })
+  .validator(auth.extend({
+    productId: productGid,
+    variantId: variantGid,
+    price: z.string().regex(/^(?:0|[1-9][0-9]{0,5})\.[0-9]{2}$/),
+    expectedCurrentPrice: z.string().regex(/^(?:0|[1-9][0-9]{0,5})\.[0-9]{2}$/),
+    confirmation: z.string().min(1).max(128),
+  }))
+  .handler(async ({ data }) => {
+    const { updateMerchantVariantPrice } = await import("./portal.server");
+    return updateMerchantVariantPrice(
+      data.authAccessToken, data.productId, data.variantId, data.price, data.confirmation, data.expectedCurrentPrice,
+    );
+  });
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import {
-  ORDER_GID,
-  PRODUCT_GID,
-  VARIANT_GID,
-  confirmationPhrase,
-  priceChangeMessage,
-  redactOrder,
-  requiresTypedConfirmation,
-  validatePrice,
-} from "./policy";
+import type { Database, Json } from "@/integrations/supabase/types";
+import { ORDER_GID, redactOrder } from "./policy";
 
 /* Every handler re-checks the merchant role server-side. The route guard is UX only. */
 
-type Ctx = { supabase: any; userId: string };
+type Ctx = { supabase: SupabaseClient<Database>; userId: string };
 
 async function assertMerchant({ supabase, userId }: Ctx) {
   const { data, error } = await supabase.rpc("has_role", { _user_id: userId, _role: "merchant" });
@@ -23,10 +60,17 @@ async function assertMerchant({ supabase, userId }: Ctx) {
 }
 
 async function audit(
-  { supabase, userId }: Ctx,
-  row: { action: string; target: string; before_state?: unknown; requested_state?: unknown; outcome: string; detail?: string },
+  ctx: Ctx,
+  row: { action: string; target: string; before_state?: Json; requested_state?: Json; outcome: string; detail?: string },
 ) {
-  const { error } = await supabase.from("merchant_audit_log").insert({ actor_id: userId, ...row });
+  // The browser's authenticated Supabase client has no audit INSERT permission.
+  // Recheck the role before a trusted server-only insert; never grant browser writes.
+  await assertMerchant(ctx);
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { error } = await supabaseAdmin.from("merchant_audit_log").insert({
+    actor_id: ctx.userId,
+    ...row,
+  });
   if (error) throw new Error("Audit log write failed; change not attempted.");
 }
 
@@ -43,7 +87,7 @@ function storeError(e: unknown) {
 export const getMerchantAccess = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data } = await (context.supabase as any).rpc("has_role", { _user_id: context.userId, _role: "merchant" });
+    const { data } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "merchant" });
     return { isMerchant: data === true };
   });
 
@@ -65,61 +109,6 @@ export const listMerchantProducts = createServerFn({ method: "POST" })
       };
     } catch (e) {
       return { products: [], error: storeError(e) };
-    }
-  });
-
-export const updateVariantPrice = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator(
-    z.object({
-      productId: z.string().regex(PRODUCT_GID),
-      variantId: z.string().regex(VARIANT_GID),
-      price: z.string(),
-      confirmation: z.string().max(80).optional(),
-    }).parse,
-  )
-  .handler(async ({ data, context }) => {
-    const ctx = context as Ctx;
-    await assertMerchant(ctx);
-    const price = validatePrice(data.price);
-    if (!price) return { ok: false as const, message: "Enter a price like 12.00 between 0.50 and 10000.00." };
-
-    const { adminGraphql } = await admin();
-    let before: { price: string; title: string; product: { title: string } };
-    try {
-      const read = await adminGraphql<{ productVariant: typeof before | null }>(
-        `query($id: ID!) { productVariant(id: $id) { price title product { title } } }`,
-        { id: data.variantId },
-      );
-      if (!read.productVariant) return { ok: false as const, message: "That product option no longer exists." };
-      before = read.productVariant;
-    } catch (e) {
-      return { ok: false as const, message: storeError(e) };
-    }
-
-    const target = data.variantId;
-    if (requiresTypedConfirmation(before.price, price) && data.confirmation !== confirmationPhrase("price", target, price)) {
-      await audit(ctx, { action: "price.update", target, before_state: { price: before.price }, requested_state: { price }, outcome: "denied", detail: "typed confirmation missing or mismatched" });
-      return { ok: false as const, message: "This is a large change. Type the confirmation phrase exactly to continue." };
-    }
-
-    await audit(ctx, { action: "price.update", target, before_state: { price: before.price }, requested_state: { price }, outcome: "attempted" });
-    try {
-      const res = await adminGraphql<{ productVariantsBulkUpdate: { productVariants: Array<{ id: string; price: string }> | null; userErrors: Array<{ message: string }> } }>(
-        `mutation($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
-          productVariantsBulkUpdate(productId: $productId, variants: $variants) { productVariants { id price } userErrors { message } }
-        }`,
-        { productId: data.productId, variants: [{ id: data.variantId, price }] },
-      );
-      const r = res.productVariantsBulkUpdate;
-      const after = r.productVariants?.[0]?.price;
-      if (r.userErrors.length || after !== price) throw new Error(r.userErrors[0]?.message ?? "Shopify did not confirm the new price.");
-      await audit(ctx, { action: "price.update", target, before_state: { price: before.price }, requested_state: { price }, outcome: "succeeded" });
-      const label = `${before.product.title} — ${before.title}`;
-      return { ok: true as const, before: before.price, after, message: priceChangeMessage(label, before.price, after) };
-    } catch (e) {
-      await audit(ctx, { action: "price.update", target, before_state: { price: before.price }, requested_state: { price }, outcome: "failed", detail: e instanceof Error ? e.message.slice(0, 200) : "unknown" });
-      return { ok: false as const, message: storeError(e) };
     }
   });
 
@@ -167,13 +156,13 @@ export const listAuditLog = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertMerchant(context as Ctx);
-    const { data, error } = await (context.supabase as any)
+    const { data, error } = await context.supabase
       .from("merchant_audit_log")
       .select("id, action, target, before_state, requested_state, outcome, detail, created_at")
       .order("created_at", { ascending: false })
       .limit(100);
     if (error) throw new Error("Could not read the activity log.");
-    return data as Array<{ id: string; action: string; target: string; before_state: any; requested_state: any; outcome: string; detail: string | null; created_at: string }>;
+    return data as Array<{ id: string; action: string; target: string; before_state: Json | null; requested_state: Json | null; outcome: string; detail: string | null; created_at: string }>;
   });
 
 export const createVendorInvite = createServerFn({ method: "POST" })
@@ -181,7 +170,7 @@ export const createVendorInvite = createServerFn({ method: "POST" })
   .inputValidator(z.object({ label: z.string().trim().min(2).max(120) }).parse)
   .handler(async ({ data, context }) => {
     await assertMerchant(context as Ctx);
-    const { data: code, error } = await (context.supabase as any).rpc("create_merchant_invite", { _label: data.label });
+    const { data: code, error } = await context.supabase.rpc("create_merchant_invite", { _label: data.label });
     if (error) throw new Error("Could not create the invite.");
     return { code: code as string };
   });
@@ -190,6 +179,6 @@ export const redeemVendorInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ code: z.string().trim().regex(/^[0-9a-f]{36}$/) }).parse)
   .handler(async ({ data, context }) => {
-    const { data: ok, error } = await (context.supabase as any).rpc("redeem_merchant_invite", { _code: data.code });
+    const { data: ok, error } = await context.supabase.rpc("redeem_merchant_invite", { _code: data.code });
     return { ok: !error && ok === true };
   });

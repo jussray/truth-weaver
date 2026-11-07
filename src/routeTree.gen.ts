@@ -24,6 +24,7 @@ import { Route as SourcesRouteImport } from './routes/sources'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedFulfillmentRouteImport } from './routes/_authenticated/fulfillment'
+import { Route as MerchantManageRouteImport } from './routes/merchant.manage'
 import { Route as AuthenticatedVendorInviteRouteImport } from './routes/_authenticated/vendor-invite'
 import { Route as MerchantIndexRouteImport } from './routes/merchant.index'
 import { Route as MerchantAuditLogRouteImport } from './routes/merchant.audit-log'
@@ -32,6 +33,7 @@ import { Route as MerchantProductsRouteImport } from './routes/merchant.products
 import { Route as ProductHandleRouteImport } from './routes/product.$handle'
 import { Route as AuthenticatedIssuesIssueIdRouteImport } from './routes/_authenticated/issues.$issueId'
 import { Route as AuthenticatedIssuesNewRouteImport } from './routes/_authenticated/issues.new'
+import { Route as ApiPublicShopifyOrdersPaidRouteImport } from './routes/api/public/shopify/orders-paid'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -108,6 +110,11 @@ const AuthenticatedFulfillmentRoute =
     path: '/fulfillment',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const MerchantManageRoute = MerchantManageRouteImport.update({
+  id: '/manage',
+  path: '/manage',
+  getParentRoute: () => MerchantRoute,
+} as any)
 const AuthenticatedVendorInviteRoute =
   AuthenticatedVendorInviteRouteImport.update({
     id: '/vendor-invite',
@@ -150,6 +157,12 @@ const AuthenticatedIssuesNewRoute = AuthenticatedIssuesNewRouteImport.update({
   path: '/issues/new',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicShopifyOrdersPaidRoute =
+  ApiPublicShopifyOrdersPaidRouteImport.update({
+    id: '/api/public/shopify/orders-paid',
+    path: '/api/public/shopify/orders-paid',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -166,6 +179,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof AuthenticatedAccountRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/fulfillment': typeof AuthenticatedFulfillmentRoute
+  '/merchant/manage': typeof MerchantManageRoute
   '/vendor-invite': typeof AuthenticatedVendorInviteRoute
   '/merchant/audit-log': typeof MerchantAuditLogRoute
   '/merchant/orders': typeof MerchantOrdersRoute
@@ -174,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/merchant/': typeof MerchantIndexRoute
   '/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/issues/new': typeof AuthenticatedIssuesNewRoute
+  '/api/public/shopify/orders-paid': typeof ApiPublicShopifyOrdersPaidRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -189,6 +204,7 @@ export interface FileRoutesByTo {
   '/account': typeof AuthenticatedAccountRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/fulfillment': typeof AuthenticatedFulfillmentRoute
+  '/merchant/manage': typeof MerchantManageRoute
   '/vendor-invite': typeof AuthenticatedVendorInviteRoute
   '/merchant/audit-log': typeof MerchantAuditLogRoute
   '/merchant/orders': typeof MerchantOrdersRoute
@@ -197,6 +213,7 @@ export interface FileRoutesByTo {
   '/merchant': typeof MerchantIndexRoute
   '/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/issues/new': typeof AuthenticatedIssuesNewRoute
+  '/api/public/shopify/orders-paid': typeof ApiPublicShopifyOrdersPaidRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -215,6 +232,7 @@ export interface FileRoutesById {
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/fulfillment': typeof AuthenticatedFulfillmentRoute
+  '/merchant/manage': typeof MerchantManageRoute
   '/_authenticated/vendor-invite': typeof AuthenticatedVendorInviteRoute
   '/merchant/audit-log': typeof MerchantAuditLogRoute
   '/merchant/orders': typeof MerchantOrdersRoute
@@ -223,6 +241,7 @@ export interface FileRoutesById {
   '/merchant/': typeof MerchantIndexRoute
   '/_authenticated/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/_authenticated/issues/new': typeof AuthenticatedIssuesNewRoute
+  '/api/public/shopify/orders-paid': typeof ApiPublicShopifyOrdersPaidRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -241,6 +260,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/dashboard'
     | '/fulfillment'
+    | '/merchant/manage'
     | '/vendor-invite'
     | '/merchant/audit-log'
     | '/merchant/orders'
@@ -249,6 +269,7 @@ export interface FileRouteTypes {
     | '/merchant/'
     | '/issues/$issueId'
     | '/issues/new'
+    | '/api/public/shopify/orders-paid'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -264,6 +285,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/dashboard'
     | '/fulfillment'
+    | '/merchant/manage'
     | '/vendor-invite'
     | '/merchant/audit-log'
     | '/merchant/orders'
@@ -272,6 +294,7 @@ export interface FileRouteTypes {
     | '/merchant'
     | '/issues/$issueId'
     | '/issues/new'
+    | '/api/public/shopify/orders-paid'
   id:
     | '__root__'
     | '/'
@@ -289,6 +312,7 @@ export interface FileRouteTypes {
     | '/_authenticated/account'
     | '/_authenticated/dashboard'
     | '/_authenticated/fulfillment'
+    | '/merchant/manage'
     | '/_authenticated/vendor-invite'
     | '/merchant/audit-log'
     | '/merchant/orders'
@@ -297,6 +321,7 @@ export interface FileRouteTypes {
     | '/merchant/'
     | '/_authenticated/issues/$issueId'
     | '/_authenticated/issues/new'
+    | '/api/public/shopify/orders-paid'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -313,6 +338,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   SourcesRoute: typeof SourcesRoute
   ProductHandleRoute: typeof ProductHandleRoute
+  ApiPublicShopifyOrdersPaidRoute: typeof ApiPublicShopifyOrdersPaidRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -422,6 +448,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFulfillmentRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/merchant/manage': {
+      id: '/merchant/manage'
+      path: '/manage'
+      fullPath: '/merchant/manage'
+      preLoaderRoute: typeof MerchantManageRouteImport
+      parentRoute: typeof MerchantRoute
+    }
     '/_authenticated/vendor-invite': {
       id: '/_authenticated/vendor-invite'
       path: '/vendor-invite'
@@ -478,6 +511,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIssuesNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/shopify/orders-paid': {
+      id: '/api/public/shopify/orders-paid'
+      path: '/api/public/shopify/orders-paid'
+      fullPath: '/api/public/shopify/orders-paid'
+      preLoaderRoute: typeof ApiPublicShopifyOrdersPaidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -503,6 +543,7 @@ const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 interface MerchantRouteChildren {
+  MerchantManageRoute: typeof MerchantManageRoute
   MerchantAuditLogRoute: typeof MerchantAuditLogRoute
   MerchantOrdersRoute: typeof MerchantOrdersRoute
   MerchantProductsRoute: typeof MerchantProductsRoute
@@ -510,6 +551,7 @@ interface MerchantRouteChildren {
 }
 
 const MerchantRouteChildren: MerchantRouteChildren = {
+  MerchantManageRoute: MerchantManageRoute,
   MerchantAuditLogRoute: MerchantAuditLogRoute,
   MerchantOrdersRoute: MerchantOrdersRoute,
   MerchantProductsRoute: MerchantProductsRoute,
@@ -534,6 +576,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   SourcesRoute: SourcesRoute,
   ProductHandleRoute: ProductHandleRoute,
+  ApiPublicShopifyOrdersPaidRoute: ApiPublicShopifyOrdersPaidRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

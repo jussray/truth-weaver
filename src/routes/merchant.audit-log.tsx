@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
+import type { Json } from "@/integrations/supabase/types";
 import { authed } from "@/lib/merchant/authed-call";
 import { createVendorInvite, listAuditLog } from "@/lib/merchant/portal.functions";
 
 export const Route = createFileRoute("/merchant/audit-log")({
-  head: () => ({ meta: [{ title: "Activity Log | Truth Weaver Merchant" }, { name: "description", content: "Every merchant price change, customer-detail view and invite, in order." }] }),
+  head: () => ({ meta: [{ title: "Activity Log | Truth Weaver Merchant" }, { name: "description", content: "Every merchant price change, customer-detail view and invite, in order." }, { property: "og:title", content: "Activity Log | Truth Weaver Merchant" }, { property: "og:description", content: "Recorded merchant changes, customer-detail views and invites." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
   component: AuditPage,
 });
 
@@ -49,8 +50,8 @@ function AuditPage() {
             <span className="font-semibold text-gold">{r.action}</span> · {r.outcome} · <span className="text-parchment/60">{new Date(r.created_at).toLocaleString()}</span>
             <div className="text-parchment/70">
               {r.target.split("/").pop()}
-              {r.before_state?.price && ` · $${r.before_state.price}`}
-              {r.requested_state?.price && ` → $${r.requested_state.price}`}
+              {priceOf(r.before_state) && ` · $${priceOf(r.before_state)}`}
+              {priceOf(r.requested_state) && ` → $${priceOf(r.requested_state)}`}
               {r.detail && ` · ${r.detail}`}
             </div>
           </li>
@@ -58,4 +59,11 @@ function AuditPage() {
       </ol>
     </section>
   );
+}
+
+/** Audit states are untyped JSON; only a string `price` field is displayed. */
+function priceOf(state: Json | null): string | null {
+  if (!state || typeof state !== "object" || Array.isArray(state)) return null;
+  const price = state["price"];
+  return typeof price === "string" && price ? price : null;
 }
