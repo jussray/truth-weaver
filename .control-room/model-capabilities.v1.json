@@ -2,7 +2,7 @@
   "contract": "juss/council-model-capability-profile@v1",
   "repository": "jussray/truth-weaver",
   "defaultBranch": "main",
-  "preparedAgainstBaseSha": "b73ec6cf27c815545cc56fcfc6177967cd0d4b8c",
+  "preparedAgainstBaseSha": "2be1b8c704cf40279bd7e00c8f6dbb8d0c59a87b",
   "authorityHost": "jussray/founder-control-room",
   "providerExecutionHost": "jussray/founder-control-room",
   "projectRole": "jurisdictional_legal_navigation_engine",
@@ -26,6 +26,12 @@
       "model": "@cf/cloudflare/clef-omni",
       "role": "multimodal_evidence_adjudication",
       "notes": "Typed multimodal decisions/probabilities; never self-authorizing.",
+      "status": "trial"
+    },
+    {
+      "model": "anthropic/claude",
+      "role": "long_context_legal_research_and_citation_review",
+      "notes": "Reads primary sources and checks citations over long documents; output is INFERRED evidence input, never a legal conclusion without resolved jurisdiction and effective date. Exact Claude model is chosen per invocation by the provider execution host; no version is pinned here.",
       "status": "trial"
     }
   ],

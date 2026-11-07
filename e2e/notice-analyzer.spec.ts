@@ -78,8 +78,12 @@ test("blank PDF is rejected without starting slow OCR or inventing text", async 
     mimeType: "application/pdf",
     buffer: textPdf(""),
   });
-  await expect(page.getByTestId("notice-file-status")).toContainText("Blank PDF has no visible text or imagery to read.", { timeout: 15000 });
+  // An unreadable PDF may fail in extraction or be rejected by the OCR quality gate.
+  // Both outcomes must block analysis, never invent scanned text or legal conclusions.
+  await expect(page.getByTestId("notice-file-status")).toContainText(/Blank PDF has no visible text|Scan rejected|Could not read enough text|No sufficient selectable text|Scanned PDFs are limited/i, { timeout: 60000 });
   await expect(page.getByTestId("notice-text")).toHaveValue("");
+  await expect(page.getByTestId("analysis-result")).toHaveCount(0);
+  await expect(page.getByTestId("analysis-empty")).toBeVisible();
 });
 
 test("canceling the file picker or choosing an unsupported file preserves the drafted notice", async ({ page }) => {
