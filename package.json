@@ -1,7 +1,9 @@
 {
   "name": "tanstack_start_ts",
   "private": true,
-  "sideEffects": ["**/*.css"],
+  "sideEffects": [
+    "**/*.css"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite dev",
@@ -9,12 +11,16 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run src/domain/law.test.ts src/lib/connectors/connectors.test.ts src/lib/connectors/custody.test.ts src/lib/notice-analyzer.test.ts src/lib/continuity.test.ts src/lib/legal-navigator.test.ts src/lib/shopify.test.ts src/lib/notice-offers.test.ts src/lib/notice-report.test.ts src/lib/commerce/shopify-order-proof.test.ts src/lib/issue-research.test.ts src/lib/commerce/snapshot-entitlement.test.ts src/lib/commerce/shopify-customer-link.test.ts src/lib/commerce/snapshot-reconciliation.test.ts src/lib/counsel-document.test.ts src/lib/recommendations.test.ts src/lib/ocr-quality.test.ts src/lib/merchant/policy.test.ts && node --test test/muse-provider.test.mjs",
+    "test": "vitest run src/lib/commerce/shopify-admin-token.test.ts src/lib/commerce/shopify-token-callers.test.ts src/lib/seo.test.ts src/domain/law.test.ts src/lib/connectors/connectors.test.ts src/lib/connectors/custody.test.ts src/lib/notice-analyzer.test.ts src/lib/continuity.test.ts src/lib/legal-navigator.test.ts src/lib/shopify.test.ts src/lib/notice-offers.test.ts src/lib/notice-report.test.ts src/lib/commerce/shopify-order-proof.test.ts src/lib/issue-research.test.ts src/lib/commerce/snapshot-entitlement.test.ts src/lib/commerce/snapshot-report-access.test.ts src/lib/commerce/shopify-customer-link.test.ts src/lib/commerce/snapshot-reconciliation.test.ts src/lib/counsel-document.test.ts src/lib/recommendations.test.ts src/lib/ocr-quality.test.ts src/lib/merchant/policy.test.ts src/lib/merchant/portal-contract.test.ts src/lib/commerce/shopify-webhook.test.ts && node --test test/muse-provider.test.mjs",
     "test:e2e": "playwright test",
+    "test:shopify-token": "vitest run src/lib/commerce/shopify-admin-token.test.ts src/lib/commerce/shopify-token-callers.test.ts",
     "verify:founder-intelligence": "node scripts/verify-founder-intelligence.mjs",
+    "verify:cloudflare-runtime": "node scripts/verify-cloudflare-runtime.mjs",
+    "readback:cloudflare-build": "node scripts/readback-cloudflare-build.mjs",
     "lint": "eslint .",
     "format:check": "prettier --check .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "verify:design-system": "node scripts/verify-design-system.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"
@@ -64,6 +70,7 @@
     "input-otp": "^1.4.2",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.575.0",
+    "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^5.4.149",
     "react": "^19.2.0",
     "react-day-picker": "^9.14.0",

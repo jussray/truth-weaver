@@ -8,6 +8,13 @@
       "when": 1792258359081,
       "tag": "0000_merchant_vendor_invites",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793768740838,
+      "tag": "0001_tw_paid_order_reports",
+      "breakpoints": true
     }
   ]
 }
