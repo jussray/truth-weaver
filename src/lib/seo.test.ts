@@ -4,9 +4,9 @@ import { canonicalUrl, INDEXABLE_PATHS, pageHead, safeJsonLd } from "./seo";
 
 describe("seo helpers", () => {
   it("builds absolute canonical URLs without query or trailing slash", () => {
-    expect(canonicalUrl("/")).toBe("https://truthweaver.jussco.company/");
-    expect(canonicalUrl("/shop?category=guides")).toBe("https://truthweaver.jussco.company/shop");
-    expect(canonicalUrl("/sources/")).toBe("https://truthweaver.jussco.company/sources");
+    expect(canonicalUrl("/")).toBe("https://www.truthweaver.jussco.company/");
+    expect(canonicalUrl("/shop?category=guides")).toBe("https://www.truthweaver.jussco.company/shop");
+    expect(canonicalUrl("/sources/")).toBe("https://www.truthweaver.jussco.company/sources");
     expect(() => canonicalUrl("//evil.com")).toThrow();
   });
 
@@ -37,7 +37,7 @@ describe("robots and sitemap", () => {
     expect(locs.some((l) => l!.includes("?"))).toBe(false);
   });
   it("robots declares the absolute sitemap and blocks private areas", () => {
-    expect(robots).toContain("Sitemap: https://truthweaver.jussco.company/sitemap.xml");
+    expect(robots).toContain("Sitemap: https://www.truthweaver.jussco.company/sitemap.xml");
     expect(robots).toMatch(/Disallow: \/merchant/);
   });
 });
