@@ -17,6 +17,17 @@ test.describe("Truth Weaver live domain (read-only)", () => {
     await expect(page.getByTestId("triage-input")).toBeVisible();
   });
 
+  test("answers a synthetic triage question through the live server function", async ({ page }) => {
+    await page.goto(new URL("/", liveUrl).href, { waitUntil: "networkidle" });
+    expect(permittedHosts.has(new URL(page.url()).hostname)).toBe(true);
+    // Synthetic, non-private input. Fails closed: the error banner means the AI path is not configured.
+    await page.getByTestId("triage-input").fill("Example only: a landlord kept a security deposit after move-out");
+    await page.getByTestId("triage-submit").click();
+    await expect(page.getByTestId("triage-result").or(page.getByTestId("triage-error"))).toBeVisible({ timeout: 45_000 });
+    await expect(page.getByTestId("triage-error")).toHaveCount(0);
+    await expect(page.getByTestId("triage-result")).toBeVisible();
+  });
+
   test("serves the real Shop page and reports the catalog truthfully", async ({ page }) => {
     await page.goto(new URL("/shop", liveUrl).href, { waitUntil: "domcontentloaded" });
     expect(permittedHosts.has(new URL(page.url()).hostname)).toBe(true);
