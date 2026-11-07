@@ -2,6 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { gateOrdersPaidWebhook } from "@/lib/commerce/shopify-webhook";
 import { ungrantedStatus } from "@/lib/commerce/shopify-webhook-status";
 
+/** Keeps the Admin read inside Shopify's 5s delivery window, leaving room for the binding lookup and insert. */
+const WEBHOOK_ADMIN_TIMEOUT_MS = 3_000;
+const MAX_BODY_BYTES = 1_000_000;
+
 /**
  * Shopify `orders/paid` → Counsel entitlement. Fail-closed:
  * - no SHOPIFY_WEBHOOK_SECRET → 503, nothing recorded
@@ -15,8 +19,10 @@ export const Route = createFileRoute("/api/public/shopify/orders-paid")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const declared = Number(request.headers.get("content-length") ?? "0");
+        if (declared > MAX_BODY_BYTES) return new Response("Too large", { status: 413 });
         const rawBody = await request.text();
-        if (rawBody.length > 1_000_000) return new Response("Too large", { status: 413 });
+        if (rawBody.length > MAX_BODY_BYTES) return new Response("Too large", { status: 413 });
         const gate = await gateOrdersPaidWebhook({
           rawBody,
           secret: process.env["SHOPIFY_WEBHOOK_SECRET"],
@@ -41,7 +47,7 @@ export const Route = createFileRoute("/api/public/shopify/orders-paid")({
             .select("auth_user_id, shopify_customer_gid").eq("shopify_customer_gid", gate.customerGid).maybeSingle();
           if (error) return Response.json({ recorded: false, reason: "unavailable" }, { status: 503 });
           if (!binding) return Response.json({ recorded: false, reason: "customer_not_bound" }, { status: 503 });
-          const proof = await verifyFreshTruthWeaverPurchase(gate.orderGid, "snapshot", binding.shopify_customer_gid, { adminToken });
+          const proof = await verifyFreshTruthWeaverPurchase(gate.orderGid, "snapshot", binding.shopify_customer_gid, { adminToken, timeoutMs: WEBHOOK_ADMIN_TIMEOUT_MS });
           if (!proof.granted)
             return Response.json({ recorded: false, reason: proof.reason }, { status: ungrantedStatus(proof.reason) });
           const { data: existing } = await supabaseAdmin.from("tw_snapshot_entitlements")
