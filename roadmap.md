@@ -1,5 +1,39 @@
 # Roadmap
 
+## Paid reports + catalog launch (2026-11-04, founder approved)
+- [x] Fix the 8 merchant `any` typing errors (full lint: 0 errors).
+- [ ] Report catalog: Guide / Templates / Course / Bundle offers, each delivering its own paid PDF built from the buyer's saved analysis.
+- [ ] Server-side PDF renderer + per-kind report builders with tests.
+- [ ] Database: saved analyses (opt-in, server-written), purchase claims, one report per paid order (service-role only).
+- [ ] Notice Analyzer: signed-in opt-in "save to my account" path.
+- [ ] Cart: report products require sign-in + a saved analysis; checkout carries a hidden server-issued claim.
+- [ ] Paid-order processing: webhook + "check for my purchase" reconcile → fresh Admin proof → generate + store PDF.
+- [ ] /fulfillment: paid reports per order, analysis view, bounded private download.
+- [ ] Shop + product pages: new catalog, delivery explanation.
+- [ ] Create the 4 Shopify products (needs Shopify re-login + approval cards).
+- [ ] Merchant store setup: order-notification registration + publish/draft control (works once the custom app is installed).
+- [ ] Verify GitHub link end to end (repo main == project head). Connecting/switching sync is a Lovable settings step only the founder can do.
+- [ ] Install the user-owned custom Shopify app. Blocked: founder action in Shopify Dev Dashboard (token probe 2026-11-04: `app_not_installed`).
+- [ ] Publish Snapshot + real paid checkout end to end. Blocked: app install, then founder pays with a real card.
+
+
+## Focused Shopify token repair (2026-11-01)
+- [x] Replace static-only Admin acquisition with pinned-shop client credentials, bounded per-instance cache, and denial tests; preserve merchant-only legacy fallback.
+- [x] 112 focused / 227 total Vitest + 2 Node tests pass; touched lint and automatic preview compilation pass. Desktop/mobile fulfillment and merchant sign-in denial and real 503 secret_missing fallback pass without page errors/overflow.
+- [ ] Canonical sync and exact-head production repair proof. GitHub main and successful Vercel deployment still report predecessor 37591bfd; no manual merge/deploy. Full lint blocked by 8 pre-existing merchant any errors; no unrelated typing changes.
+- [ ] Production custom-app payment proof. Blocked: user-owned app creation/installation in the same Shopify organization, secure intended-app credentials and separate webhook secret; no provider changes authorized here.
+
+## Focused private Snapshot retrieval (2026-10-31)
+- [x] Replace signed URLs with bounded private binary transfer (524288 bytes), token-only newest-owned-order selection and an explicit paid-report check control. 193 Vitest + 2 Node tests and touched lint pass; preview typecheck/build OK; desktop/mobile sign-in gates pass. Authenticated paid retrieval remains unproved without an existing account and real report.
+- [x] Add authenticated, owner-bound, fresh-payment-gated private PDF retrieval and honest fulfillment states; focused tests and desktop/mobile signed-out browser checks pass. Authenticated browser readback blocked: requesting user has no matching test account; no paid order/report fixture created.
+- [ ] Production paid-delivery proof. Blocked: real paid order/report, confirmed production credentials and webhook registration; no external mutations authorized here.
+
+## Approved public UX cleanup (2026-10-31)
+- [x] Simplify home, legal research and notice wording; preserve source/legal/privacy guards and Shop access.
+- [x] Explain source checks on existing Source Center; gate operator diagnostics with existing merchant verification. Server endpoint authorization is a separate unresolved security boundary, not proved by hiding UI.
+- [ ] Complete clean desktop/mobile browser verification. Desktop actions pass; mobile actions pass but hydration warnings remain. Focused tests/lint pass; global lint has pre-existing merchant typing errors and installed JS Playwright cannot locate its matching Chromium.
+- [x] Audit canonical repository/runtime and project-scoped database read-only; no publication or infrastructure changes.
+
 ## Launch execution (2026-10-27)
 - [x] Reauthenticate Shopify chat tools and read existing catalog.
 - [x] Run current SEO foundations, database linter, slow-query and security checks.

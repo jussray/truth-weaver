@@ -22,9 +22,13 @@ test("legal navigator fails closed when the jurisdiction is too broad", async ({
 
   const result = page.getByTestId("legal-research-result");
   await expect(result).toBeVisible({ timeout: 15_000 });
-  await expect(result).toContainText("JURISDICTION UNKNOWN");
+  await expect(result.locator('[data-truth-state="JURISDICTION UNKNOWN"]')).toHaveText("Location needs checking");
   await expect(result).toContainText(/too broad|country/i);
-  await expect(result).toContainText("EVIDENCE_ONLY");
+  const details = page.getByTestId("research-check-details");
+  await expect(details).not.toHaveAttribute("open", "");
+  await details.getByText("How this was checked", { exact: true }).click();
+  await expect(details).toContainText("EVIDENCE_ONLY");
+  await expect(details).toContainText("JURISDICTION UNKNOWN");
 
   expect(pageErrors).toEqual([]);
   expect(consoleErrors).toEqual([]);

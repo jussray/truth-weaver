@@ -38,10 +38,13 @@ jobs:
       - name: Install exact lockfile dependencies
         run: bun install --frozen-lockfile
       - run: npm run verify:founder-intelligence
+      - run: npm run verify:cloudflare-runtime
+      - run: npm run verify:design-system
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      - run: npm run readback:cloudflare-build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
         env:

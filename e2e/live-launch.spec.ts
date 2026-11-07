@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 const liveUrl = process.env.TRUTH_WEAVER_LIVE_URL;
 const permittedHosts = new Set([
+  "www.truthweaver.jussco.company",
   "truthweaver.jussco.company",
   "fcr-truth-weaver.lovable.app",
 ]);

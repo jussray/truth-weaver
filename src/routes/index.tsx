@@ -1,3 +1,5 @@
+import { Faq, HOME_FAQ } from "@/components/storefront/faq";
+import { pageHead, WEBSITE_LD } from "@/lib/seo";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
@@ -14,18 +16,8 @@ import { IssueTriageBanner } from "@/components/storefront/issue-triage";
 
 export const Route = createFileRoute("/")({
   component: TruthWeaverModule,
-  head: () => ({
-    meta: [
-      { title: "Truth Weaver Counsel | Understand the Law. Change What’s Possible." },
-      {
-        name: "description",
-        content:
-          "Source-aware legal knowledge, guides, templates and tools for individuals, families, creators and businesses. Governing law is the authority.",
-      },
-      { property: "og:title", content: "Truth Weaver Counsel — Understand the Law" },
-      { property: "og:description", content: "Source-aware legal knowledge and practical legal tools for real people, across every jurisdiction layer." },
-    ],
-  }),
+  head: () =>
+    pageHead({ path: '/', title: 'Free Legal Research by Location | Truth Weaver Counsel', description: 'Describe your legal situation and where it happened. Truth Weaver looks for official law sources, explains them in plain English, and shows what still needs checking. Not legal advice.', jsonLd: [...WEBSITE_LD, { "@type": "SoftwareApplication", name: "Truth Weaver Counsel", applicationCategory: "ReferenceApplication", operatingSystem: "Web", isAccessibleForFree: true, url: "https://truthweaver.jussco.company/", description: "Free plain-English legal research by location and a legal notice reader. Not a law firm and not legal advice.", publisher: { "@id": "https://www.jussco.company/#organization" } }] }),
 });
 
 const LEGAL_AREAS = [
@@ -447,13 +439,13 @@ function TruthWeaverModule() {
                 <span className="gold-foil">Change What’s Possible.</span>
               </h1>
               <p className="mt-6 max-w-xl text-base leading-7 text-parchment/85 sm:text-lg">
-                Source-aware legal navigation and practical tools for real situations, across supported jurisdictions with unresolved coverage shown explicitly.
+                Understand your situation, find relevant legal sources, and see what still needs checking. Start with what happened and where. Coverage is limited; we won’t guess missing law.
               </p>
               <ul className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-3">
                 {[
-                  [BookOpen, "Source-bound", "Legal Research"],
-                  [ShieldCheck, "Practical", "Tools & Templates"],
-                  [Globe2, "Jurisdiction-aware", "Research"],
+                  [BookOpen, "Read the", "Cited Sources"],
+                  [ShieldCheck, "See What", "Needs Checking"],
+                  [Globe2, "Research for", "Your Location"],
                 ].map(([Icon, a1, a2]) => {
                   const I = Icon as typeof BookOpen;
                   return (
@@ -465,11 +457,11 @@ function TruthWeaverModule() {
                 })}
               </ul>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <a href="/shop" className="foil-surface group inline-flex items-center justify-center gap-3 rounded-full px-8 py-3.5 text-base font-semibold text-ink shadow-[0_14px_40px_-10px_var(--gold)] transition hover:shadow-[0_18px_60px_-8px_var(--gold)]">
-                  Shop Legal Tools <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" aria-hidden />
+                <a href="#legal-research" className="foil-surface group inline-flex items-center justify-center gap-3 rounded-full px-8 py-3.5 text-base font-semibold text-ink shadow-[0_14px_40px_-10px_var(--gold)] transition hover:shadow-[0_18px_60px_-8px_var(--gold)]">
+                  Start Free Legal Research <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" aria-hidden />
                 </a>
-                <a href="#legal-areas" className="inline-flex items-center justify-center rounded-full border border-gold/70 bg-ink/40 px-8 py-3.5 text-base font-semibold text-parchment backdrop-blur transition hover:bg-gold/10 hover:shadow-[0_0_30px_-8px_var(--gold)]">
-                  Explore by Legal Area
+                <a href="/shop" className="inline-flex items-center justify-center rounded-full border border-gold/70 bg-ink/40 px-8 py-3.5 text-base font-semibold text-parchment backdrop-blur transition hover:bg-gold/10 hover:shadow-[0_0_30px_-8px_var(--gold)]">
+                  Shop Legal Tools
                 </a>
               </div>
               <IssueTriageBanner />
@@ -519,8 +511,8 @@ function TruthWeaverModule() {
           <div className="mx-auto flex max-w-[96rem] flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="grid gap-5 sm:grid-cols-3 lg:divide-x lg:divide-gold/25">
               {[
-                [CheckCircle2, "Source-aware Resources", "Authority and verification status stay visible"],
-                [Rocket, "Instant Digital Access", "Delivered straight to you"],
+                [CheckCircle2, "Sources You Can Read", "See what supports a finding and what is uncertain"],
+                [Rocket, "Research Before You Buy", "Paid offers remain on hold while delivery is checked"],
                 [Users, "Tools for Real People", "Individuals. Families. Creators. Businesses."],
               ].map(([Icon, t, d], i) => {
                 const I = Icon as typeof Users;
@@ -533,22 +525,24 @@ function TruthWeaverModule() {
               })}
             </div>
             <div className="flex flex-col items-start gap-2 lg:items-end">
-              <h2 className="sr-only">Start Building a Fairer Tomorrow</h2>
-              <a href="/shop" className="foil-surface group inline-flex items-center gap-3 rounded-full px-7 py-3.5 text-sm font-semibold text-ink shadow-[0_12px_36px_-10px_var(--gold)]">
-                Start Building a Fairer Tomorrow <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" aria-hidden />
+              <h2 className="sr-only">Research your situation</h2>
+              <a href="#legal-research" className="foil-surface group inline-flex items-center gap-3 rounded-full px-7 py-3.5 text-sm font-semibold text-ink shadow-[0_12px_36px_-10px_var(--gold)]">
+                Research Your Situation <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" aria-hidden />
               </a>
             </div>
           </div>
           <p className="mx-auto mt-5 max-w-[96rem] text-xs leading-5 text-parchment/50">
-            Sources are labelled by authority: primary law, secondary commentary, or discovery. AI and web results stay marked generated or unverified until backed by official text.{" "}
-            <a href="/connectors" className="text-gold underline-offset-4 hover:underline">Source Center</a>
+            A summary is not the law. Check the cited sources and confirm important dates with a qualified lawyer.{" "}
+            <a href="/connectors#how-we-check-sources" className="text-gold underline-offset-4 hover:underline">How we check sources</a>
           </p>
         </section>
 
         <LegalNavigator />
 
+        <Faq id="questions" title="Common questions" items={HOME_FAQ} />
+
         <section className="mx-auto max-w-[96rem] px-5 py-10 text-xs leading-5 text-parchment/55 sm:px-6">
-          Historical and secondary legal materials are surfaced only when their provenance, edition/version, and authority role can be shown. Static demo passages are not used as governing law.
+          Books can help explain the law, but do not establish which law applies to you. Older material may no longer apply. Check the edition, relevant date, and official sources.
         </section>
       </SiteChrome>
     </div>

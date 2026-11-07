@@ -1,6 +1,7 @@
+import { pageHead } from "@/lib/seo";
 import { Link, Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ClipboardList, Lock, Package, ScrollText, ShieldCheck } from "lucide-react";
+import { ClipboardList, Lock, Package, ScrollText, Settings2, ShieldCheck } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { authed } from "@/lib/merchant/authed-call";
@@ -13,18 +14,14 @@ export const Route = createFileRoute("/merchant")({
     if (!data.user) throw redirect({ to: "/login", search: { redirect: location.pathname } });
     return { email: data.user.email ?? "" };
   },
-  head: () => ({
-    meta: [
-      { title: "Merchant Portal | Truth Weaver" },
-      { name: "description", content: "Merchant-only store management for Truth Weaver: prices, orders and the activity log." },
-      { name: "robots", content: "noindex" },
-    ],
-  }),
+  head: () =>
+    pageHead({ path: '/merchant', title: 'Merchant Portal | Truth Weaver', description: 'Private Truth Weaver account page.', noindex: true }),
   component: MerchantLayout,
 });
 
 const NAV = [
   { to: "/merchant/products", label: "Products", icon: Package },
+  { to: "/merchant/manage", label: "Manage", icon: Settings2 },
   { to: "/merchant/orders", label: "Orders", icon: ClipboardList },
   { to: "/merchant/audit-log", label: "Activity log", icon: ScrollText },
 ] as const;

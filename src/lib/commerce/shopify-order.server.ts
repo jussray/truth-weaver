@@ -1,4 +1,5 @@
 import { type NoticeOffer } from "../notice-offers";
+import { getTruthWeaverShopifyAdminToken } from "./shopify-admin-token.server";
 import {
   TRUTH_WEAVER_SHOPIFY_DOMAIN,
   evaluatePaidNoticeOrder,
@@ -11,7 +12,7 @@ import {
  * Never pass an Admin token to the client or persist order PII in a report.
  *
  * Required production prerequisites:
- * - A scoped SHOPIFY_ADMIN_ACCESS_TOKEN for this exact Truth Weaver shop
+ * - Scoped Admin credentials for this exact Truth Weaver shop
  * - A server-verified Shopify customer ID bound to a real Truth Weaver user
  * - Secure per-user persistence, revocation, and report-delivery handling
  * Until those are proven, the products stay DRAFT and downloads stay disabled.
@@ -57,7 +58,7 @@ export async function verifyFreshTruthWeaverPurchase(
   if (!/^gid:\/\/shopify\/Order\/[1-9][0-9]*$/.test(orderId)) return denied;
   if (!trustedShopifyCustomerId) return { granted: false, reason: "customer_not_bound" };
 
-  const token = dependencies.adminToken ?? process.env["SHOPIFY_ADMIN_ACCESS_TOKEN"];
+  const token = dependencies.adminToken ?? await getTruthWeaverShopifyAdminToken();
   if (!token) return denied;
 
   try {
