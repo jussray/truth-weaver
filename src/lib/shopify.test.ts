@@ -79,4 +79,29 @@ describe("Truth Weaver launch-hold purchase boundary", () => {
       globalThis.fetch = originalFetch;
     }
   });
+
+  it("rejects restored carts whose non-Notice product gained launch-hold after it was added", async () => {
+    const originalFetch = globalThis.fetch;
+    const request = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      data: { cart: {
+        id: "cart-2", totalQuantity: 1,
+        checkoutUrl: "https://fcr-truth-weaver-esimv-203acj81.myshopify.com/checkouts/cn/test",
+        lines: { edges: [{ node: {
+          id: "line-1", quantity: 1,
+          merchandise: {
+            id: "gid://shopify/ProductVariant/999",
+            price: { amount: "5.00", currencyCode: "USD" },
+            product: { tags: ["Launch-Hold"] },
+          },
+        } }] },
+      } },
+    }), { status: 200 }));
+    globalThis.fetch = request as typeof fetch;
+    try {
+      await expect(fetchLiveCart("cart-2")).rejects.toThrow("launch-held");
+      expect(String(request.mock.calls[0]?.[1]?.body)).toContain("product { tags }");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
 });

@@ -104,12 +104,18 @@ function isCartNotFoundError(errs: UserError[]) {
   return errs.some((e) => /cart not found|does not exist/i.test(e.message));
 }
 
-const CART_FULL_QUERY = `query cart($id: ID!) { cart(id: $id) { id totalQuantity checkoutUrl lines(first: 100) { edges { node { id quantity merchandise { ... on ProductVariant { id price { amount currencyCode } } } } } } } }`;
+const CART_FULL_QUERY = `query cart($id: ID!) { cart(id: $id) { id totalQuantity checkoutUrl lines(first: 100) { edges { node { id quantity merchandise { ... on ProductVariant { id price { amount currencyCode } product { tags } } } } } } } }`;
+
+type LiveCartNode = {
+  id: string;
+  quantity: number;
+  merchandise: { id: string; price: { amount: string; currencyCode: string }; product?: { tags?: string[] } };
+};
 
 export type LiveCart = {
   checkoutUrl: string;
   totalQuantity: number;
-  lines: { lineId: string; variantId: string; quantity: number; price: { amount: string; currencyCode: string } }[];
+  lines: { lineId: string; variantId: string; quantity: number; price: { amount: string; currencyCode: string }; tags: string[] }[];
 } | null;
 
 // null = cart gone/empty. Throws on API failure.
@@ -117,9 +123,9 @@ export async function fetchLiveCart(cartId: string): Promise<LiveCart> {
   const data = await storefrontApiRequest(CART_FULL_QUERY, { id: cartId });
   const cart = data?.data?.cart;
   if (!cart || cart.totalQuantity === 0) return null;
-  // Restored Shopify carts may predate the launch hold: never return checkout.
-  if (cart.lines?.edges?.some((edge: { node: { merchandise: { id: string } } }) =>
-    !isStorefrontVariantSellable(edge.node.merchandise.id))) {
+  // Restored Shopify carts may predate the launch hold: check live product tags, never persisted ones.
+  if (cart.lines?.edges?.some((edge: { node: LiveCartNode }) =>
+    !isStorefrontVariantSellable(edge.node.merchandise.id, edge.node.merchandise.product?.tags ?? []))) {
     // Do not erase a saved local cart merely because a line is held.
     throw new Error("Shopify cart includes launch-held merchandise.");
   }
@@ -128,11 +134,12 @@ export async function fetchLiveCart(cartId: string): Promise<LiveCart> {
   return {
     checkoutUrl,
     totalQuantity: cart.totalQuantity,
-    lines: cart.lines.edges.map((e: { node: { id: string; quantity: number; merchandise: { id: string; price: { amount: string; currencyCode: string } } } }) => ({
+    lines: cart.lines.edges.map((e: { node: LiveCartNode }) => ({
       lineId: e.node.id,
       variantId: e.node.merchandise.id,
       quantity: e.node.quantity,
       price: e.node.merchandise.price,
+      tags: e.node.merchandise.product?.tags ?? [],
     })),
   };
 }

@@ -139,7 +139,7 @@ export const useCartStore = create<CartStore>()(
             clearCart();
             return null;
           }
-          if (live.lines.some((line) => !isStorefrontVariantSellable(line.variantId))) return null;
+          if (live.lines.some((line) => !isStorefrontVariantSellable(line.variantId, line.tags))) return null;
           const byVariant = new Map(live.lines.map((l) => [l.variantId, l]));
           set({
             checkoutUrl: live.checkoutUrl,
