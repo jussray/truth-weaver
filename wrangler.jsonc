@@ -1,0 +1,16 @@
+{
+  "name": "truth-weaver",
+  "compatibility_date": "2026-10-25",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "nodejs_compat_populate_process_env"
+  ],
+  "observability": {
+    "enabled": true
+  },
+  "previews": {},
+  "vars": {
+    "SUPABASE_URL": "https://hlituxtfgpcivwwvwrjf.supabase.co",
+    "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_rW13mSccd_G0R5xzbSo9bw_lH86FClM"
+  }
+}
