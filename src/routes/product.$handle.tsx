@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { RelatedProducts } from "@/components/storefront/related-products";
 import { SiteChrome } from "@/components/storefront/site-chrome";
 import { fetchProductByHandle, formatPrice } from "@/lib/shopify";
+import { isStorefrontVariantSellable } from "@/lib/commerce/storefront-launch-guard";
 import { useCartStore } from "@/stores/cart-store";
 
 export const Route = createFileRoute("/product/$handle")({
@@ -24,6 +25,8 @@ function ProductPage() {
 
   const p = q.data?.node;
   const variant = p?.variants.edges[variantIdx]?.node;
+  const held = !!variant && !isStorefrontVariantSellable(variant.id, p?.tags);
+  const purchasable = !!variant?.availableForSale && !held;
 
   return (
     <SiteChrome>
@@ -47,16 +50,16 @@ function ProductPage() {
               )}
               <p className="mt-5 whitespace-pre-line leading-7 text-parchment/75">{p.description}</p>
               <button
-                disabled={isLoading || !variant?.availableForSale}
+                disabled={isLoading || !purchasable}
                 onClick={async () => {
-                  if (!variant || !q.data) return;
+                  if (!variant || !q.data || !purchasable) return;
                   const ok = await addItem({ product: q.data, variantId: variant.id, variantTitle: variant.title, price: variant.price, quantity: 1, selectedOptions: variant.selectedOptions });
                   if (ok) toast.success(`${p.title} added to cart`, { position: "top-center" });
                   else toast.error(`Couldn't add ${p.title}. Please try again.`, { position: "top-center" });
                 }}
                 className="mt-7 rounded-full bg-gold px-8 py-3 font-bold text-ink disabled:opacity-60"
               >
-                {variant?.availableForSale ? "Add to cart" : "Sold out"}
+                {held ? "In development · Not for sale" : purchasable ? "Add to cart" : "Sold out"}
               </button>
               <p className="mt-6 text-xs leading-5 text-parchment/50">Educational tool, not legal advice. Governing law is the authority.</p>
             </div>

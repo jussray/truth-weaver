@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { formatPrice } from "@/lib/shopify";
+import { isStorefrontVariantSellable } from "@/lib/commerce/storefront-launch-guard";
 import { useCartStore } from "@/stores/cart-store";
 
 export function CartDrawer({ compact = false }: { compact?: boolean }) {
@@ -12,23 +13,30 @@ export function CartDrawer({ compact = false }: { compact?: boolean }) {
   const totalItems = items.reduce((s, i) => s + i.quantity, 0);
   const total = items.reduce((s, i) => s + parseFloat(i.price.amount) * i.quantity, 0);
   const currency = items[0]?.price.currencyCode ?? "USD";
+  const containsHeldItems = items.some((i) => !isStorefrontVariantSellable(i.variantId, i.product.node.tags));
 
   useEffect(() => {
     if (open) syncCart();
   }, [open, syncCart]);
 
   const checkout = async () => {
+    if (containsHeldItems) {
+      toast.error("This cart includes a product in development. Remove it before checkout.");
+      return;
+    }
     try {
       const url = await prepareCheckout();
       if (!url) {
-        toast.error("Your cart expired. Please add items again.");
+        toast.error("Checkout is unavailable for this cart. Review your items before trying again.");
         return;
       }
       // Use the validated, freshly returned Shopify URL in the same tab.
       // A pre-opened blank popup can strand shoppers if checkout fails or is blocked.
       window.location.assign(url);
-    } catch {
-      toast.error("Couldn't reach Shopify checkout. Please try again.");
+    } catch (error) {
+      toast.error(error instanceof Error && error.message.includes("launch-held")
+        ? "This cart includes an unreleased product. Remove it before checkout."
+        : "Couldn't reach Shopify checkout. Please try again.");
     }
   };
 
@@ -81,7 +89,8 @@ export function CartDrawer({ compact = false }: { compact?: boolean }) {
                 <span>Total</span>
                 <span>{formatPrice({ amount: String(total), currencyCode: currency })}</span>
               </div>
-              <button onClick={checkout} disabled={isLoading || isSyncing} className="flex w-full items-center justify-center gap-2 rounded-full bg-gold py-3 font-bold text-ink disabled:opacity-60">
+              {containsHeldItems ? <p role="status" className="text-sm text-parchment/70">An item is in development and cannot be purchased yet. Remove it to continue.</p> : null}
+              <button onClick={checkout} disabled={isLoading || isSyncing || containsHeldItems} className="flex w-full items-center justify-center gap-2 rounded-full bg-gold py-3 font-bold text-ink disabled:opacity-60">
                 {isLoading || isSyncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <><ExternalLink className="h-4 w-4" /> Checkout with Shopify</>}
               </button>
             </div>

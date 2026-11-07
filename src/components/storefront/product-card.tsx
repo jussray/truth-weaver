@@ -3,6 +3,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { formatPrice, type ShopifyProduct } from "@/lib/shopify";
+import { isStorefrontVariantSellable } from "@/lib/commerce/storefront-launch-guard";
 import { useCartStore } from "@/stores/cart-store";
 
 export function ProductCard({ product }: { product: ShopifyProduct }) {
@@ -11,9 +12,11 @@ export function ProductCard({ product }: { product: ShopifyProduct }) {
   const p = product.node;
   const variant = p.variants.edges[0]?.node;
   const img = p.images.edges[0]?.node;
+  const held = !!variant && !isStorefrontVariantSellable(variant.id, p.tags);
+  const purchasable = !!variant?.availableForSale && !held;
 
   const add = async () => {
-    if (!variant) return;
+    if (!variant || !purchasable) return;
     const ok = await addItem({ product, variantId: variant.id, variantTitle: variant.title, price: variant.price, quantity: 1, selectedOptions: variant.selectedOptions });
     if (ok) toast.success(`${p.title} added to cart`, { position: "top-center" });
     else toast.error(`Couldn't add ${p.title}. Please try again.`, { position: "top-center" });
@@ -29,8 +32,8 @@ export function ProductCard({ product }: { product: ShopifyProduct }) {
         <p className="mt-2 line-clamp-3 flex-1 text-sm text-parchment/65">{p.description}</p>
         <div className="mt-4 flex items-center justify-between gap-3">
           <span className="font-semibold text-gold-soft">{formatPrice(p.priceRange.minVariantPrice)}</span>
-          <button onClick={add} disabled={isLoading || !variant?.availableForSale} className="rounded-full bg-gold px-4 py-2 text-sm font-bold text-ink disabled:opacity-60">
-            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : variant?.availableForSale ? "Add to cart" : "Sold out"}
+          <button onClick={add} disabled={isLoading || !purchasable} className="rounded-full bg-gold px-4 py-2 text-sm font-bold text-ink disabled:opacity-60">
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : held ? "In development" : purchasable ? "Add to cart" : "Sold out"}
           </button>
         </div>
       </div>

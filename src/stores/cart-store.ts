@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { isStorefrontVariantSellable } from "@/lib/commerce/storefront-launch-guard";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
@@ -48,6 +49,7 @@ export const useCartStore = create<CartStore>()(
 
       // Returns true only when Shopify confirmed the line.
       addItem: async (item) => {
+        if (!isStorefrontVariantSellable(item.variantId, item.product.node.tags)) return false;
         const { items, cartId, clearCart } = get();
         const existing = items.find((i) => i.variantId === item.variantId);
         set({ isLoading: true });
@@ -90,7 +92,7 @@ export const useCartStore = create<CartStore>()(
         if (quantity <= 0) return get().removeItem(variantId);
         const { items, cartId, clearCart } = get();
         const item = items.find((i) => i.variantId === variantId);
-        if (!item?.lineId || !cartId) return;
+        if (!item?.lineId || !cartId || !isStorefrontVariantSellable(variantId, item.product.node.tags)) return;
         set({ isLoading: true });
         try {
           const r = await updateShopifyCartLine(cartId, item.lineId, quantity);
@@ -123,12 +125,13 @@ export const useCartStore = create<CartStore>()(
       },
 
       clearCart: () => set({ items: [], cartId: null, checkoutUrl: null }),
-      getCheckoutUrl: () => get().checkoutUrl,
+      getCheckoutUrl: () => get().items.some((i) => !isStorefrontVariantSellable(i.variantId, i.product.node.tags))
+        ? null : get().checkoutUrl,
 
       // Re-read the real Shopify cart, reconcile lines/prices/quantities, return its checkoutUrl.
       prepareCheckout: async () => {
-        const { cartId, clearCart } = get();
-        if (!cartId) return null;
+        const { cartId, clearCart, items } = get();
+        if (!cartId || items.some((i) => !isStorefrontVariantSellable(i.variantId, i.product.node.tags))) return null;
         set({ isSyncing: true });
         try {
           const live = await fetchLiveCart(cartId);
@@ -136,6 +139,7 @@ export const useCartStore = create<CartStore>()(
             clearCart();
             return null;
           }
+          if (live.lines.some((line) => !isStorefrontVariantSellable(line.variantId, line.tags))) return null;
           const byVariant = new Map(live.lines.map((l) => [l.variantId, l]));
           set({
             checkoutUrl: live.checkoutUrl,
