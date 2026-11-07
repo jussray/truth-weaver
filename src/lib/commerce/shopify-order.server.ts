@@ -67,6 +67,7 @@ export async function verifyFreshTruthWeaverPurchase(
       {
         method: "POST",
         redirect: "error",
+        cache: "no-store",
         headers: {
           "Content-Type": "application/json",
           "X-Shopify-Access-Token": token,

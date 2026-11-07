@@ -45,7 +45,7 @@ jobs:
           node-version: '24'
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.3.3'
+          bun-version: '1.4.4'
       - name: Enforce checked-in Bun lockfile
         id: dependencies
         run: |
@@ -53,6 +53,8 @@ jobs:
           bun install --frozen-lockfile
       - id: founder
         run: bun run verify:founder-intelligence
+      - id: cloudflare
+        run: bun run verify:cloudflare-runtime
       - id: design
         run: bun run verify:design-system
       - id: lint
@@ -63,6 +65,8 @@ jobs:
         run: bun run test
       - id: build
         run: bun run build
+      - id: readback
+        run: bun run readback:cloudflare-build
       - id: browsers
         run: bunx playwright install --with-deps chromium
       - id: e2e
@@ -77,11 +81,13 @@ jobs:
         env:
           OUTCOME_DEPS: ${{ steps.dependencies.outcome }}
           OUTCOME_FOUNDER: ${{ steps.founder.outcome }}
+          OUTCOME_CLOUDFLARE: ${{ steps.cloudflare.outcome }}
           OUTCOME_DESIGN: ${{ steps.design.outcome }}
           OUTCOME_LINT: ${{ steps.lint.outcome }}
           OUTCOME_TYPECHECK: ${{ steps.typecheck.outcome }}
           OUTCOME_UNIT: ${{ steps.unit.outcome }}
           OUTCOME_BUILD: ${{ steps.build.outcome }}
+          OUTCOME_READBACK: ${{ steps.readback.outcome }}
           OUTCOME_BROWSERS: ${{ steps.browsers.outcome }}
           OUTCOME_E2E: ${{ steps.e2e.outcome }}
           SUBJECT_SHA: ${{ env.EXPECTED_HEAD_SHA }}
@@ -90,7 +96,7 @@ jobs:
           mkdir -p artifacts
           node --input-type=module <<'NODE'
           import { writeFileSync } from "node:fs";
-          const names = ["deps","founder","design","lint","typecheck","unit","build","browsers","e2e"];
+          const names = ["deps","founder","cloudflare","design","lint","typecheck","unit","build","readback","browsers","e2e"];
           const steps = Object.fromEntries(names.map((n) => [n, process.env["OUTCOME_" + n.toUpperCase()] || "not_run"]));
           const data = {
             schema: "juss/ci-step-outcomes@v1",

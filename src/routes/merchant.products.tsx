@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 
+import { supabase } from "@/integrations/supabase/client";
 import { authed } from "@/lib/merchant/authed-call";
-import { confirmationPhrase, requiresTypedConfirmation, validatePrice } from "@/lib/merchant/policy";
+import { confirmationPhrase, priceChangeMessage, validatePrice } from "@/lib/merchant/policy";
 import {
   listMerchantProducts,
-  updateVariantPrice,
+  changeMerchantVariantPrice,
   type MerchantProduct,
   type MerchantVariant,
 } from "@/lib/merchant/portal.functions";
@@ -34,25 +35,44 @@ function ProductsPage() {
   useEffect(load, [load]);
 
   async function confirm() {
-    if (!pending) return;
+    if (!pending || busy) return;
+    const phrase = confirmationPhrase("price", pending.variant.id, pending.price);
+    if (typed !== phrase) return;
     setBusy(true);
     try {
-      const r = await authed(updateVariantPrice, {
-        productId: pending.product.id,
-        variantId: pending.variant.id,
-        price: pending.price,
-        confirmation: typed || undefined,
+      const { data: auth, error } = await supabase.auth.getSession();
+      if (error || !auth.session) throw new Error("Please sign in again.");
+      // The hardened server handler checks token, merchant role, variant ownership,
+      // stale price, attempted audit, Shopify mutation, and fresh provider readback.
+      const r = await changeMerchantVariantPrice({
+        data: {
+          authAccessToken: auth.session.access_token,
+          productId: pending.product.id,
+          variantId: pending.variant.id,
+          price: pending.price,
+          expectedCurrentPrice: pending.variant.price,
+          confirmation: typed,
+        },
       });
-      setNotice({ ok: r.ok, text: r.message });
-      if (r.ok) { setPending(null); setTyped(""); load(); }
+      setNotice({
+        ok: true,
+        text: r.unchanged
+          ? "Price unchanged in Shopify."
+          : priceChangeMessage(`${pending.product.title} — ${pending.variant.title}`, pending.variant.price, r.price)
+            + " Shopify readback verified.",
+      });
+      setPending(null);
+      setTyped("");
+      load();
     } catch {
-      setNotice({ ok: false, text: "The change could not be sent. Nothing was changed." });
+      // A provider error after a mutation can leave a changed value. Never
+      // claim nothing changed or encourage blind retries without fresh readback.
+      setNotice({ ok: false, text: "Change not verified. Refresh from Shopify before attempting again." });
     } finally {
       setBusy(false);
     }
   }
 
-  const strict = pending ? requiresTypedConfirmation(pending.variant.price, pending.price) : false;
   const phrase = pending ? confirmationPhrase("price", pending.variant.id, pending.price) : "";
 
   return (
@@ -117,24 +137,22 @@ function ProductsPage() {
             <p data-testid="price-diff" className="mt-4 text-lg">
               <span className="text-parchment/60 line-through">${pending.variant.price}</span> → <strong className="text-gold">${pending.price}</strong>
             </p>
-            {strict && (
-              <label className="mt-4 block text-sm">
-                <span className="text-warn">Large change. Type <code className="rounded bg-ink px-1">{phrase}</code> to confirm.</span>
-                <input
-                  aria-label="Confirmation phrase"
-                  value={typed}
-                  onChange={(e) => setTyped(e.currentTarget.value)}
-                  className="mt-2 w-full rounded-md border border-gold/25 bg-ink px-2 py-1.5"
-                />
-                <button type="button" onClick={() => setTyped(phrase)} className="mt-2 text-xs text-gold underline">Fill phrase</button>
-              </label>
-            )}
+            <label className="mt-4 block text-sm">
+              <span className="text-warn">Type <code className="rounded bg-ink px-1">{phrase}</code> to confirm this product price.</span>
+              <input
+                aria-label="Confirmation phrase"
+                autoComplete="off"
+                value={typed}
+                onChange={(e) => setTyped(e.currentTarget.value)}
+                className="mt-2 w-full rounded-md border border-gold/25 bg-ink px-2 py-1.5"
+              />
+            </label>
             {notice && !notice.ok && <p role="alert" className="mt-3 text-sm text-danger">{notice.text}</p>}
             <div className="mt-6 flex justify-end gap-3">
               <button type="button" onClick={() => setPending(null)} className="rounded-full border border-gold/40 px-4 py-2 text-sm">Cancel</button>
               <button
                 type="button"
-                disabled={busy || (strict && typed !== phrase)}
+                disabled={busy || typed !== phrase}
                 onClick={confirm}
                 className="rounded-full bg-gold px-4 py-2 text-sm font-semibold text-ink disabled:opacity-40"
               >

@@ -1,7 +1,7 @@
 import { pageHead } from "@/lib/seo";
 import { Link, Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ClipboardList, Lock, Package, ScrollText, ShieldCheck } from "lucide-react";
+import { ClipboardList, Lock, Package, ScrollText, Settings2, ShieldCheck } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { authed } from "@/lib/merchant/authed-call";
@@ -21,6 +21,7 @@ export const Route = createFileRoute("/merchant")({
 
 const NAV = [
   { to: "/merchant/products", label: "Products", icon: Package },
+  { to: "/merchant/manage", label: "Manage", icon: Settings2 },
   { to: "/merchant/orders", label: "Orders", icon: ClipboardList },
   { to: "/merchant/audit-log", label: "Activity log", icon: ScrollText },
 ] as const;

@@ -1,3 +1,8 @@
+# Environment files: prevent new local secrets from being added. Existing tracked files require separate review.
+.env
+.env.*
+!.env.example
+
 # Logs
 logs
 *.log

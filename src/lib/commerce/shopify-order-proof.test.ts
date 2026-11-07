@@ -87,6 +87,8 @@ describe("server-only Shopify Admin reader", () => {
       calls++;
       expect(String(url)).toBe("https://fcr-truth-weaver-esimv-203acj81.myshopify.com/admin/api/2026-10/graphql.json");
       expect(init?.method).toBe("POST");
+      expect(init?.redirect).toBe("error");
+      expect(init?.cache).toBe("no-store");
       const headers = new Headers(init?.headers);
       expect(headers.get("X-Shopify-Access-Token")).toBe("test-token");
       const body = JSON.parse(String(init?.body)) as { variables: { id: string } };

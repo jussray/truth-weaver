@@ -47,6 +47,7 @@ function NoticeAnalyzerPage() {
   const [result, setResult] = useState<NoticeAnalyzerResult | null>(null);
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+  const [filePending, setFilePending] = useState(false);
   const [fileMessage, setFileMessage] = useState("");
   const [scanRejected, setScanRejected] = useState("");
   const [consent, setConsent] = useState(false);
@@ -60,11 +61,6 @@ function NoticeAnalyzerPage() {
   }
 
   async function handleNoticeFile(event: ChangeEvent<HTMLInputElement>) {
-    setFileMessage("");
-    setScanRejected("");
-    setResult(null);
-    setConsent(false);
-    updateField("noticeText", "");
     const file = event.currentTarget.files?.[0];
     event.currentTarget.value = "";
     if (!file) return;
@@ -76,6 +72,13 @@ function NoticeAnalyzerPage() {
       setFileMessage("Supported: PDF, photo (PNG/JPG/WebP), or .txt.");
       return;
     }
+    // A rejected or canceled replacement must never erase a previously drafted notice.
+    // A valid replacement revokes consent while it is being read on the device.
+    setScanRejected("");
+    setResult(null);
+    setConsent(false);
+    setFilePending(true);
+    setFileMessage("Reading the selected document on this device...");
     const ocrNote = "Read automatically — check every date, name and amount against the original before analysis.";
 
     try {
@@ -106,17 +109,22 @@ function NoticeAnalyzerPage() {
       }
     } catch (cause) {
       if (cause instanceof Error && cause.name === "OcrUnreadableError") {
-        updateField("noticeText", "");
         setScanRejected(cause.message);
         setFileMessage("Scan rejected. Nothing was analyzed.");
         return;
       }
       setFileMessage(cause instanceof Error ? cause.message : "The document could not be read. Paste the text instead.");
+    } finally {
+      setFilePending(false);
     }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (filePending) {
+      setError("Finish reading the selected document before analyzing.");
+      return;
+    }
     if (!consent) {
       setError("Consent to sending the reviewed notice text for analysis is required.");
       return;
@@ -178,7 +186,7 @@ function NoticeAnalyzerPage() {
 
       <section className="bg-ink px-5 py-12 sm:px-6 lg:py-16">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr]">
-          <form onSubmit={handleSubmit} inert={!uploadReady} aria-busy={!uploadReady} className="space-y-5" data-testid="notice-analyzer-form">
+          <form onSubmit={handleSubmit} inert={!uploadReady} aria-busy={!uploadReady || filePending} className="space-y-5" data-testid="notice-analyzer-form">
             <div className="rounded-2xl border border-gold/20 bg-forest-deep/35 p-5">
               <h2 className="font-serif text-2xl text-parchment">Where did this notice come from?</h2>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -284,7 +292,7 @@ function NoticeAnalyzerPage() {
             <button
               data-testid="analyze-notice"
               type="submit"
-              disabled={pending || !consent}
+              disabled={pending || filePending || !consent}
               className="foil-surface inline-flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 font-bold text-ink disabled:cursor-wait disabled:opacity-60"
             >
               {pending ? <LoaderCircle className="h-5 w-5 animate-spin" aria-hidden /> : <FileSearch className="h-5 w-5" aria-hidden />}
