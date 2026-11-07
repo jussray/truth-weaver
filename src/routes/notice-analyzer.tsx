@@ -19,6 +19,7 @@ import { extractNoticePdfText } from "@/lib/extract-notice-pdf";
 import { analyzeLegalNotice } from "@/lib/notice-analyzer.functions";
 import {
   NOTICE_TEXT_MAX,
+  noticeSubmitBlockReason,
   type NoticeAnalyzerInput,
   type NoticeAnalyzerResult,
 } from "@/lib/notice-analyzer";
@@ -74,7 +75,7 @@ function NoticeAnalyzerPage() {
     }
     // A rejected or canceled replacement must never erase a previously drafted notice.
     // A valid replacement revokes consent while it is being read on the device.
-    setScanRejected("");
+    // A rejected scan stays blocking until a later file loads clearly or the visitor edits the text.
     setResult(null);
     setConsent(false);
     setFilePending(true);
@@ -87,23 +88,27 @@ function NoticeAnalyzerPage() {
         const text = await file.text();
         if (text.length > NOTICE_TEXT_MAX) throw new Error("Notice text is over the 25,000-character limit.");
         updateField("noticeText", text);
+        setScanRejected("");
         setFileMessage(`Loaded ${file.name}. Review the text before analysis.`);
       } else if (isImage) {
         const { ocrNoticeImage } = await import("@/lib/ocr-notice");
         const { text, averageConfidence } = await ocrNoticeImage(file, setFileMessage);
         updateField("noticeText", text);
+        setScanRejected("");
         setFileMessage(`Scanned ${file.name}. Estimated reading clarity ${Math.round(averageConfidence)}%. ${ocrNote}`);
       } else {
         setFileMessage("Extracting selectable text locally. No notice has been submitted.");
         try {
           const { text, pages } = await extractNoticePdfText(file);
           updateField("noticeText", text);
+          setScanRejected("");
           setFileMessage(`Loaded ${file.name} (${pages} page${pages === 1 ? "" : "s"}). Review the text before analysis.`);
         } catch (cause) {
           if (!(cause instanceof Error) || !cause.message.startsWith("No sufficient selectable text")) throw cause;
           const { ocrNoticePdf } = await import("@/lib/ocr-notice");
           const { text, averageConfidence } = await ocrNoticePdf(file, setFileMessage);
           updateField("noticeText", text);
+          setScanRejected("");
           setFileMessage(`Scanned ${file.name}. Estimated reading clarity ${Math.round(averageConfidence)}%. ${ocrNote}`);
         }
       }
@@ -121,12 +126,9 @@ function NoticeAnalyzerPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (filePending) {
-      setError("Finish reading the selected document before analyzing.");
-      return;
-    }
-    if (!consent) {
-      setError("Consent to sending the reviewed notice text for analysis is required.");
+    const blocked = noticeSubmitBlockReason({ filePending, scanRejected: Boolean(scanRejected), consent });
+    if (blocked) {
+      setError(blocked);
       return;
     }
     setPending(true);
@@ -269,7 +271,10 @@ function NoticeAnalyzerPage() {
                 maxLength={NOTICE_TEXT_MAX}
                 rows={14}
                 value={form.noticeText}
-                onChange={(event) => updateField("noticeText", event.currentTarget.value)}
+                onChange={(event) => {
+                  setScanRejected("");
+                  updateField("noticeText", event.currentTarget.value);
+                }}
                 placeholder="Paste the notice text here..."
                 className="mt-4 w-full resize-y rounded-xl border border-parchment/15 bg-ink px-4 py-3 text-sm leading-6 text-parchment outline-none placeholder:text-parchment/30 focus:border-gold/60"
               />
@@ -292,7 +297,7 @@ function NoticeAnalyzerPage() {
             <button
               data-testid="analyze-notice"
               type="submit"
-              disabled={pending || filePending || !consent}
+              disabled={pending || noticeSubmitBlockReason({ filePending, scanRejected: Boolean(scanRejected), consent }) !== null}
               className="foil-surface inline-flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 font-bold text-ink disabled:cursor-wait disabled:opacity-60"
             >
               {pending ? <LoaderCircle className="h-5 w-5 animate-spin" aria-hidden /> : <FileSearch className="h-5 w-5" aria-hidden />}
