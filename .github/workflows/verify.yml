@@ -62,6 +62,9 @@ jobs:
       - id: typecheck
         run: bun run typecheck
       - id: unit
+        # Run even when lint or typecheck fails, so a lint failure does not hide unit results.
+        # Still skipped when the run is cancelled or dependencies did not install.
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: bun run test
       - id: build
         run: bun run build
