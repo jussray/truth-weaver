@@ -47,6 +47,5 @@ REVOKE EXECUTE ON FUNCTION public.redeem_merchant_invite(text) FROM public, anon
 GRANT EXECUTE ON FUNCTION public.create_merchant_invite(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.redeem_merchant_invite(text) TO authenticated;
 
-INSERT INTO public.user_roles (user_id, role)
-  SELECT id, 'merchant'::public.app_role FROM auth.users WHERE email = 'test-user-tw@jussco.company'
-  ON CONFLICT DO NOTHING;
+-- Removed 2026-11-07: no account receives the merchant role outside a redeemed invite.
+-- Existing grant revoked by supabase/migrations/20261107030000_tw_revoke_test_account_merchant_role.sql
