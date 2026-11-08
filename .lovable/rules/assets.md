@@ -9,15 +9,16 @@ These files are copied into `src/design-system/{slug}/assets/` in this project â
 Raw files import directly, e.g. `import logo from "@/design-system/{slug}/assets/logos/logo.svg"`.
 The full machine-readable catalog lives in this library's `design-system.json` (`assets` array).
 
+## Fonts
+
+- `@/design-system/{slug}/assets/fonts/cormorant-garamond-italic.woff2` (woff2)
+- `@/design-system/{slug}/assets/fonts/cormorant-garamond-normal.woff2` (woff2)
+- `@/design-system/{slug}/assets/fonts/great-vibes-regular.woff2` (woff2)
+- `@/design-system/{slug}/assets/fonts/ibm-plex-mono-400.woff2` (woff2)
+- `@/design-system/{slug}/assets/fonts/ibm-plex-mono-500.woff2` (woff2)
+- `@/design-system/{slug}/assets/fonts/inter-tight-variable.woff2` (woff2)
+
 ## Images
 
 - `@/design-system/{slug}/assets/hero-sanctum.jpg` (jpg)
 
-## Fonts
-
-- `@/design-system/{slug}/assets/fonts/inter-tight-variable.woff2` (woff2)
-- `@/design-system/{slug}/assets/fonts/cormorant-garamond-normal.woff2` (woff2)
-- `@/design-system/{slug}/assets/fonts/cormorant-garamond-italic.woff2` (woff2)
-- `@/design-system/{slug}/assets/fonts/ibm-plex-mono-400.woff2` (woff2)
-- `@/design-system/{slug}/assets/fonts/ibm-plex-mono-500.woff2` (woff2)
-- `@/design-system/{slug}/assets/fonts/great-vibes-regular.woff2` (woff2)

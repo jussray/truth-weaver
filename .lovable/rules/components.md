@@ -32,6 +32,12 @@ import { Constants } from "@ws-0dfe240cdcdbfcf99736/8ef43cd3-8d93-4494-a685-59ce
 import { CounselPage } from "@ws-0dfe240cdcdbfcf99736/8ef43cd3-8d93-4494-a685-59ce0f795614"
 ```
 
+### Faq
+
+```ts
+import { Faq } from "@ws-0dfe240cdcdbfcf99736/8ef43cd3-8d93-4494-a685-59ce0f795614"
+```
+
 ### Field
 
 ```ts
