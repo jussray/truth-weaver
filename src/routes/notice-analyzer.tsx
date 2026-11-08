@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 
 import { SiteChrome } from "@/components/storefront/site-chrome";
+import { supabase } from "@/integrations/supabase/client";
+import { SAVED_ANALYSIS_SESSION_KEY } from "@/lib/commerce/report-catalog";
 import { extractNoticePdfText } from "@/lib/extract-notice-pdf";
 import { analyzeLegalNotice } from "@/lib/notice-analyzer.functions";
 import {
@@ -52,6 +54,8 @@ function NoticeAnalyzerPage() {
   const [fileMessage, setFileMessage] = useState("");
   const [scanRejected, setScanRejected] = useState("");
   const [consent, setConsent] = useState(false);
+  const [saveForReport, setSaveForReport] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
   // Hydration gate: a file picked before React attaches its input handler can
   // be silently dropped on SSR pages. Accept uploads only after mount.
   const [uploadReady, setUploadReady] = useState(false);
@@ -134,10 +138,26 @@ function NoticeAnalyzerPage() {
     setPending(true);
     setError("");
     setResult(null);
+    setSaveMessage("");
+    // Do not accidentally use the previous notice when starting a new analysis.
+    try { sessionStorage.removeItem(SAVED_ANALYSIS_SESSION_KEY); } catch { /* browser storage may be disabled */ }
 
     try {
-      const response = await analyzeLegalNotice({ data: form });
+      const authToken = saveForReport ? (await supabase.auth.getSession()).data.session?.access_token : null;
+      const response = await analyzeLegalNotice(authToken
+        ? { data: form, headers: { Authorization: `Bearer ${authToken}` } }
+        : { data: form });
       setResult(response);
+      if (saveForReport) {
+        if (response.savedAnalysisId) {
+          try { sessionStorage.setItem(SAVED_ANALYSIS_SESSION_KEY, response.savedAnalysisId); } catch { /* browser storage disabled */ }
+          setSaveMessage("Analysis saved privately to your account for a personalized report.");
+        } else {
+          setSaveMessage(authToken
+            ? "Analysis completed but could not be saved for purchase. Please retry before checkout."
+            : "Analysis completed, but you must sign in and analyze again to save it for a personalized report.");
+        }
+      }
       try {
         // Session-only, this tab only. Raw notice text is never stored.
         sessionStorage.setItem(COUNSEL_STORAGE_KEY, JSON.stringify(toStoredAnalysis(form, response)));
@@ -294,6 +314,17 @@ function NoticeAnalyzerPage() {
               />
               I reviewed the notice text and agree to send that text and the details I entered for AI analysis. Remove private details that are not needed before continuing.
             </label>
+            <label className="flex items-start gap-3 text-sm leading-6 text-parchment/75">
+              <input
+                type="checkbox"
+                data-testid="save-analysis-opt-in"
+                checked={saveForReport}
+                onChange={(event) => setSaveForReport(event.currentTarget.checked)}
+                className="mt-1 accent-gold"
+              />
+              Save the AI analysis (not the raw notice text) privately to my signed-in account for a personalized paid report. Optional.
+            </label>
+            {saveMessage && <p role="status" className="text-sm text-gold">{saveMessage}</p>}
             <button
               data-testid="analyze-notice"
               type="submit"
