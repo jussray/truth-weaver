@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { addLineToShopifyCart, attachReportClaimToCart, createShopifyCart, fetchLiveCart, formatCheckoutUrl } from "./shopify";
+import { addLineToShopifyCart, attachReportClaimToCart, clearReportClaimFromCart, createShopifyCart, fetchLiveCart, formatCheckoutUrl } from "./shopify";
 import { NOTICE_VARIANTS } from "./commerce/shopify-order-proof";
 import { isStorefrontVariantSellable } from "./commerce/storefront-launch-guard";
 
@@ -143,6 +143,35 @@ describe("Truth Weaver per-order Shopify claim attributes", () => {
     }), { status: 200 })) as typeof fetch;
     try {
       expect(await attachReportClaimToCart(cartId, nonce, [])).toBe(false);
+    } finally { globalThis.fetch = originalFetch; }
+  });
+
+  it("removes stale report claims while retaining unrelated cart metadata", async () => {
+    const originalFetch = globalThis.fetch;
+    const request = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      data: { cartAttributesUpdate: {
+        cart: { id: cartId, attributes: [{ key: "gift_note", value: "keep" }] },
+        userErrors: [],
+      } },
+    }), { status: 200 }));
+    globalThis.fetch = request as typeof fetch;
+    try {
+      expect(await clearReportClaimFromCart(cartId, [
+        { key: "_tw_claim", value: nonce },
+        { key: "gift_note", value: "keep" },
+      ])).toBe(true);
+      const body = JSON.parse(String(request.mock.calls[0]?.[1]?.body));
+      expect(body.variables.attributes).toEqual([{ key: "gift_note", value: "keep" }]);
+    } finally { globalThis.fetch = originalFetch; }
+  });
+
+  it("fails closed if stale report claim remains after update", async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      data: { cartAttributesUpdate: { cart: { id: cartId, attributes: [{ key: "_tw_claim", value: nonce }] }, userErrors: [] } },
+    }), { status: 200 })) as typeof fetch;
+    try {
+      expect(await clearReportClaimFromCart(cartId, [{ key: "_tw_claim", value: nonce }])).toBe(false);
     } finally { globalThis.fetch = originalFetch; }
   });
 
