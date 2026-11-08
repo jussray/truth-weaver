@@ -9,3 +9,6 @@ Disallow: /fulfillment
 Disallow: /vendor-invite
 
 Sitemap: https://www.truthweaver.jussco.company/sitemap.xml
+
+# AI and Search Crawler Guidance
+# https://www.truthweaver.jussco.company/llms.txt

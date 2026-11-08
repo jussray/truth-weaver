@@ -106,5 +106,22 @@ export const WEBSITE_LD: Record<string, unknown>[] = [
   ORGANIZATION_LD,
 ];
 
+
+export type FaqData = readonly { q: string; a: string; link?: { href: string; label: string } }[];
+
+export function faqPageJsonLd(items: FaqData): Record<string, unknown> {
+  return {
+    "@type": "FAQPage",
+    "mainEntity": items.map((item) => ({
+      "@type": "Question",
+      "name": item.q,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": item.a,
+      },
+    })),
+  };
+}
+
 export const NOINDEX_HEAD = (title: string, description: string) =>
   pageHead({ path: "/", title, description, noindex: true });

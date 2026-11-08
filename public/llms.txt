@@ -1,0 +1,18 @@
+# Truth Weaver Counsel
+> Source-aware, location-specific legal research and legal notice analysis by Juss & Co.
+
+Truth Weaver Counsel is a free reference web application that helps people understand legal situations by finding official law sources, translating them into plain English, and identifying what still needs checking. Truth Weaver is not a law firm, does not provide legal advice, and does not establish an attorney-client relationship.
+
+## Canonical URLs
+- [Home & Free Legal Research](https://www.truthweaver.jussco.company/): Plain-English legal research by location.
+- [Legal Notice Analyzer](https://www.truthweaver.jussco.company/notice-analyzer): In-browser reader for landlord, court, debt, and government notices. Finds deadlines, demands, and lawyer questions.
+- [Official Sources Registry](https://www.truthweaver.jussco.company/sources): Registered government and court websites checked for verified law.
+- [Source Verification Methodology](https://www.truthweaver.jussco.company/connectors): How citations, dates, and official domains are verified, and why summaries alone are unverified.
+- [Legal Library](https://www.truthweaver.jussco.company/legal-library): Registered secondary treatises, books, and reference guides.
+- [Shop & Guides](https://www.truthweaver.jussco.company/shop): Educational legal guides and reference materials (paid items on launch hold until verified).
+
+## Core Operational Truths & Disclaimers
+- **Not Legal Advice**: Truth Weaver Counsel is not a law firm. Users must consult a qualified attorney in their jurisdiction for legal counsel.
+- **Verification Requirement**: A finding is only treated as verified law when an official government website, citation, and active date check out; otherwise it is marked unverified.
+- **Free Access**: Location-based legal research and in-browser notice analysis are free with no account required.
+- **Privacy**: Scanned notices are read locally in the user's browser; raw notice text is not retained in user accounts.
