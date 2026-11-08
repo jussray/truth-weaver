@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 import { isStorefrontVariantSellable } from "./commerce/storefront-launch-guard";
+import { CLAIM_ATTRIBUTE_KEY, CLAIM_NONCE } from "./commerce/report-catalog";
 
 const SHOPIFY_API_VERSION = "2026-10";
 const SHOPIFY_STORE_PERMANENT_DOMAIN = "fcr-truth-weaver-esimv-203acj81.myshopify.com";
@@ -82,6 +83,7 @@ const CART_CREATE_MUTATION = `mutation cartCreate($input: CartInput!) { cartCrea
 const CART_LINES_ADD_MUTATION = `mutation cartLinesAdd($cartId: ID!, $lines: [CartLineInput!]!) { cartLinesAdd(cartId: $cartId, lines: $lines) { cart { id lines(first: 100) { edges { node { id merchandise { ... on ProductVariant { id } } } } } } userErrors { field message } } }`;
 const CART_LINES_UPDATE_MUTATION = `mutation cartLinesUpdate($cartId: ID!, $lines: [CartLineUpdateInput!]!) { cartLinesUpdate(cartId: $cartId, lines: $lines) { cart { id } userErrors { field message } } }`;
 const CART_LINES_REMOVE_MUTATION = `mutation cartLinesRemove($cartId: ID!, $lineIds: [ID!]!) { cartLinesRemove(cartId: $cartId, lineIds: $lineIds) { cart { id } userErrors { field message } } }`;
+const CART_ATTRIBUTES_UPDATE_MUTATION = `mutation cartAttributesUpdate($cartId: ID!, $attributes: [AttributeInput!]!) { cartAttributesUpdate(cartId: $cartId, attributes: $attributes) { cart { id attributes { key value } } userErrors { field message } } }`;
 
 type UserError = { field: string[] | null; message: string };
 
@@ -104,7 +106,7 @@ function isCartNotFoundError(errs: UserError[]) {
   return errs.some((e) => /cart not found|does not exist/i.test(e.message));
 }
 
-const CART_FULL_QUERY = `query cart($id: ID!) { cart(id: $id) { id totalQuantity checkoutUrl lines(first: 100) { edges { node { id quantity merchandise { ... on ProductVariant { id price { amount currencyCode } product { tags } } } } } } } }`;
+const CART_FULL_QUERY = `query cart($id: ID!) { cart(id: $id) { id totalQuantity checkoutUrl attributes { key value } lines(first: 100) { edges { node { id quantity merchandise { ... on ProductVariant { id price { amount currencyCode } product { tags } } } } } } } }`;
 
 type LiveCartNode = {
   id: string;
@@ -115,6 +117,7 @@ type LiveCartNode = {
 export type LiveCart = {
   checkoutUrl: string;
   totalQuantity: number;
+  attributes: Array<{ key: string; value: string }>;
   lines: { lineId: string; variantId: string; quantity: number; price: { amount: string; currencyCode: string }; tags: string[] }[];
 } | null;
 
@@ -134,6 +137,7 @@ export async function fetchLiveCart(cartId: string): Promise<LiveCart> {
   return {
     checkoutUrl,
     totalQuantity: cart.totalQuantity,
+    attributes: Array.isArray(cart.attributes) ? cart.attributes : [],
     lines: cart.lines.edges.map((e: { node: LiveCartNode }) => ({
       lineId: e.node.id,
       variantId: e.node.merchandise.id,
@@ -198,4 +202,27 @@ export async function removeLineFromShopifyCart(cartId: string, lineId: string) 
     return { success: false };
   }
   return { success: true };
+}
+
+/**
+ * Storefront cart attributes carry a server-issued nonce into the Shopify order.
+ * Preserve existing unrelated attributes; Shopify's update replaces the whole list.
+ * This is NOT proof of payment — fulfillment always re-reads the order via Admin.
+ */
+export async function attachReportClaimToCart(
+  cartId: string,
+  nonce: string,
+  existing: Array<{ key: string; value: string }>,
+): Promise<boolean> {
+  if (!CLAIM_NONCE.test(nonce) || !Array.isArray(existing) || existing.length > 200) return false;
+  const attributes = [
+    ...existing.filter((a) => a && a.key !== CLAIM_ATTRIBUTE_KEY && typeof a.key === "string" && typeof a.value === "string"),
+    { key: CLAIM_ATTRIBUTE_KEY, value: nonce },
+  ];
+  const data = await storefrontApiRequest(CART_ATTRIBUTES_UPDATE_MUTATION, { cartId, attributes });
+  const result = data?.data?.cartAttributesUpdate;
+  if (!result?.cart || result.userErrors?.length) return false;
+  const updated = result.cart.attributes;
+  return result.cart.id === cartId && Array.isArray(updated)
+    && updated.filter((a: { key: string; value: string }) => a.key === CLAIM_ATTRIBUTE_KEY && a.value === nonce).length === 1;
 }
