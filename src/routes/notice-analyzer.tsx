@@ -1,5 +1,5 @@
 import { Faq, NOTICE_FAQ } from "@/components/storefront/faq";
-import { pageHead } from "@/lib/seo";
+import { pageHead, faqPageJsonLd } from "@/lib/seo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
@@ -30,7 +30,31 @@ import { COUNSEL_STORAGE_KEY, toStoredAnalysis } from "@/lib/counsel-document";
 export const Route = createFileRoute("/notice-analyzer")({
   component: NoticeAnalyzerPage,
   head: () =>
-    pageHead({ path: '/notice-analyzer', title: 'Legal Notice Analyzer: Understand a Notice | Truth Weaver Counsel', description: 'Got a landlord, court, debt or government notice? Add it to see the dates, demands and questions to ask a lawyer. Check every finding against the original notice and official law.', breadcrumbs: [{ name: "Home", path: "/" }, { name: 'Notice Analyzer', path: '/notice-analyzer' }] }),
+    pageHead({
+      path: '/notice-analyzer',
+      title: 'Legal Notice Analyzer: Understand a Notice | Truth Weaver Counsel',
+      description: 'Got a landlord, court, debt or government notice? Add it to see the dates, demands and questions to ask a lawyer. Check every finding against the original notice and official law.',
+      breadcrumbs: [{ name: "Home", path: "/" }, { name: 'Notice Analyzer', path: '/notice-analyzer' }],
+      jsonLd: [
+        {
+          "@type": "WebApplication",
+          name: "Legal Notice Analyzer",
+          applicationCategory: "ReferenceApplication",
+          operatingSystem: "Web",
+          isAccessibleForFree: true,
+          url: "https://www.truthweaver.jussco.company/notice-analyzer",
+          description: "Reads landlord, court, debt, or government notices in-browser to identify dates, demands, and questions for a qualified lawyer.",
+          publisher: { "@id": "https://www.jussco.company/#organization" },
+          offers: {
+            "@type": "Offer",
+            price: "0",
+            priceCurrency: "USD",
+            description: "Free in-browser legal notice review",
+          },
+        },
+        faqPageJsonLd(NOTICE_FAQ),
+      ],
+    }),
 });
 
 type FormState = NoticeAnalyzerInput;

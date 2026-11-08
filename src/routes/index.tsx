@@ -1,5 +1,5 @@
 import { Faq, HOME_FAQ } from "@/components/storefront/faq";
-import { pageHead, WEBSITE_LD } from "@/lib/seo";
+import { pageHead, WEBSITE_LD, faqPageJsonLd } from "@/lib/seo";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
@@ -17,7 +17,37 @@ import { IssueTriageBanner } from "@/components/storefront/issue-triage";
 export const Route = createFileRoute("/")({
   component: TruthWeaverModule,
   head: () =>
-    pageHead({ path: '/', title: 'Free Legal Research by Location | Truth Weaver Counsel', description: 'Describe your legal situation and where it happened. Truth Weaver looks for official law sources, explains them in plain English, and shows what still needs checking. Not legal advice.', jsonLd: [...WEBSITE_LD, { "@type": "SoftwareApplication", name: "Truth Weaver Counsel", applicationCategory: "ReferenceApplication", operatingSystem: "Web", isAccessibleForFree: true, url: "https://www.truthweaver.jussco.company/", description: "Free plain-English legal research by location and a legal notice reader. Not a law firm and not legal advice.", publisher: { "@id": "https://www.jussco.company/#organization" } }] }),
+    pageHead({
+      path: '/',
+      title: 'Free Legal Research by Location | Truth Weaver Counsel',
+      description: 'Describe your legal situation and where it happened. Truth Weaver looks for official law sources, explains them in plain English, and shows what still needs checking. Not legal advice.',
+      jsonLd: [
+        ...WEBSITE_LD,
+        {
+          "@type": "WebApplication",
+          name: "Truth Weaver Counsel",
+          applicationCategory: "ReferenceApplication",
+          operatingSystem: "Web",
+          isAccessibleForFree: true,
+          url: "https://www.truthweaver.jussco.company/",
+          description: "Free plain-English legal research by location and a legal notice reader. Not a law firm and not legal advice.",
+          publisher: { "@id": "https://www.jussco.company/#organization" },
+          featureList: [
+            "Free plain-English legal research by location",
+            "Official legal source verification registry",
+            "In-browser legal notice reader and deadline finder",
+            "Secondary legal treatises and law library index",
+          ],
+          offers: {
+            "@type": "Offer",
+            price: "0",
+            priceCurrency: "USD",
+            description: "Free legal research by location",
+          },
+        },
+        faqPageJsonLd(HOME_FAQ),
+      ],
+    }),
 });
 
 const LEGAL_AREAS = [
