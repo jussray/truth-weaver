@@ -30,7 +30,16 @@ export function RelatedProducts({ handle }: RelatedProductsProps) {
   }
 
   const data = q.data;
-  if (!data || data.items.length === 0) return null;
+  if (!data || data.items.length === 0) {
+    return (
+      <section aria-labelledby="related-h" data-testid="related-products" data-mode="none" className="mt-16">
+        <h2 id="related-h" className="font-serif text-3xl text-parchment">You may also like</h2>
+        <p className="mt-3 text-sm text-parchment/60">
+          {q.isError ? "Related items are unavailable right now. Please try again later." : "No other related in-stock items are available right now."}
+        </p>
+      </section>
+    );
+  }
 
   return (
     <section aria-labelledby="related-h" data-testid="related-products" data-mode={data.mode} className="mt-16">

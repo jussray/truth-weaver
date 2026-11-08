@@ -2,6 +2,24 @@ import { z } from "zod";
 
 export const NOTICE_TEXT_MAX = 25_000;
 
+/**
+ * Why the notice cannot be submitted yet, or null when it can. A rejected scan blocks
+ * analysis until a clear document loads or the visitor edits the text themselves, so
+ * nothing is sent while the unreadable-scan warning is showing.
+ */
+export function noticeSubmitBlockReason(state: {
+  filePending: boolean;
+  scanRejected: boolean;
+  consent: boolean;
+}): string | null {
+  if (state.filePending) return "Finish reading the selected document before analyzing.";
+  if (state.scanRejected) {
+    return "The last scan was unreadable. Upload a clearer PDF or photo, or review and edit the text yourself, before analyzing.";
+  }
+  if (!state.consent) return "Consent to sending the reviewed notice text for analysis is required.";
+  return null;
+}
+
 export const noticeAnalyzerInputSchema = z
   .object({
     noticeText: z.string().trim().min(40, "Paste at least 40 characters from the notice.").max(NOTICE_TEXT_MAX),

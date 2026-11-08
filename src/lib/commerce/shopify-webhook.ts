@@ -1,4 +1,5 @@
 import { TRUTH_WEAVER_SHOPIFY_DOMAIN } from "./shopify-order-proof";
+import { CLAIM_ATTRIBUTE_KEY } from "./report-catalog";
 
 /**
  * Pure, fail-closed Shopify webhook gate. A valid signature only proves the
@@ -10,7 +11,73 @@ export type WebhookGate =
   | { ok: false; status: 401 | 400 | 503; reason:
       "secret_missing" | "bad_signature" | "wrong_shop" | "wrong_topic" | "bad_payload" };
 
+/**
+ * Only a routing hint, NOT a grant or payment proof. Called after HMAC validation.
+ * Even a malformed claim routes to the strict report verifier, never the legacy grant.
+ */
+export function hasReportClaimAttribute(rawBody: string): boolean {
+  try {
+    const payload = JSON.parse(rawBody) as { note_attributes?: unknown };
+    return Array.isArray(payload.note_attributes) && payload.note_attributes.some((entry: unknown) => {
+      if (!entry || typeof entry !== "object") return false;
+      const attribute = entry as { name?: unknown; key?: unknown };
+      return attribute.name === CLAIM_ATTRIBUTE_KEY || attribute.key === CLAIM_ATTRIBUTE_KEY;
+    });
+  } catch { return false; }
+}
+
 const enc = new TextEncoder();
+
+/**
+ * Read at most `maxBytes` of the actual HTTP body, even when Content-Length
+ * is absent or incorrect. Never decode first and then compare JS string length:
+ * UTF-8 byte length can exceed the number of UTF-16 code units.
+ */
+export async function readShopifyWebhookBody(
+  request: Request,
+  maxBytes = 1_000_000,
+): Promise<{ ok: true; rawBody: string } | { ok: false; status: 400 | 413 }> {
+  const declared = request.headers.get("content-length");
+  if (declared !== null) {
+    if (!/^[0-9]+$/.test(declared)) return { ok: false, status: 400 };
+    if (Number(declared) > maxBytes) return { ok: false, status: 413 };
+  }
+
+  if (!request.body) return { ok: true, rawBody: "" };
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        // Stop reading without waiting for a potentially unresponsive producer.
+        void reader.cancel().catch(() => {});
+        return { ok: false, status: 413 };
+      }
+      chunks.push(value);
+    }
+  } catch {
+    return { ok: false, status: 400 };
+  } finally {
+    reader.releaseLock();
+  }
+
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  try {
+    return { ok: true, rawBody: new TextDecoder("utf-8", { fatal: true }).decode(bytes) };
+  } catch {
+    return { ok: false, status: 400 };
+  }
+}
+
 
 function b64ToBytes(value: string): Uint8Array | null {
   try {

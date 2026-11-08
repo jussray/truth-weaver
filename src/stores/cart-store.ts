@@ -1,9 +1,15 @@
 import { useEffect } from "react";
+import { isStorefrontVariantSellable } from "@/lib/commerce/storefront-launch-guard";
+import { supabase } from "@/integrations/supabase/client";
+import { createMyPurchaseClaim } from "@/lib/commerce/order-report.functions";
+import { CLAIM_ATTRIBUTE_KEY, SAVED_ANALYSIS_SESSION_KEY, isReportVariant } from "@/lib/commerce/report-catalog";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 import {
   addLineToShopifyCart,
+  attachReportClaimToCart,
+  clearReportClaimFromCart,
   cartExists,
   fetchLiveCart,
   createShopifyCart,
@@ -48,6 +54,7 @@ export const useCartStore = create<CartStore>()(
 
       // Returns true only when Shopify confirmed the line.
       addItem: async (item) => {
+        if (!isStorefrontVariantSellable(item.variantId, item.product.node.tags)) return false;
         const { items, cartId, clearCart } = get();
         const existing = items.find((i) => i.variantId === item.variantId);
         set({ isLoading: true });
@@ -90,7 +97,7 @@ export const useCartStore = create<CartStore>()(
         if (quantity <= 0) return get().removeItem(variantId);
         const { items, cartId, clearCart } = get();
         const item = items.find((i) => i.variantId === variantId);
-        if (!item?.lineId || !cartId) return;
+        if (!item?.lineId || !cartId || !isStorefrontVariantSellable(variantId, item.product.node.tags)) return;
         set({ isLoading: true });
         try {
           const r = await updateShopifyCartLine(cartId, item.lineId, quantity);
@@ -123,12 +130,13 @@ export const useCartStore = create<CartStore>()(
       },
 
       clearCart: () => set({ items: [], cartId: null, checkoutUrl: null }),
-      getCheckoutUrl: () => get().checkoutUrl,
+      getCheckoutUrl: () => get().items.some((i) => !isStorefrontVariantSellable(i.variantId, i.product.node.tags))
+        ? null : get().checkoutUrl,
 
       // Re-read the real Shopify cart, reconcile lines/prices/quantities, return its checkoutUrl.
       prepareCheckout: async () => {
-        const { cartId, clearCart } = get();
-        if (!cartId) return null;
+        const { cartId, clearCart, items } = get();
+        if (!cartId || items.some((i) => !isStorefrontVariantSellable(i.variantId, i.product.node.tags))) return null;
         set({ isSyncing: true });
         try {
           const live = await fetchLiveCart(cartId);
@@ -136,9 +144,41 @@ export const useCartStore = create<CartStore>()(
             clearCart();
             return null;
           }
-          const byVariant = new Map(live.lines.map((l) => [l.variantId, l]));
+          if (live.lines.some((line) => !isStorefrontVariantSellable(line.variantId, line.tags))) return null;
+          if (live.lines.some((line) => isReportVariant(line.variantId) && line.quantity !== 1))
+            throw new Error("Each personalized report must have quantity one before checkout.");
+          let verifiedLive = live;
+          if (live.lines.some((line) => isReportVariant(line.variantId))) {
+            // Only the signed-in owner of a server-saved analysis can initiate a report purchase.
+            const analysisId = typeof sessionStorage === "undefined" ? null : sessionStorage.getItem(SAVED_ANALYSIS_SESSION_KEY);
+            if (!analysisId) throw new Error("Analyze and privately save a notice before purchasing a personalized report.");
+            const { data } = await supabase.auth.getSession();
+            const token = data.session?.access_token;
+            if (!token) throw new Error("Sign in before purchasing a personalized report.");
+            const claim = await createMyPurchaseClaim({
+              data: { analysisId },
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            if (claim.state !== "ok") throw new Error("We could not verify your saved analysis. Report checkout is unavailable.");
+            if (!(await attachReportClaimToCart(cartId, claim.nonce, live.attributes)))
+              throw new Error("Shopify did not accept the order-to-analysis binding. No checkout started.");
+            const confirmed = await fetchLiveCart(cartId);
+            if (!confirmed || confirmed.attributes.filter((a) => a.key === CLAIM_ATTRIBUTE_KEY && a.value === claim.nonce).length !== 1)
+              throw new Error("Shopify did not confirm the report claim. No checkout started.");
+            verifiedLive = confirmed;
+          } else if (live.attributes.some((a) => a.key === CLAIM_ATTRIBUTE_KEY)) {
+            // A report item may have been removed from a previously claimed cart.
+            // Never carry its old entitlement hint into an unrelated purchase.
+            if (!(await clearReportClaimFromCart(cartId, live.attributes)))
+              throw new Error("Shopify did not clear the old report binding. No checkout started.");
+            const confirmed = await fetchLiveCart(cartId);
+            if (!confirmed || confirmed.attributes.some((a) => a.key === CLAIM_ATTRIBUTE_KEY))
+              throw new Error("Shopify did not clear the old report binding. No checkout started.");
+            verifiedLive = confirmed;
+          }
+          const byVariant = new Map(verifiedLive.lines.map((l) => [l.variantId, l]));
           set({
-            checkoutUrl: live.checkoutUrl,
+            checkoutUrl: verifiedLive.checkoutUrl,
             items: get().items
               .filter((i) => byVariant.has(i.variantId))
               .map((i) => {
@@ -146,7 +186,7 @@ export const useCartStore = create<CartStore>()(
                 return { ...i, lineId: l.lineId, quantity: l.quantity, price: l.price };
               }),
           });
-          return live.checkoutUrl;
+          return verifiedLive.checkoutUrl;
         } finally {
           set({ isSyncing: false });
         }

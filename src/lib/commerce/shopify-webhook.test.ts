@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createHmac } from "node:crypto";
-import { gateOrdersPaidWebhook } from "./shopify-webhook";
+import { gateOrdersPaidWebhook, hasReportClaimAttribute } from "./shopify-webhook";
 import { TRUTH_WEAVER_SHOPIFY_DOMAIN } from "./shopify-order-proof";
 
 const secret = "test-secret";
@@ -28,5 +28,21 @@ describe("orders/paid webhook gate", () => {
   it("accepts a valid signed orders/paid message", async () => {
     expect(await gateOrdersPaidWebhook({ rawBody: body, headers: headers(sign(body)), secret }))
       .toEqual({ ok: true, orderGid: "gid://shopify/Order/123", customerGid: "gid://shopify/Customer/9" });
+  });
+});
+
+describe("paid report claim routing hints", () => {
+  it("routes even a malformed claim to the strict verifier rather than legacy entitlements", () => {
+    expect(hasReportClaimAttribute(JSON.stringify({
+      note_attributes: [{ name: "_tw_claim", value: "malformed" }],
+    }))).toBe(true);
+  });
+
+  it("preserves legacy behavior for orders with no report claim", () => {
+    expect(hasReportClaimAttribute(body)).toBe(false);
+    expect(hasReportClaimAttribute(JSON.stringify({
+      note_attributes: [{ name: "gift", value: "hello" }],
+    }))).toBe(false);
+    expect(hasReportClaimAttribute("{bad-json")).toBe(false);
   });
 });

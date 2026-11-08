@@ -52,6 +52,8 @@ export async function verifyFreshTruthWeaverPurchase(
   dependencies: {
     adminToken?: string;
     request?: typeof fetch;
+    /** Webhook callers pass a value under Shopify's 5s delivery window. Default keeps the snapshot path unchanged. */
+    timeoutMs?: number;
   } = {},
 ): Promise<PaymentProofDecision> {
   const denied: PaymentProofDecision = { granted: false, reason: "missing_proof" };
@@ -67,12 +69,13 @@ export async function verifyFreshTruthWeaverPurchase(
       {
         method: "POST",
         redirect: "error",
+        cache: "no-store",
         headers: {
           "Content-Type": "application/json",
           "X-Shopify-Access-Token": token,
         },
         body: JSON.stringify({ query: VERIFY_ORDER, variables: { id: orderId } }),
-        signal: AbortSignal.timeout(8_000),
+        signal: AbortSignal.timeout(dependencies.timeoutMs ?? 8_000),
       },
     );
     if (!response.ok) return denied;

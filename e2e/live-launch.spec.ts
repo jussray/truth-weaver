@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 const liveUrl = process.env.TRUTH_WEAVER_LIVE_URL;
+const requireCatalog = process.env.TRUTH_WEAVER_REQUIRE_CATALOG === "true";
 const permittedHosts = new Set([
   "www.truthweaver.jussco.company",
   "truthweaver.jussco.company",
@@ -18,9 +19,10 @@ test.describe("Truth Weaver live domain (read-only)", () => {
   });
 
   test("answers a synthetic triage question through the live server function", async ({ page }) => {
-    await page.goto(new URL("/", liveUrl).href, { waitUntil: "networkidle" });
+    await page.goto(new URL("/", liveUrl).href, { waitUntil: "domcontentloaded" });
     expect(permittedHosts.has(new URL(page.url()).hostname)).toBe(true);
-    // Synthetic, non-private input. Fails closed: the error banner means the AI path is not configured.
+    // Real deployed server function, synthetic non-private input; never mock success.
+    await expect(page.getByTestId("triage-input")).toBeEnabled({ timeout: 20_000 });
     await page.getByTestId("triage-input").fill("Example only: a landlord kept a security deposit after move-out");
     await page.getByTestId("triage-submit").click();
     await expect(page.getByTestId("triage-result").or(page.getByTestId("triage-error"))).toBeVisible({ timeout: 45_000 });
@@ -32,6 +34,14 @@ test.describe("Truth Weaver live domain (read-only)", () => {
     await page.goto(new URL("/shop", liveUrl).href, { waitUntil: "domcontentloaded" });
     expect(permittedHosts.has(new URL(page.url()).hostname)).toBe(true);
     await expect(page.getByRole("heading", { name: "The Counsel Store" })).toBeVisible();
+    if (requireCatalog) {
+      // Explicit release-readiness mode: an empty or unavailable catalog cannot pass.
+      const grid = page.locator("[data-product-grid]");
+      await expect(grid).toBeVisible({ timeout: 30_000 });
+      await expect(grid.locator(":scope > *").first()).toBeVisible();
+      await expect(page.locator("[data-shop-unavailable]")).toHaveCount(0);
+      return;
+    }
     const catalog = page.locator("[data-product-grid], [data-shop-unavailable]");
     await expect(catalog).toBeVisible({ timeout: 30_000 });
     if (await page.locator("[data-shop-unavailable]").isVisible()) {

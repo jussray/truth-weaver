@@ -8,4 +8,4 @@ Disallow: /issues/
 Disallow: /fulfillment
 Disallow: /vendor-invite
 
-Sitemap: https://truthweaver.jussco.company/sitemap.xml
+Sitemap: https://www.truthweaver.jussco.company/sitemap.xml

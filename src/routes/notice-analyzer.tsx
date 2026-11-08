@@ -15,10 +15,13 @@ import {
 } from "lucide-react";
 
 import { SiteChrome } from "@/components/storefront/site-chrome";
+import { supabase } from "@/integrations/supabase/client";
+import { SAVED_ANALYSIS_SESSION_KEY } from "@/lib/commerce/report-catalog";
 import { extractNoticePdfText } from "@/lib/extract-notice-pdf";
 import { analyzeLegalNotice } from "@/lib/notice-analyzer.functions";
 import {
   NOTICE_TEXT_MAX,
+  noticeSubmitBlockReason,
   type NoticeAnalyzerInput,
   type NoticeAnalyzerResult,
 } from "@/lib/notice-analyzer";
@@ -47,9 +50,12 @@ function NoticeAnalyzerPage() {
   const [result, setResult] = useState<NoticeAnalyzerResult | null>(null);
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+  const [filePending, setFilePending] = useState(false);
   const [fileMessage, setFileMessage] = useState("");
   const [scanRejected, setScanRejected] = useState("");
   const [consent, setConsent] = useState(false);
+  const [saveForReport, setSaveForReport] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
   // Hydration gate: a file picked before React attaches its input handler can
   // be silently dropped on SSR pages. Accept uploads only after mount.
   const [uploadReady, setUploadReady] = useState(false);
@@ -60,11 +66,6 @@ function NoticeAnalyzerPage() {
   }
 
   async function handleNoticeFile(event: ChangeEvent<HTMLInputElement>) {
-    setFileMessage("");
-    setScanRejected("");
-    setResult(null);
-    setConsent(false);
-    updateField("noticeText", "");
     const file = event.currentTarget.files?.[0];
     event.currentTarget.value = "";
     if (!file) return;
@@ -76,6 +77,13 @@ function NoticeAnalyzerPage() {
       setFileMessage("Supported: PDF, photo (PNG/JPG/WebP), or .txt.");
       return;
     }
+    // A rejected or canceled replacement must never erase a previously drafted notice.
+    // A valid replacement revokes consent while it is being read on the device.
+    // A rejected scan stays blocking until a later file loads clearly or the visitor edits the text.
+    setResult(null);
+    setConsent(false);
+    setFilePending(true);
+    setFileMessage("Reading the selected document on this device...");
     const ocrNote = "Read automatically — check every date, name and amount against the original before analysis.";
 
     try {
@@ -84,50 +92,72 @@ function NoticeAnalyzerPage() {
         const text = await file.text();
         if (text.length > NOTICE_TEXT_MAX) throw new Error("Notice text is over the 25,000-character limit.");
         updateField("noticeText", text);
+        setScanRejected("");
         setFileMessage(`Loaded ${file.name}. Review the text before analysis.`);
       } else if (isImage) {
         const { ocrNoticeImage } = await import("@/lib/ocr-notice");
         const { text, averageConfidence } = await ocrNoticeImage(file, setFileMessage);
         updateField("noticeText", text);
+        setScanRejected("");
         setFileMessage(`Scanned ${file.name}. Estimated reading clarity ${Math.round(averageConfidence)}%. ${ocrNote}`);
       } else {
         setFileMessage("Extracting selectable text locally. No notice has been submitted.");
         try {
           const { text, pages } = await extractNoticePdfText(file);
           updateField("noticeText", text);
+          setScanRejected("");
           setFileMessage(`Loaded ${file.name} (${pages} page${pages === 1 ? "" : "s"}). Review the text before analysis.`);
         } catch (cause) {
           if (!(cause instanceof Error) || !cause.message.startsWith("No sufficient selectable text")) throw cause;
           const { ocrNoticePdf } = await import("@/lib/ocr-notice");
           const { text, averageConfidence } = await ocrNoticePdf(file, setFileMessage);
           updateField("noticeText", text);
+          setScanRejected("");
           setFileMessage(`Scanned ${file.name}. Estimated reading clarity ${Math.round(averageConfidence)}%. ${ocrNote}`);
         }
       }
     } catch (cause) {
       if (cause instanceof Error && cause.name === "OcrUnreadableError") {
-        updateField("noticeText", "");
         setScanRejected(cause.message);
         setFileMessage("Scan rejected. Nothing was analyzed.");
         return;
       }
       setFileMessage(cause instanceof Error ? cause.message : "The document could not be read. Paste the text instead.");
+    } finally {
+      setFilePending(false);
     }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!consent) {
-      setError("Consent to sending the reviewed notice text for analysis is required.");
+    const blocked = noticeSubmitBlockReason({ filePending, scanRejected: Boolean(scanRejected), consent });
+    if (blocked) {
+      setError(blocked);
       return;
     }
     setPending(true);
     setError("");
     setResult(null);
+    setSaveMessage("");
+    // Do not accidentally use the previous notice when starting a new analysis.
+    try { sessionStorage.removeItem(SAVED_ANALYSIS_SESSION_KEY); } catch { /* browser storage may be disabled */ }
 
     try {
-      const response = await analyzeLegalNotice({ data: form });
+      const authToken = saveForReport ? (await supabase.auth.getSession()).data.session?.access_token : null;
+      const response = await analyzeLegalNotice(authToken
+        ? { data: form, headers: { Authorization: `Bearer ${authToken}` } }
+        : { data: form });
       setResult(response);
+      if (saveForReport) {
+        if (response.savedAnalysisId) {
+          try { sessionStorage.setItem(SAVED_ANALYSIS_SESSION_KEY, response.savedAnalysisId); } catch { /* browser storage disabled */ }
+          setSaveMessage("Analysis saved privately to your account for a personalized report.");
+        } else {
+          setSaveMessage(authToken
+            ? "Analysis completed but could not be saved for purchase. Please retry before checkout."
+            : "Analysis completed, but you must sign in and analyze again to save it for a personalized report.");
+        }
+      }
       try {
         // Session-only, this tab only. Raw notice text is never stored.
         sessionStorage.setItem(COUNSEL_STORAGE_KEY, JSON.stringify(toStoredAnalysis(form, response)));
@@ -178,7 +208,7 @@ function NoticeAnalyzerPage() {
 
       <section className="bg-ink px-5 py-12 sm:px-6 lg:py-16">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr]">
-          <form onSubmit={handleSubmit} inert={!uploadReady} aria-busy={!uploadReady} className="space-y-5" data-testid="notice-analyzer-form">
+          <form onSubmit={handleSubmit} inert={!uploadReady} aria-busy={!uploadReady || filePending} className="space-y-5" data-testid="notice-analyzer-form">
             <div className="rounded-2xl border border-gold/20 bg-forest-deep/35 p-5">
               <h2 className="font-serif text-2xl text-parchment">Where did this notice come from?</h2>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -261,7 +291,10 @@ function NoticeAnalyzerPage() {
                 maxLength={NOTICE_TEXT_MAX}
                 rows={14}
                 value={form.noticeText}
-                onChange={(event) => updateField("noticeText", event.currentTarget.value)}
+                onChange={(event) => {
+                  setScanRejected("");
+                  updateField("noticeText", event.currentTarget.value);
+                }}
                 placeholder="Paste the notice text here..."
                 className="mt-4 w-full resize-y rounded-xl border border-parchment/15 bg-ink px-4 py-3 text-sm leading-6 text-parchment outline-none placeholder:text-parchment/30 focus:border-gold/60"
               />
@@ -281,10 +314,21 @@ function NoticeAnalyzerPage() {
               />
               I reviewed the notice text and agree to send that text and the details I entered for AI analysis. Remove private details that are not needed before continuing.
             </label>
+            <label className="flex items-start gap-3 text-sm leading-6 text-parchment/75">
+              <input
+                type="checkbox"
+                data-testid="save-analysis-opt-in"
+                checked={saveForReport}
+                onChange={(event) => setSaveForReport(event.currentTarget.checked)}
+                className="mt-1 accent-gold"
+              />
+              Save the AI analysis (not the raw notice text) privately to my signed-in account for a personalized paid report. Optional.
+            </label>
+            {saveMessage && <p role="status" className="text-sm text-gold">{saveMessage}</p>}
             <button
               data-testid="analyze-notice"
               type="submit"
-              disabled={pending || !consent}
+              disabled={pending || noticeSubmitBlockReason({ filePending, scanRejected: Boolean(scanRejected), consent }) !== null}
               className="foil-surface inline-flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 font-bold text-ink disabled:cursor-wait disabled:opacity-60"
             >
               {pending ? <LoaderCircle className="h-5 w-5 animate-spin" aria-hidden /> : <FileSearch className="h-5 w-5" aria-hidden />}
