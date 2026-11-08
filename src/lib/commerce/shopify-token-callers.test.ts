@@ -20,8 +20,8 @@ function request(signed = true) {
       "x-shopify-hmac-sha256": createHmac("sha256", signed ? "fixture-hmac" : "wrong").update(body).digest("base64") } });
 }
 describe("token caller negative paths: fixtures are not payment proof", () => {
-  it("signed webhook without Admin token records nothing", async () => {
-    const response = await post({ request: request() }); expect(response.status).toBe(202);
+  it("signed webhook without Admin token is retryable and records nothing", async () => {
+    const response = await post({ request: request() }); expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ recorded: false, reason: "not_verifiable" });
     expect(mocks.resolve).toHaveBeenCalledWith(); expect(mocks.from).not.toHaveBeenCalled();
   });
@@ -33,6 +33,25 @@ describe("token caller negative paths: fixtures are not payment proof", () => {
   it("bad HMAC remains 401 before token/storage access", async () => {
     const response = await post({ request: request(false) }); expect(response.status).toBe(401);
     expect(mocks.resolve).not.toHaveBeenCalled(); expect(mocks.from).not.toHaveBeenCalled();
+  });
+  it("rejects over-limit UTF-8 bytes before HMAC or Admin reads, even when text has fewer characters", async () => {
+    const rawBody = JSON.stringify({
+      admin_graphql_api_id: "gid://shopify/Order/123",
+      customer: { admin_graphql_api_id: "gid://shopify/Customer/9" },
+      padding: "é".repeat(500_000),
+    });
+    expect(rawBody.length).toBeLessThan(1_000_000);
+    expect(new TextEncoder().encode(rawBody).byteLength).toBeGreaterThan(1_000_000);
+    const response = await post({ request: new Request("https://www.truthweaver.jussco.company/api/public/shopify/orders-paid", {
+      method: "POST", body: rawBody,
+      headers: {
+        "x-shopify-shop-domain": TRUTH_WEAVER_SHOPIFY_DOMAIN,
+        "x-shopify-topic": "orders/paid",
+        "x-shopify-hmac-sha256": createHmac("sha256", "fixture-hmac").update(rawBody).digest("base64"),
+      },
+    }) });
+    expect(response.status).toBe(413);
+    expect(mocks.resolve).not.toHaveBeenCalled();
   });
   it("purchase proof denies missing token without a Shopify request", async () => {
     const fetcher = vi.fn(); vi.stubGlobal("fetch", fetcher);
