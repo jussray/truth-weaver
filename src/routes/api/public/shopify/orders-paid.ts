@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { gateOrdersPaidWebhook, readShopifyWebhookBody } from "@/lib/commerce/shopify-webhook";
+import { gateOrdersPaidWebhook, hasReportClaimAttribute, readShopifyWebhookBody } from "@/lib/commerce/shopify-webhook";
 import { ungrantedStatus } from "@/lib/commerce/shopify-webhook-status";
 
 /** Keeps the Admin read inside Shopify's 5s delivery window, leaving room for the binding lookup and insert. */
@@ -35,12 +35,7 @@ export const Route = createFileRoute("/api/public/shopify/orders-paid")({
 
         // A Shopify cart claim is only a routing hint. The new report path independently
         // re-reads the paid order through Admin before granting anything.
-        const { CLAIM_ATTRIBUTE_KEY } = await import("@/lib/commerce/report-catalog");
-        const payload = JSON.parse(rawBody) as {
-          note_attributes?: Array<{ name?: unknown; key?: unknown; value?: unknown }>;
-        };
-        const hasReportClaim = Array.isArray(payload.note_attributes)
-          && payload.note_attributes.some((a) => a?.name === CLAIM_ATTRIBUTE_KEY || a?.key === CLAIM_ATTRIBUTE_KEY);
+        const hasReportClaim = hasReportClaimAttribute(rawBody);
         if (hasReportClaim) {
           try {
             const { processPaidOrderOnServer } = await import("@/lib/commerce/order-reports.server");
