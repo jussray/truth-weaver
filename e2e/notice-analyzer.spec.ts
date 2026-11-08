@@ -11,10 +11,10 @@ test("legal notice analyzer is source-bound and does not fabricate a result befo
   // The SSR form is inert until its React input handlers are attached.
   await expect(page.locator('input[type="file"]')).toBeEnabled();
 
-  await expect(page.getByRole("heading", { level: 1, name: /Pull the signal out of a legal notice/i })).toBeVisible();
-  await expect(page.getByTestId("notice-authority")).toContainText("NON-AUTHORIZING");
+  await expect(page.getByRole("heading", { level: 1, name: "Understand your legal notice." })).toBeVisible();
+  await expect(page.getByTestId("notice-authority")).toContainText("Research only — not permission to act");
   await expect(page.getByTestId("notice-authority")).toContainText("GOVERNING LAW IS THE AUTHORITY");
-  await expect(page.getByText(/OCR is machine reading, not verification/i)).toBeVisible();
+  await expect(page.getByText(/Automatic reading is not verification/i)).toBeVisible();
 
   await page.getByTestId("jurisdiction-type").selectOption("state");
   await page.getByTestId("jurisdiction-detail").fill("Pennsylvania");
@@ -70,7 +70,7 @@ test("extracts a real text PDF before analysis, without sending or inventing leg
   await expect(page.getByTestId("analysis-result")).toHaveCount(0);
 });
 
-test("image-only PDF does not pretend to have been transcribed", async ({ page }) => {
+test("blank PDF is rejected without starting slow OCR or inventing text", async ({ page }) => {
   await page.goto("/notice-analyzer");
   await expect(page.locator('input[type="file"]')).toBeEnabled();
   await page.locator('input[type="file"]').setInputFiles({
@@ -78,6 +78,50 @@ test("image-only PDF does not pretend to have been transcribed", async ({ page }
     mimeType: "application/pdf",
     buffer: textPdf(""),
   });
-  await expect(page.getByTestId("notice-file-status")).toContainText(/Could not read enough text|No sufficient selectable text|Scanned PDFs are limited/i, { timeout: 60000 });
+  // An unreadable PDF may fail in extraction or be rejected by the OCR quality gate.
+  // Both outcomes must block analysis, never invent scanned text or legal conclusions.
+  await expect(page.getByTestId("notice-file-status")).toContainText(/Blank PDF has no visible text|Scan rejected|Could not read enough text|No sufficient selectable text|Scanned PDFs are limited/i, { timeout: 60000 });
   await expect(page.getByTestId("notice-text")).toHaveValue("");
+  await expect(page.getByTestId("analysis-result")).toHaveCount(0);
+  await expect(page.getByTestId("analysis-empty")).toBeVisible();
+});
+
+test("canceling the file picker or choosing an unsupported file preserves the drafted notice", async ({ page }) => {
+  await page.goto("/notice-analyzer");
+  const input = page.locator('input[type="file"]');
+  const noticeText = page.getByTestId("notice-text");
+  await expect(input).toBeEnabled();
+  const draft = "Drafted notice text must survive picker cancellation and unsupported file choices without loss of work.";
+  await noticeText.fill(draft);
+
+  await input.setInputFiles([]);
+  await expect(noticeText).toHaveValue(draft);
+
+  await input.setInputFiles({ name: "invalid.csv", mimeType: "text/csv", buffer: Buffer.from("untrusted csv") });
+  await expect(page.getByTestId("notice-file-status")).toContainText("Supported: PDF");
+  await expect(noticeText).toHaveValue(draft);
+});
+
+test("a failed local file read preserves the previous draft but requires renewed consent", async ({ page }) => {
+  await page.goto("/notice-analyzer");
+  const input = page.locator('input[type="file"]');
+  const noticeText = page.getByTestId("notice-text");
+  // Wait for SSR hydration before typing: otherwise React can overwrite a pre-hydration draft.
+  await expect(input).toBeEnabled();
+  const draft = "Existing pasted notice content should not disappear when the replacement file is too large.";
+  await noticeText.fill(draft);
+  await expect(noticeText).toHaveValue(draft);
+  await page.getByTestId("notice-consent").check();
+  await expect(noticeText).toHaveValue(draft);
+
+  await input.setInputFiles({
+    name: "oversized.txt",
+    mimeType: "text/plain",
+    buffer: Buffer.alloc(100_001, "x"),
+  });
+
+  await expect(page.getByTestId("notice-file-status")).toContainText("Text file is too large");
+  await expect(noticeText).toHaveValue(draft);
+  await expect(page.getByTestId("notice-consent")).not.toBeChecked();
+  await expect(page.getByTestId("analyze-notice")).toBeDisabled();
 });

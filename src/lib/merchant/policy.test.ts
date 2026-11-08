@@ -24,3 +24,22 @@ describe("merchant policy", () => {
     expect(JSON.stringify(out)).not.toMatch(/a@b\.c|1 St/);
   });
 });
+
+import { priceChangeMessage, requiresTypedConfirmation } from "./policy";
+
+describe("price confirmation tiers", () => {
+  it("routine raise up to 25% is one-click", () => {
+    expect(requiresTypedConfirmation("10.00", "12.50")).toBe(false);
+  });
+  it("raise over 25% needs the typed phrase", () => {
+    expect(requiresTypedConfirmation("10.00", "12.51")).toBe(true);
+  });
+  it("any price decrease needs the typed phrase", () => {
+    expect(requiresTypedConfirmation("10.00", "9.99")).toBe(true);
+  });
+  it("confirmation message names the exact change", () => {
+    expect(priceChangeMessage("Snapshot — Default", "10.00", "12.00")).toBe(
+      "Price for Snapshot — Default changed from $10.00 to $12.00.",
+    );
+  });
+});

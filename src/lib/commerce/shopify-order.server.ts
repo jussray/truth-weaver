@@ -1,4 +1,5 @@
 import { type NoticeOffer } from "../notice-offers";
+import { getTruthWeaverShopifyAdminToken } from "./shopify-admin-token.server";
 import {
   TRUTH_WEAVER_SHOPIFY_DOMAIN,
   evaluatePaidNoticeOrder,
@@ -11,7 +12,7 @@ import {
  * Never pass an Admin token to the client or persist order PII in a report.
  *
  * Required production prerequisites:
- * - A scoped SHOPIFY_ADMIN_ACCESS_TOKEN for this exact Truth Weaver shop
+ * - Scoped Admin credentials for this exact Truth Weaver shop
  * - A server-verified Shopify customer ID bound to a real Truth Weaver user
  * - Secure per-user persistence, revocation, and report-delivery handling
  * Until those are proven, the products stay DRAFT and downloads stay disabled.
@@ -51,13 +52,15 @@ export async function verifyFreshTruthWeaverPurchase(
   dependencies: {
     adminToken?: string;
     request?: typeof fetch;
+    /** Webhook callers pass a value under Shopify's 5s delivery window. Default keeps the snapshot path unchanged. */
+    timeoutMs?: number;
   } = {},
 ): Promise<PaymentProofDecision> {
   const denied: PaymentProofDecision = { granted: false, reason: "missing_proof" };
   if (!/^gid:\/\/shopify\/Order\/[1-9][0-9]*$/.test(orderId)) return denied;
   if (!trustedShopifyCustomerId) return { granted: false, reason: "customer_not_bound" };
 
-  const token = dependencies.adminToken ?? process.env["SHOPIFY_ADMIN_ACCESS_TOKEN"];
+  const token = dependencies.adminToken ?? await getTruthWeaverShopifyAdminToken();
   if (!token) return denied;
 
   try {
@@ -65,12 +68,14 @@ export async function verifyFreshTruthWeaverPurchase(
       "https://" + TRUTH_WEAVER_SHOPIFY_DOMAIN + "/admin/api/2026-10/graphql.json",
       {
         method: "POST",
+        redirect: "error",
+        cache: "no-store",
         headers: {
           "Content-Type": "application/json",
           "X-Shopify-Access-Token": token,
         },
         body: JSON.stringify({ query: VERIFY_ORDER, variables: { id: orderId } }),
-        signal: AbortSignal.timeout(8_000),
+        signal: AbortSignal.timeout(dependencies.timeoutMs ?? 8_000),
       },
     );
     if (!response.ok) return denied;

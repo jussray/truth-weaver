@@ -6,8 +6,8 @@ import {
   type CustomerLinkInput,
 } from "./shopify-customer-link";
 
-const CANONICAL_REDIRECT = "https://truthweaver.jussco.company/account";
-const CUSTOMER_API_ORIGIN = "https://truthweaver.jussco.company";
+const CANONICAL_REDIRECT = "https://www.truthweaver.jussco.company/account";
+const CUSTOMER_API_ORIGIN = "https://www.truthweaver.jussco.company";
 const DISCOVERY_HOST = TRUTH_WEAVER_SHOPIFY_DOMAIN;
 
 async function discover<T extends Record<string, unknown>>(path: string): Promise<T> {
@@ -60,7 +60,7 @@ export async function linkShopifyCustomerAccount(input: CustomerLinkInput) {
             Authorization: customerToken,
             // Shopify's Customer Account API checks allowed JavaScript origins.
             Origin: CUSTOMER_API_ORIGIN,
-            "User-Agent": "TruthWeaver/1.0 (https://truthweaver.jussco.company)",
+            "User-Agent": "TruthWeaver/1.0 (https://www.truthweaver.jussco.company)",
           },
           body: JSON.stringify({ query: "query TruthWeaverBuyerIdentity { customer { id } }" }),
         });

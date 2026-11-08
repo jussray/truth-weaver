@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/seo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 
@@ -5,16 +6,8 @@ import { CounselPage, StateBox, tw } from "@/components/counsel/page";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/forgot-password")({
-  head: () => ({
-    meta: [
-      { title: "Reset password — Truth Weaver Counsel" },
-      { name: "description", content: "Request a password reset link for your Truth Weaver account." },
-      { property: "og:title", content: "Reset password — Truth Weaver Counsel" },
-      { property: "og:description", content: "Request a password reset link." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () =>
+    pageHead({ path: '/forgot-password', title: 'Reset password — Truth Weaver Counsel', description: 'Private Truth Weaver account page.', noindex: true }),
   component: ForgotPage,
 });
 

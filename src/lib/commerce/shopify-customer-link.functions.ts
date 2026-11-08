@@ -9,7 +9,7 @@ export const connectShopifyCustomer = createServerFn({ method: "POST" })
     supabaseAccessToken: z.string().min(1).max(8192),
     authorizationCode: z.string().min(1).max(2048),
     codeVerifier: z.string().regex(/^[A-Za-z0-9_-]{43,128}$/),
-    redirectUri: z.literal("https://truthweaver.jussco.company/account"),
+    redirectUri: z.literal("https://www.truthweaver.jussco.company/account"),
   }))
   .handler(async ({ data }) => {
     const { linkShopifyCustomerAccount } = await import("./shopify-customer-link.server");

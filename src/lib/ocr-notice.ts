@@ -1,4 +1,10 @@
 import { NOTICE_TEXT_MAX } from "./notice-analyzer";
+import { assessOcrQuality } from "./ocr-quality";
+
+/** Unreadable OCR must block legal notice analysis. */
+export class OcrUnreadableError extends Error {
+  override name = "OcrUnreadableError";
+}
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const MAX_OCR_PAGES = 6;
@@ -35,6 +41,8 @@ async function recognize(images: Array<Blob | HTMLCanvasElement>, onProgress: Oc
       confidence.push(data.confidence);
     }
     const text = parts.join("\n\n").trim();
+    const quality = assessOcrQuality(confidence);
+    if (!quality.ok) throw new OcrUnreadableError(quality.reason);
     const averageConfidence = confidence.reduce((sum, value) => sum + value, 0) / confidence.length;
     return { text, averageConfidence, qualityWarning: assessOcrQuality(text, averageConfidence) };
   } finally {
@@ -74,6 +82,23 @@ export async function ocrNoticePdf(file: File, onProgress: OcrProgress) {
       await page.render({ canvas, viewport }).promise;
       canvases.push(canvas);
     }
+    // Avoid loading OCR for a wholly blank PDF. Rendering can succeed even when
+    // there are no pixels to recognize (e.g. a PDF containing an empty text run).
+    // Treat transparent and near-white pixels as paper, not extracted evidence.
+    const hasInk = canvases.some((canvas) => {
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return true; // If inspection is unavailable, do not guess blank.
+      const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      for (let i = 0; i < pixels.length; i += 4) {
+        const alpha = pixels[i + 3] ?? 0;
+        const red = pixels[i] ?? 255;
+        const green = pixels[i + 1] ?? 255;
+        const blue = pixels[i + 2] ?? 255;
+        if (alpha > 12 && (red < 245 || green < 245 || blue < 245)) return true;
+      }
+      return false;
+    });
+    if (!hasInk) throw new Error("Blank PDF has no visible text or imagery to read. Paste the notice text or choose a readable scan.");
     const result = await recognize(canvases, onProgress);
     return { ...result, text: checkText(result.text) };
   } finally {

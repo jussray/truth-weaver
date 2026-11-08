@@ -44,7 +44,8 @@ function AccountPage() {
           <p className="mt-2 text-sm text-parchment/70">Connect your Shopify customer login through the store's secure sign-in to match purchases to your Truth Weaver account. Connecting does not count as payment or unlock a report.</p>
           <div className="mt-4"><ShopifyCustomerConnect /></div>
           <Link to="/fulfillment" className={`${tw.ghost} mt-4`}>Order status, tracking and returns</Link>
-          <div className="mt-4"><StateBox kind="empty">Purchase and report availability are verified individually in Order status. Linking your store account alone does not grant access; only an eligible paid order with a private report can be downloaded.</StateBox></div>
+          <a href="/merchant/manage" className={`${tw.ghost} ml-2 mt-4`}>Merchant management (assigned role required)</a>
+          <div className="mt-4"><StateBox kind="empty">No order proof or report entitlement is available to this application yet. Snapshot downloads stay locked until verified fulfillment is deployed.</StateBox></div>
         </section>
       </div>
     </CounselPage>

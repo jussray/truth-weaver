@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { TRUTH_WEAVER_SHOPIFY_DOMAIN, NOTICE_VARIANTS } from "./shopify-order-proof";
 import { selectPaidSnapshots, type CustomerOrdersPage } from "./snapshot-reconciliation";
+import { getTruthWeaverShopifyAdminToken } from "./shopify-admin-token.server";
 
 /** Run only from authenticated server action. No client order IDs or emails.
  * Entitlements are not reports; delivery still requires a fresh paid-order check.
@@ -20,7 +21,7 @@ export async function reconcileOwnSnapshotPurchases(authAccessToken: string):
     if (bindingError) return deny("unavailable");
     if (!binding) return deny("not_linked");
 
-    const adminToken = process.env["SHOPIFY_ADMIN_ACCESS_TOKEN"];
+    const adminToken = await getTruthWeaverShopifyAdminToken();
     if (!adminToken) return deny("unavailable");
     const query = [
       "query TruthWeaverOwnedSnapshots($id: ID!) {",

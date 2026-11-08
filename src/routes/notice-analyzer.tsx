@@ -1,4 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Faq, NOTICE_FAQ } from "@/components/storefront/faq";
+import { pageHead } from "@/lib/seo";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import {
@@ -17,22 +19,16 @@ import { extractNoticePdfText } from "@/lib/extract-notice-pdf";
 import { analyzeLegalNotice } from "@/lib/notice-analyzer.functions";
 import {
   NOTICE_TEXT_MAX,
+  noticeSubmitBlockReason,
   type NoticeAnalyzerInput,
   type NoticeAnalyzerResult,
 } from "@/lib/notice-analyzer";
+import { COUNSEL_STORAGE_KEY, toStoredAnalysis } from "@/lib/counsel-document";
 
 export const Route = createFileRoute("/notice-analyzer")({
   component: NoticeAnalyzerPage,
-  head: () => ({
-    meta: [
-      { title: "Legal Notice Analyzer | Truth Weaver Counsel" },
-      {
-        name: "description",
-        content:
-          "Source-bound AI extraction of dates, demands, uncertainties, and questions to raise with counsel. Governing law is the authority.",
-      },
-    ],
-  }),
+  head: () =>
+    pageHead({ path: '/notice-analyzer', title: 'Legal Notice Analyzer: Understand a Notice | Truth Weaver Counsel', description: 'Got a landlord, court, debt or government notice? Add it to see the dates, demands and questions to ask a lawyer. Check every finding against the original notice and official law.', breadcrumbs: [{ name: "Home", path: "/" }, { name: 'Notice Analyzer', path: '/notice-analyzer' }] }),
 });
 
 type FormState = NoticeAnalyzerInput;
@@ -52,7 +48,9 @@ function NoticeAnalyzerPage() {
   const [result, setResult] = useState<NoticeAnalyzerResult | null>(null);
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+  const [filePending, setFilePending] = useState(false);
   const [fileMessage, setFileMessage] = useState("");
+  const [scanRejected, setScanRejected] = useState("");
   const [consent, setConsent] = useState(false);
   // Hydration gate: a file picked before React attaches its input handler can
   // be silently dropped on SSR pages. Accept uploads only after mount.
@@ -64,10 +62,6 @@ function NoticeAnalyzerPage() {
   }
 
   async function handleNoticeFile(event: ChangeEvent<HTMLInputElement>) {
-    setFileMessage("");
-    setResult(null);
-    setConsent(false);
-    updateField("noticeText", "");
     const file = event.currentTarget.files?.[0];
     event.currentTarget.value = "";
     if (!file) return;
@@ -79,7 +73,14 @@ function NoticeAnalyzerPage() {
       setFileMessage("Supported: PDF, photo (PNG/JPG/WebP), or .txt.");
       return;
     }
-    const ocrNote = "Machine-read (OCR) — check every date, name and amount against the original before analysis.";
+    // A rejected or canceled replacement must never erase a previously drafted notice.
+    // A valid replacement revokes consent while it is being read on the device.
+    // A rejected scan stays blocking until a later file loads clearly or the visitor edits the text.
+    setResult(null);
+    setConsent(false);
+    setFilePending(true);
+    setFileMessage("Reading the selected document on this device...");
+    const ocrNote = "Read automatically — check every date, name and amount against the original before analysis.";
 
     try {
       if (isPlainText) {
@@ -87,35 +88,47 @@ function NoticeAnalyzerPage() {
         const text = await file.text();
         if (text.length > NOTICE_TEXT_MAX) throw new Error("Notice text is over the 25,000-character limit.");
         updateField("noticeText", text);
+        setScanRejected("");
         setFileMessage(`Loaded ${file.name}. Review the text before analysis.`);
       } else if (isImage) {
         const { ocrNoticeImage } = await import("@/lib/ocr-notice");
         const { text, averageConfidence, qualityWarning } = await ocrNoticeImage(file, setFileMessage);
         updateField("noticeText", text);
-        setFileMessage(`Scanned ${file.name}. OCR confidence approximately ${Math.round(averageConfidence)}%. ${qualityWarning ?? ocrNote}`);
+        setScanRejected("");
+        setFileMessage(`Scanned ${file.name}. Estimated reading clarity ${Math.round(averageConfidence)}%. ${ocrNote}`);
       } else {
         setFileMessage("Extracting selectable text locally. No notice has been submitted.");
         try {
           const { text, pages } = await extractNoticePdfText(file);
           updateField("noticeText", text);
+          setScanRejected("");
           setFileMessage(`Loaded ${file.name} (${pages} page${pages === 1 ? "" : "s"}). Review the text before analysis.`);
         } catch (cause) {
           if (!(cause instanceof Error) || !cause.message.startsWith("No sufficient selectable text")) throw cause;
           const { ocrNoticePdf } = await import("@/lib/ocr-notice");
           const { text, averageConfidence, qualityWarning } = await ocrNoticePdf(file, setFileMessage);
           updateField("noticeText", text);
-          setFileMessage(`Scanned ${file.name}. OCR confidence approximately ${Math.round(averageConfidence)}%. ${qualityWarning ?? ocrNote}`);
+          setScanRejected("");
+          setFileMessage(`Scanned ${file.name}. Estimated reading clarity ${Math.round(averageConfidence)}%. ${ocrNote}`);
         }
       }
     } catch (cause) {
+      if (cause instanceof Error && cause.name === "OcrUnreadableError") {
+        setScanRejected(cause.message);
+        setFileMessage("Scan rejected. Nothing was analyzed.");
+        return;
+      }
       setFileMessage(cause instanceof Error ? cause.message : "The document could not be read. Paste the text instead.");
+    } finally {
+      setFilePending(false);
     }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!consent) {
-      setError("Consent to sending the reviewed notice text for analysis is required.");
+    const blocked = noticeSubmitBlockReason({ filePending, scanRejected: Boolean(scanRejected), consent });
+    if (blocked) {
+      setError(blocked);
       return;
     }
     setPending(true);
@@ -125,9 +138,15 @@ function NoticeAnalyzerPage() {
     try {
       const response = await analyzeLegalNotice({ data: form });
       setResult(response);
+      try {
+        // Session-only, this tab only. Raw notice text is never stored.
+        sessionStorage.setItem(COUNSEL_STORAGE_KEY, JSON.stringify(toStoredAnalysis(form, response)));
+      } catch {
+        // Storage can be unavailable (private mode / quota). The on-screen result is unaffected.
+      }
     } catch {
       setError(
-        "Analysis is unavailable right now. No legal conclusion was generated. Check the inputs and AI availability, then try again.",
+        "We couldn’t analyze this notice right now. No legal conclusion was generated. Check the details you entered, then try again.",
       );
     } finally {
       setPending(false);
@@ -145,10 +164,10 @@ function NoticeAnalyzerPage() {
               <FileSearch className="h-4 w-4" aria-hidden /> Legal Notice Analyzer
             </span>
             <h1 className="font-serif text-4xl font-semibold leading-tight text-parchment sm:text-5xl lg:text-6xl">
-              Pull the signal out of a legal notice.
+              Understand your legal notice.
             </h1>
             <p className="max-w-2xl text-base leading-7 text-parchment/75 sm:text-lg">
-              Extract stated dates, demands, uncertainties, and high-value questions to take to qualified counsel without turning AI output into law.
+              Review the dates and demands in your notice, see what needs checking, and prepare questions for a qualified lawyer. The sender’s claims are not proof of your legal obligations.
             </p>
           </div>
 
@@ -156,11 +175,11 @@ function NoticeAnalyzerPage() {
             <ShieldCheck className="h-8 w-8 text-gold" aria-hidden />
             <div>
               <div className="flex flex-wrap gap-2">
-                <span className="rounded-full border border-warn/50 px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-warn">NON-AUTHORIZING</span>
+                <span data-authority="non-authorizing" className="rounded-full border border-warn/50 px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-warn">Research only — not permission to act</span>
                 <span className="rounded-full border border-gold/50 px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-gold">GOVERNING LAW IS THE AUTHORITY</span>
               </div>
               <p className="mt-3 text-sm leading-6 text-parchment/75">
-                This is a research aid, not legal advice, representation, a filing, or verified governing law. Confirm deadlines, duties, and remedies against official sources and qualified counsel in the relevant jurisdiction.
+                This helps you read a notice. It is not legal advice, representation, a filing, or verified law. Confirm deadlines, duties, fees and available options with official sources and a qualified lawyer where the notice applies.
               </p>
             </div>
           </div>
@@ -169,26 +188,26 @@ function NoticeAnalyzerPage() {
 
       <section className="bg-ink px-5 py-12 sm:px-6 lg:py-16">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr]">
-          <form onSubmit={handleSubmit} inert={!uploadReady} aria-busy={!uploadReady} className="space-y-5" data-testid="notice-analyzer-form">
+          <form onSubmit={handleSubmit} inert={!uploadReady} aria-busy={!uploadReady || filePending} className="space-y-5" data-testid="notice-analyzer-form">
             <div className="rounded-2xl border border-gold/20 bg-forest-deep/35 p-5">
-              <h2 className="font-serif text-2xl text-parchment">1. Notice & jurisdiction</h2>
+              <h2 className="font-serif text-2xl text-parchment">Where did this notice come from?</h2>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <label className="grid gap-2 text-sm text-parchment/80">
-                  Jurisdiction layer
+                  Legal system
                   <select
                     data-testid="jurisdiction-type"
                     value={form.jurisdictionType}
                     onChange={(event) => updateField("jurisdictionType", event.currentTarget.value as FormState["jurisdictionType"])}
                     className="rounded-xl border border-parchment/15 bg-ink px-3 py-3 text-parchment outline-none focus:border-gold/60"
                   >
-                    <option value="" disabled>Choose jurisdiction layer *</option>
+                    <option value="" disabled>Choose the legal system *</option>
                     <option value="federal">U.S. Federal</option>
                     <option value="state">U.S. State / Territory</option>
                     <option value="international">International / Supranational</option>
                   </select>
                 </label>
                 <label className="grid gap-2 text-sm text-parchment/80">
-                  Jurisdiction detail {detailRequired ? "*" : "(optional)"}
+                  Country, state or region {detailRequired ? "*" : "(optional)"}
                   <input
                     data-testid="jurisdiction-detail"
                     required={detailRequired}
@@ -202,7 +221,7 @@ function NoticeAnalyzerPage() {
             </div>
 
             <div className="rounded-2xl border border-gold/20 bg-forest-deep/35 p-5">
-              <h2 className="font-serif text-2xl text-parchment">2. Document context</h2>
+              <h2 className="font-serif text-2xl text-parchment">About your document</h2>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <MetadataField label="Document title" value={form.documentTitle} onChange={(value) => updateField("documentTitle", value)} placeholder="Notice title" />
                 <MetadataField label="Document type" value={form.documentType} onChange={(value) => updateField("documentType", value)} placeholder="Demand, hearing notice, cure notice..." />
@@ -223,19 +242,28 @@ function NoticeAnalyzerPage() {
 
             <div className="rounded-2xl border border-gold/20 bg-forest-deep/35 p-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="font-serif text-2xl text-parchment">3. Notice text</h2>
+                <h2 className="font-serif text-2xl text-parchment">Add the notice</h2>
                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-gold/35 px-3 py-2 text-xs font-bold text-gold hover:bg-gold/10">
                   <Upload className="h-4 w-4" aria-hidden /> Load PDF / photo / .txt
                   <input type="file" accept=".pdf,application/pdf,.txt,text/plain,.png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" disabled={!uploadReady} onChange={handleNoticeFile} className="sr-only" />
                 </label>
               </div>
               <p className="mt-2 text-xs leading-5 text-parchment/55">
-                PDFs (up to 5 MB), photos and .txt are processed on your device first. Scanned PDFs (up to 6 pages) and photos are read with OCR, which can misread text. Review extracted text; it is sent to the server only when you choose Analyze.
+                PDFs (up to 5 MB), photos and .txt are read on your device first. Scanned PDFs (up to 6 pages) and photos are read automatically and may contain mistakes. After you consent and choose Analyze, the reviewed text and details you entered are sent for analysis; they do not stay only on your device.
               </p>
-              <p role="alert" className="mt-2 text-xs leading-5 text-warn">OCR is machine reading, not verification. Low confidence, missing words and misread dates are possible even when a confidence score looks high. Compare every deadline, amount and name with the original before consenting.</p>
+              <p role="alert" className="mt-2 text-xs leading-5 text-warn">Automatic reading is not verification. Scans below 85% estimated clarity are rejected. Even a clear scan may have missing words or incorrect dates. Compare every deadline, fee, amount and name with the original before consenting.</p>
               <p data-testid="notice-file-status" role="status" className="mt-2 min-h-5 text-xs text-gold-soft">
                 {fileMessage || (uploadReady ? "No document loaded. You can also paste text below." : "Preparing document upload...")}
               </p>
+              {scanRejected && (
+                <div data-testid="ocr-retake" role="alert" className="mt-3 flex gap-3 rounded-xl border border-danger/60 bg-danger/10 p-4 text-sm text-parchment">
+                  <AlertTriangle className="h-5 w-5 shrink-0 text-danger" aria-hidden />
+                  <div>
+                    <p className="font-bold text-danger">Retake required — scan too blurry</p>
+                    <p className="mt-1 leading-6">{scanRejected}</p>
+                  </div>
+                </div>
+              )}
               <textarea
                 data-testid="notice-text"
                 required
@@ -243,7 +271,10 @@ function NoticeAnalyzerPage() {
                 maxLength={NOTICE_TEXT_MAX}
                 rows={14}
                 value={form.noticeText}
-                onChange={(event) => updateField("noticeText", event.currentTarget.value)}
+                onChange={(event) => {
+                  setScanRejected("");
+                  updateField("noticeText", event.currentTarget.value);
+                }}
                 placeholder="Paste the notice text here..."
                 className="mt-4 w-full resize-y rounded-xl border border-parchment/15 bg-ink px-4 py-3 text-sm leading-6 text-parchment outline-none placeholder:text-parchment/30 focus:border-gold/60"
               />
@@ -261,16 +292,16 @@ function NoticeAnalyzerPage() {
                 onChange={(event) => setConsent(event.currentTarget.checked)}
                 className="mt-1 accent-gold"
               />
-              I reviewed the extracted notice text and consent to sending only that text and supplied context to the analysis server. Remove private details that are not needed.
+              I reviewed the notice text and agree to send that text and the details I entered for AI analysis. Remove private details that are not needed before continuing.
             </label>
             <button
               data-testid="analyze-notice"
               type="submit"
-              disabled={pending || !consent}
+              disabled={pending || noticeSubmitBlockReason({ filePending, scanRejected: Boolean(scanRejected), consent }) !== null}
               className="foil-surface inline-flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 font-bold text-ink disabled:cursor-wait disabled:opacity-60"
             >
               {pending ? <LoaderCircle className="h-5 w-5 animate-spin" aria-hidden /> : <FileSearch className="h-5 w-5" aria-hidden />}
-              {pending ? "Analyzing source text..." : "Analyze notice"}
+              {pending ? "Reading your notice..." : "Analyze notice"}
             </button>
 
             {error ? (
@@ -285,6 +316,7 @@ function NoticeAnalyzerPage() {
           </div>
         </div>
       </section>
+      <Faq id="notice-questions" title="Questions about the Notice Analyzer" items={NOTICE_FAQ} />
     </SiteChrome>
   );
 }
@@ -307,9 +339,9 @@ function EmptyResult() {
   return (
     <section data-testid="analysis-empty" className="rounded-3xl border border-gold/20 bg-forest-deep/30 p-6 sm:p-8">
       <p className="text-xs font-bold uppercase tracking-[0.2em] text-gold">Analysis workspace</p>
-      <h2 className="mt-3 font-serif text-3xl text-parchment">No generated conclusions yet.</h2>
+      <h2 className="mt-3 font-serif text-3xl text-parchment">Your notice review will appear here.</h2>
       <p className="mt-4 text-sm leading-6 text-parchment/65">
-        Results appear only after a successful server response. The interface never fabricates a local fallback when the AI gateway is unavailable or its output fails validation.
+        Add your notice and review the text before sending it. If analysis is unavailable, we’ll tell you instead of inventing an answer. Dates and demands still need checking against the original and official law.
       </p>
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
         {[
@@ -337,11 +369,18 @@ function AnalysisResult({ result }: { result: NoticeAnalyzerResult }) {
     <section data-testid="analysis-result" className="space-y-5 rounded-3xl border border-gold/30 bg-forest-deep/35 p-6 sm:p-8">
       <div>
         <div className="flex flex-wrap gap-2">
-          <span className="rounded-full border border-warn/50 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.15em] text-warn">{result.authority.status}</span>
+          <span data-authority-state={result.authority.status} className="rounded-full border border-warn/50 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.15em] text-warn">Research only — not permission to act</span>
           <span className="rounded-full border border-gold/50 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.15em] text-gold">{result.authority.statement}</span>
         </div>
         <h2 className="mt-4 font-serif text-3xl text-parchment">Notice analysis</h2>
         <p className="mt-2 text-xs leading-5 text-parchment/55">{result.authority.disclaimer}</p>
+        <Link
+          to="/fulfillment"
+          data-testid="open-counsel-document"
+          className="mt-4 inline-flex items-center gap-2 rounded-full border border-gold/50 px-4 py-2 text-sm font-semibold text-gold hover:bg-gold/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+        >
+          <FileSearch className="h-4 w-4" aria-hidden /> Open Counsel document (PDF)
+        </Link>
       </div>
 
       <ResultSection icon={Clock3} title="Critical dates & deadlines">
@@ -353,13 +392,13 @@ function AnalysisResult({ result }: { result: NoticeAnalyzerResult }) {
             </div>
             <p className="mt-2 text-sm text-gold-soft">{item.date ?? "No explicit date extracted"}</p>
             <p className="mt-2 text-xs leading-5 text-parchment/60">Evidence from supplied notice: {item.evidence}</p>
-            <p className="mt-2 text-[11px] font-semibold text-gold">SOURCE: USER-SUPPLIED NOTICE · LAW STATUS: UNVERIFIED</p>
+            <p className="mt-2 text-[11px] font-semibold text-gold">From your notice — not verified law</p>
             <p className="mt-2 text-[11px] font-semibold text-warn">Needs official verification</p>
           </article>
         )) : <p className="text-sm text-parchment/55">No explicit deadlines were extracted from the supplied text.</p>}
       </ResultSection>
 
-      <ResultSection icon={ListChecks} title="Obligations & demanded actions">
+      <ResultSection icon={ListChecks} title="What the sender asks you to do">
         {result.obligations.length ? result.obligations.map((item, index) => (
           <article key={`${item.action}-${index}`} className="rounded-xl border border-parchment/10 bg-ink/45 p-4">
             <p className="text-sm leading-6 text-parchment">{item.action}</p>
@@ -370,13 +409,13 @@ function AnalysisResult({ result }: { result: NoticeAnalyzerResult }) {
         )) : <p className="text-sm text-parchment/55">No demanded actions were extracted from the supplied text.</p>}
       </ResultSection>
 
-      <ResultSection icon={MessagesSquare} title="Questions for counsel">
+      <ResultSection icon={MessagesSquare} title="Questions for a lawyer">
         <ul className="space-y-2 text-sm leading-6 text-parchment/80">
           {result.questionsForCounsel.map((question) => <li key={question} className="rounded-xl border border-parchment/10 bg-ink/45 p-3">{question}</li>)}
         </ul>
       </ResultSection>
 
-      <ResultSection icon={AlertTriangle} title="Uncertainties & verification gaps">
+      <ResultSection icon={AlertTriangle} title="What still needs checking">
         <ul className="space-y-2 text-sm leading-6 text-parchment/80">
           {result.uncertainties.map((uncertainty) => <li key={uncertainty} className="rounded-xl border border-parchment/10 bg-ink/45 p-3">{uncertainty}</li>)}
         </ul>

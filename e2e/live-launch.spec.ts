@@ -1,7 +1,9 @@
 import { expect, test } from "@playwright/test";
 
 const liveUrl = process.env.TRUTH_WEAVER_LIVE_URL;
+const requireCatalog = process.env.TRUTH_WEAVER_REQUIRE_CATALOG === "true";
 const permittedHosts = new Set([
+  "www.truthweaver.jussco.company",
   "truthweaver.jussco.company",
   "fcr-truth-weaver.lovable.app",
 ]);
@@ -20,6 +22,14 @@ test.describe("Truth Weaver live domain (read-only)", () => {
     await page.goto(new URL("/shop", liveUrl).href, { waitUntil: "domcontentloaded" });
     expect(permittedHosts.has(new URL(page.url()).hostname)).toBe(true);
     await expect(page.getByRole("heading", { name: "The Counsel Store" })).toBeVisible();
+    if (requireCatalog) {
+      // Explicit release-readiness mode: an empty or unavailable catalog cannot pass.
+      const grid = page.locator("[data-product-grid]");
+      await expect(grid).toBeVisible({ timeout: 30_000 });
+      await expect(grid.locator(":scope > *").first()).toBeVisible();
+      await expect(page.locator("[data-shop-unavailable]")).toHaveCount(0);
+      return;
+    }
     const catalog = page.locator("[data-product-grid], [data-shop-unavailable]");
     await expect(catalog).toBeVisible({ timeout: 30_000 });
     if (await page.locator("[data-shop-unavailable]").isVisible()) {
