@@ -145,6 +145,8 @@ export const useCartStore = create<CartStore>()(
             return null;
           }
           if (live.lines.some((line) => !isStorefrontVariantSellable(line.variantId, line.tags))) return null;
+          if (live.lines.some((line) => isReportVariant(line.variantId) && line.quantity !== 1))
+            throw new Error("Each personalized report must have quantity one before checkout.");
           let verifiedLive = live;
           if (live.lines.some((line) => isReportVariant(line.variantId))) {
             // Only the signed-in owner of a server-saved analysis can initiate a report purchase.
