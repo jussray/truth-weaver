@@ -36,7 +36,7 @@ export function CartDrawer({ compact = false }: { compact?: boolean }) {
     } catch (error) {
       toast.error(error instanceof Error && error.message.includes("launch-held")
         ? "This cart includes an unreleased product. Remove it before checkout."
-        : error instanceof Error && /^(Analyze and privately save|Sign in before purchasing|We could not verify your saved analysis|Shopify did not)/.test(error.message)
+        : error instanceof Error && /^(Analyze and privately save|Sign in before purchasing|We could not verify your saved analysis|Shopify did not|Each personalized report)/.test(error.message)
           ? error.message
           : "Couldn't reach Shopify checkout. Please try again.");
     }
