@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { gateOrdersPaidWebhook } from "@/lib/commerce/shopify-webhook";
+import { gateOrdersPaidWebhook, readShopifyWebhookBody } from "@/lib/commerce/shopify-webhook";
 import { ungrantedStatus } from "@/lib/commerce/shopify-webhook-status";
 
 /** Keeps the Admin read inside Shopify's 5s delivery window, leaving room for the binding lookup and insert. */
@@ -19,10 +19,9 @@ export const Route = createFileRoute("/api/public/shopify/orders-paid")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const declared = Number(request.headers.get("content-length") ?? "0");
-        if (declared > MAX_BODY_BYTES) return new Response("Too large", { status: 413 });
-        const rawBody = await request.text();
-        if (rawBody.length > MAX_BODY_BYTES) return new Response("Too large", { status: 413 });
+        const body = await readShopifyWebhookBody(request, MAX_BODY_BYTES);
+        if (!body.ok) return new Response(body.status === 413 ? "Too large" : "Malformed body", { status: body.status });
+        const { rawBody } = body;
         const gate = await gateOrdersPaidWebhook({
           rawBody,
           secret: process.env["SHOPIFY_WEBHOOK_SECRET"],
