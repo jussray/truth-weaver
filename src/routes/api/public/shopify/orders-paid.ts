@@ -32,6 +32,27 @@ export const Route = createFileRoute("/api/public/shopify/orders-paid")({
           },
         });
         if (!gate.ok) return Response.json({ recorded: false, reason: gate.reason }, { status: gate.status });
+
+        // A Shopify cart claim is only a routing hint. The new report path independently
+        // re-reads the paid order through Admin before granting anything.
+        const { CLAIM_ATTRIBUTE_KEY } = await import("@/lib/commerce/report-catalog");
+        const payload = JSON.parse(rawBody) as {
+          note_attributes?: Array<{ name?: unknown; key?: unknown; value?: unknown }>;
+        };
+        const hasReportClaim = Array.isArray(payload.note_attributes)
+          && payload.note_attributes.some((a) => a?.name === CLAIM_ATTRIBUTE_KEY || a?.key === CLAIM_ATTRIBUTE_KEY);
+        if (hasReportClaim) {
+          try {
+            const { processPaidOrderOnServer } = await import("@/lib/commerce/order-reports.server");
+            const outcome = await processPaidOrderOnServer(gate.orderGid);
+            if (outcome.state === "ready")
+              return Response.json({ recorded: true, kind: "per_order_report" }, { status: 200 });
+            // A failed or unverifiable report must never acknowledge a paid deliverable as complete.
+            return Response.json({ recorded: false, kind: "per_order_report", reason: outcome.state }, { status: 503 });
+          } catch {
+            return Response.json({ recorded: false, kind: "per_order_report", reason: "unavailable" }, { status: 503 });
+          }
+        }
         if (!gate.customerGid)
           return Response.json({ recorded: false, reason: "not_verifiable" }, { status: 503 });
 
