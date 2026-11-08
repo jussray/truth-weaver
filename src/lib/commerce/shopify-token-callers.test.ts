@@ -8,6 +8,7 @@ vi.mock("@/integrations/supabase/client.server", () => ({ supabaseAdmin: { from:
 vi.mock("@tanstack/react-router", () => ({ createFileRoute: () => (options: unknown) => options }));
 import { Route } from "../../routes/api/public/shopify/orders-paid";
 import { verifyFreshTruthWeaverPurchase } from "./shopify-order.server";
+import { processPaidOrderOnServer } from "./order-reports.server";
 import { reconcileOwnSnapshotPurchases } from "./snapshot-reconciliation.server";
 import { adminGraphql } from "../merchant/admin.server";
 const post = (Route as unknown as { server: { handlers: { POST: (input: { request: Request }) => Promise<Response> } } }).server.handlers.POST;
@@ -24,6 +25,12 @@ describe("token caller negative paths: fixtures are not payment proof", () => {
     const response = await post({ request: request() }); expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ recorded: false, reason: "not_verifiable" });
     expect(mocks.resolve).toHaveBeenCalledWith(); expect(mocks.from).not.toHaveBeenCalled();
+  });
+  it("personalized-report proof never requests a legacy Shopify Admin credential", async () => {
+    const outcome = await processPaidOrderOnServer("gid://shopify/Order/123");
+    expect(outcome.state).toBe("not_verifiable");
+    expect(mocks.resolve).toHaveBeenCalledWith({ requireClientCredentials: true });
+    expect(mocks.from).not.toHaveBeenCalled();
   });
   it("missing HMAC secret remains 503 before token/storage access", async () => {
     vi.stubEnv("SHOPIFY_WEBHOOK_SECRET", ""); const response = await post({ request: request() });
