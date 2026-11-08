@@ -20,8 +20,8 @@ function request(signed = true) {
       "x-shopify-hmac-sha256": createHmac("sha256", signed ? "fixture-hmac" : "wrong").update(body).digest("base64") } });
 }
 describe("token caller negative paths: fixtures are not payment proof", () => {
-  it("signed webhook without Admin token records nothing", async () => {
-    const response = await post({ request: request() }); expect(response.status).toBe(202);
+  it("signed webhook without Admin token is retryable and records nothing", async () => {
+    const response = await post({ request: request() }); expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ recorded: false, reason: "not_verifiable" });
     expect(mocks.resolve).toHaveBeenCalledWith(); expect(mocks.from).not.toHaveBeenCalled();
   });
