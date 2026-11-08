@@ -114,7 +114,8 @@ function FulfillmentPage() {
           </StateBox></div>
         </section>
       </div>
-      <div className="mt-5"><SnapshotDownloadPanel userId={user.id} /></div>
+      {/* The authenticated PaidSnapshotReports flow above is the active, owner-verified PDF delivery. 
+          The older signed-link SnapshotDownloadPanel must not be mounted here. */}
       <p className="mt-5 text-sm text-parchment/70">
         Looking for a tool? <Link to="/shop" className="text-gold underline">Open the store</Link>.
       </p>

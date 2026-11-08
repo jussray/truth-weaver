@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { LayoutDashboard, Package, ShoppingBag, ExternalLink, ShieldCheck, Menu, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,18 +12,14 @@ const navigation = [
   { label: "Orders", href: "#orders", icon: ShoppingBag },
 ] as const;
 
-export const Route = createFileRoute("/_authenticated/merchant")({
-  head: () => ({ meta: [{ title: "Merchant Portal | Truth Weaver" }, { name: "robots", content: "noindex,nofollow" }] }),
-  component: MerchantPortal,
-});
-
-function MerchantPortal() {
-  const { user } = Route.useRouteContext();
+// Historical visual overview preserved for potential reuse; no unregistered
+// file-route is mounted. The active /merchant routes own auth and role gates.
+export function LegacyMerchantOverview({ userId }: { userId: string }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const access = useQuery({
-    queryKey: ["merchant-access", user.id],
+    queryKey: ["merchant-access", userId],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("has_role", { _user_id: user.id, _role: "merchant" });
+      const { data, error } = await supabase.rpc("has_role", { _user_id: userId, _role: "merchant" });
       if (error) throw error;
       return data === true;
     },
