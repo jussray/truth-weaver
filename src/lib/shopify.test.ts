@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { addLineToShopifyCart, createShopifyCart, fetchLiveCart, formatCheckoutUrl } from "./shopify";
+import { addLineToShopifyCart, attachReportClaimToCart, clearReportClaimFromCart, createShopifyCart, fetchLiveCart, formatCheckoutUrl } from "./shopify";
 import { NOTICE_VARIANTS } from "./commerce/shopify-order-proof";
 import { isStorefrontVariantSellable } from "./commerce/storefront-launch-guard";
 
@@ -103,5 +103,85 @@ describe("Truth Weaver launch-hold purchase boundary", () => {
     } finally {
       globalThis.fetch = originalFetch;
     }
+  });
+});
+
+describe("Truth Weaver per-order Shopify claim attributes", () => {
+  const nonce = "a".repeat(43);
+  const cartId = "gid://shopify/Cart/test";
+
+  it("preserves unrelated cart attributes and verifies the returned claim", async () => {
+    const originalFetch = globalThis.fetch;
+    const request = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      data: { cartAttributesUpdate: {
+        cart: { id: cartId, attributes: [
+          { key: "gift_note", value: "keep" },
+          { key: "_tw_claim", value: nonce },
+        ] },
+        userErrors: [],
+      } },
+    }), { status: 200 }));
+    globalThis.fetch = request as typeof fetch;
+    try {
+      expect(await attachReportClaimToCart(cartId, nonce, [
+        { key: "gift_note", value: "keep" },
+        { key: "_tw_claim", value: "b".repeat(43) },
+      ])).toBe(true);
+      const body = JSON.parse(String(request.mock.calls[0]?.[1]?.body));
+      expect(body.variables.attributes).toEqual([
+        { key: "gift_note", value: "keep" },
+        { key: "_tw_claim", value: nonce },
+      ]);
+      expect(body.query).toContain("cartAttributesUpdate");
+    } finally { globalThis.fetch = originalFetch; }
+  });
+
+  it("fails closed when Shopify omits claim confirmation", async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      data: { cartAttributesUpdate: { cart: { id: cartId, attributes: [] }, userErrors: [] } },
+    }), { status: 200 })) as typeof fetch;
+    try {
+      expect(await attachReportClaimToCart(cartId, nonce, [])).toBe(false);
+    } finally { globalThis.fetch = originalFetch; }
+  });
+
+  it("removes stale report claims while retaining unrelated cart metadata", async () => {
+    const originalFetch = globalThis.fetch;
+    const request = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      data: { cartAttributesUpdate: {
+        cart: { id: cartId, attributes: [{ key: "gift_note", value: "keep" }] },
+        userErrors: [],
+      } },
+    }), { status: 200 }));
+    globalThis.fetch = request as typeof fetch;
+    try {
+      expect(await clearReportClaimFromCart(cartId, [
+        { key: "_tw_claim", value: nonce },
+        { key: "gift_note", value: "keep" },
+      ])).toBe(true);
+      const body = JSON.parse(String(request.mock.calls[0]?.[1]?.body));
+      expect(body.variables.attributes).toEqual([{ key: "gift_note", value: "keep" }]);
+    } finally { globalThis.fetch = originalFetch; }
+  });
+
+  it("fails closed if stale report claim remains after update", async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      data: { cartAttributesUpdate: { cart: { id: cartId, attributes: [{ key: "_tw_claim", value: nonce }] }, userErrors: [] } },
+    }), { status: 200 })) as typeof fetch;
+    try {
+      expect(await clearReportClaimFromCart(cartId, [{ key: "_tw_claim", value: nonce }])).toBe(false);
+    } finally { globalThis.fetch = originalFetch; }
+  });
+
+  it("rejects an invalid claim without contacting Shopify", async () => {
+    const originalFetch = globalThis.fetch;
+    const request = vi.fn();
+    globalThis.fetch = request as typeof fetch;
+    try {
+      expect(await attachReportClaimToCart(cartId, "browser-invented", [])).toBe(false);
+      expect(request).not.toHaveBeenCalled();
+    } finally { globalThis.fetch = originalFetch; }
   });
 });

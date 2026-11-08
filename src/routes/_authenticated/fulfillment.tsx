@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { downloadMySnapshotReport, getMySnapshotReports } from "@/lib/commerce/snapshot-report.functions";
 
 import { CounselPage, StateBox, WorkspaceNav, tw } from "@/components/counsel/page";
+import { PaidOrderReports } from "@/components/commerce/paid-order-reports";
 import {
   COUNSEL_STORAGE_KEY,
   buildCounselDocument,
@@ -89,6 +90,7 @@ function FulfillmentPage() {
         </div>
       </section>
 
+      <PaidOrderReports />
       <PaidSnapshotReports />
 
       <div className="grid gap-4 md:grid-cols-2">

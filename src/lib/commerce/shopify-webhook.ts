@@ -1,4 +1,5 @@
 import { TRUTH_WEAVER_SHOPIFY_DOMAIN } from "./shopify-order-proof";
+import { CLAIM_ATTRIBUTE_KEY } from "./report-catalog";
 
 /**
  * Pure, fail-closed Shopify webhook gate. A valid signature only proves the
@@ -9,6 +10,21 @@ export type WebhookGate =
   | { ok: true; orderGid: string; customerGid: string | null }
   | { ok: false; status: 401 | 400 | 503; reason:
       "secret_missing" | "bad_signature" | "wrong_shop" | "wrong_topic" | "bad_payload" };
+
+/**
+ * Only a routing hint, NOT a grant or payment proof. Called after HMAC validation.
+ * Even a malformed claim routes to the strict report verifier, never the legacy grant.
+ */
+export function hasReportClaimAttribute(rawBody: string): boolean {
+  try {
+    const payload = JSON.parse(rawBody) as { note_attributes?: unknown };
+    return Array.isArray(payload.note_attributes) && payload.note_attributes.some((entry: unknown) => {
+      if (!entry || typeof entry !== "object") return false;
+      const attribute = entry as { name?: unknown; key?: unknown };
+      return attribute.name === CLAIM_ATTRIBUTE_KEY || attribute.key === CLAIM_ATTRIBUTE_KEY;
+    });
+  } catch { return false; }
+}
 
 const enc = new TextEncoder();
 
