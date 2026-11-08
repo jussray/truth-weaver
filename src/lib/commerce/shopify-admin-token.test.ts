@@ -14,6 +14,23 @@ describe("bounded server-only Shopify token resolver", () => {
     vi.stubEnv("SHOPIFY_ADMIN_ACCESS_TOKEN", "fixture-static"); const fetcher = vi.fn(); vi.stubGlobal("fetch", fetcher);
     expect(await (await load())()).toBe("fixture-static"); expect(fetcher).not.toHaveBeenCalled();
   });
+  it("rejects a static Admin token in strict custom-app mode without credentials", async () => {
+    vi.stubEnv("SHOPIFY_ADMIN_ACCESS_TOKEN", "fixture-static");
+    const fetcher = vi.fn(); vi.stubGlobal("fetch", fetcher);
+    const resolve = await load();
+    expect(await resolve({ requireClientCredentials: true })).toBeNull();
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+  it("uses a fresh client-credentials token instead of a static Admin token for strict reports", async () => {
+    vi.stubEnv("SHOPIFY_ADMIN_ACCESS_TOKEN", "fixture-static");
+    vi.stubEnv("SHOPIFY_ACCESS_TOKEN", "fixture-connector");
+    configure();
+    const fetcher = vi.fn().mockResolvedValue(response("fixture-oauth"));
+    vi.stubGlobal("fetch", fetcher);
+    const resolve = await load();
+    expect(await resolve({ requireClientCredentials: true, allowMerchantLegacy: true })).toBe("fixture-oauth");
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
   it("keeps legacy connector fallback merchant-only", async () => {
     vi.stubEnv("SHOPIFY_ACCESS_TOKEN", "fixture-connector"); const fetcher = vi.fn(); vi.stubGlobal("fetch", fetcher);
     const resolve = await load(); expect(await resolve()).toBeNull();
