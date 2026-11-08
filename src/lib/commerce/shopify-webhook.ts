@@ -23,7 +23,7 @@ export async function readShopifyWebhookBody(
 ): Promise<{ ok: true; rawBody: string } | { ok: false; status: 400 | 413 }> {
   const declared = request.headers.get("content-length");
   if (declared !== null) {
-    if (!/^\\d+$/.test(declared)) return { ok: false, status: 400 };
+    if (!/^[0-9]+$/.test(declared)) return { ok: false, status: 400 };
     if (Number(declared) > maxBytes) return { ok: false, status: 413 };
   }
 
