@@ -71,6 +71,7 @@ describe("paid per-order report proof", () => {
     ["missing claim", changed((o) => { o.customAttributes = []; }), "no_claim"],
     ["duplicate claim", changed((o) => { o.customAttributes!.push({ key: "_tw_claim", value: nonce }); }), "no_claim"],
     ["multiple paid quantities for one report", changed((o) => { o.lineItems!.edges[0]!.node.currentQuantity = 2; }), "invalid_quantity"],
+    ["duplicate report lines", changed((o) => { o.lineItems!.edges.push(structuredClone(o.lineItems!.edges[0]!)); }), "invalid_quantity"],
   ] as const)("rejects %s", (_label, o, reason) => {
     expect(evaluatePaidReportOrder(o)).toEqual({ granted: false, reason });
   });
