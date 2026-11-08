@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { downloadMySnapshotReport, getMySnapshotReports } from "@/lib/commerce/snapshot-report.functions";
 
 import { CounselPage, StateBox, WorkspaceNav, tw } from "@/components/counsel/page";
+import { PaidOrderReports } from "@/components/commerce/paid-order-reports";
 import {
   COUNSEL_STORAGE_KEY,
   buildCounselDocument,
@@ -89,6 +90,7 @@ function FulfillmentPage() {
         </div>
       </section>
 
+      <PaidOrderReports />
       <PaidSnapshotReports />
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -114,8 +116,6 @@ function FulfillmentPage() {
           </StateBox></div>
         </section>
       </div>
-      {/* The authenticated PaidSnapshotReports flow above is the active, owner-verified PDF delivery. 
-          The older signed-link SnapshotDownloadPanel must not be mounted here. */}
       <p className="mt-5 text-sm text-parchment/70">
         Looking for a tool? <Link to="/shop" className="text-gold underline">Open the store</Link>.
       </p>

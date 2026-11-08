@@ -43,7 +43,8 @@ export type ReportProofDenial =
   | "order_lines_incomplete"
   | "no_claim"
   | "wrong_product"
-  | "insufficient_item_payment";
+  | "insufficient_item_payment"
+  | "invalid_quantity";
 
 export type ReportProofDecision =
   | { granted: true; orderId: string; orderName: string; createdAt: string; offers: ReportOfferKey[]; claimNonce: string }
@@ -81,6 +82,10 @@ export function evaluatePaidReportOrder(order: ReportOrderForProof | null): Repo
   for (const { node } of order.lineItems.edges) {
     const offer = offerForLine(node.variant?.id, node.sku);
     if (!offer || node.currentQuantity <= 0) continue;
+    // Each personalized report is generated once per order, never once per unit.
+    // Block duplicate line items/quantities so buyers are not charged repeatedly
+    // for a single generated document.
+    if (node.currentQuantity !== 1 || offers.has(offer.key)) return deny("invalid_quantity");
     const paid = node.discountedUnitPriceAfterAllDiscountsSet?.shopMoney;
     const cents = usdCents(paid?.amount ?? "");
     // A discounted or underpaid report line denies the whole order rather than guessing.

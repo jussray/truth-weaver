@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { gateOrdersPaidWebhook, readShopifyWebhookBody } from "@/lib/commerce/shopify-webhook";
+import { gateOrdersPaidWebhook, hasReportClaimAttribute, readShopifyWebhookBody } from "@/lib/commerce/shopify-webhook";
 import { ungrantedStatus } from "@/lib/commerce/shopify-webhook-status";
 
 /** Keeps the Admin read inside Shopify's 5s delivery window, leaving room for the binding lookup and insert. */
@@ -32,6 +32,22 @@ export const Route = createFileRoute("/api/public/shopify/orders-paid")({
           },
         });
         if (!gate.ok) return Response.json({ recorded: false, reason: gate.reason }, { status: gate.status });
+
+        // A Shopify cart claim is only a routing hint. The new report path independently
+        // re-reads the paid order through Admin before granting anything.
+        const hasReportClaim = hasReportClaimAttribute(rawBody);
+        if (hasReportClaim) {
+          try {
+            const { processPaidOrderOnServer } = await import("@/lib/commerce/order-reports.server");
+            const outcome = await processPaidOrderOnServer(gate.orderGid);
+            if (outcome.state === "ready")
+              return Response.json({ recorded: true, kind: "per_order_report" }, { status: 200 });
+            // A failed or unverifiable report must never acknowledge a paid deliverable as complete.
+            return Response.json({ recorded: false, kind: "per_order_report", reason: outcome.state }, { status: 503 });
+          } catch {
+            return Response.json({ recorded: false, kind: "per_order_report", reason: "unavailable" }, { status: 503 });
+          }
+        }
         if (!gate.customerGid)
           return Response.json({ recorded: false, reason: "not_verifiable" }, { status: 503 });
 
