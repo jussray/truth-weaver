@@ -226,3 +226,19 @@ export async function attachReportClaimToCart(
   return result.cart.id === cartId && Array.isArray(updated)
     && updated.filter((a: { key: string; value: string }) => a.key === CLAIM_ATTRIBUTE_KEY && a.value === nonce).length === 1;
 }
+
+/** Remove a stale paid-report claim when the cart no longer has a report item. */
+export async function clearReportClaimFromCart(
+  cartId: string,
+  existing: Array<{ key: string; value: string }>,
+): Promise<boolean> {
+  if (!Array.isArray(existing) || existing.length > 200) return false;
+  if (!existing.some((a) => a?.key === CLAIM_ATTRIBUTE_KEY)) return true;
+  const attributes = existing.filter((a) =>
+    a && a.key !== CLAIM_ATTRIBUTE_KEY && typeof a.key === "string" && typeof a.value === "string");
+  const data = await storefrontApiRequest(CART_ATTRIBUTES_UPDATE_MUTATION, { cartId, attributes });
+  const result = data?.data?.cartAttributesUpdate;
+  return result?.cart?.id === cartId && !result.userErrors?.length &&
+    Array.isArray(result.cart.attributes) &&
+    result.cart.attributes.every((a: { key: string }) => a.key !== CLAIM_ATTRIBUTE_KEY);
+}
