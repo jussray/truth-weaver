@@ -9,6 +9,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import {
   addLineToShopifyCart,
   attachReportClaimToCart,
+  clearReportClaimFromCart,
   cartExists,
   fetchLiveCart,
   createShopifyCart,
@@ -162,6 +163,15 @@ export const useCartStore = create<CartStore>()(
             const confirmed = await fetchLiveCart(cartId);
             if (!confirmed || confirmed.attributes.filter((a) => a.key === CLAIM_ATTRIBUTE_KEY && a.value === claim.nonce).length !== 1)
               throw new Error("Shopify did not confirm the report claim. No checkout started.");
+            verifiedLive = confirmed;
+          } else if (live.attributes.some((a) => a.key === CLAIM_ATTRIBUTE_KEY)) {
+            // A report item may have been removed from a previously claimed cart.
+            // Never carry its old entitlement hint into an unrelated purchase.
+            if (!(await clearReportClaimFromCart(cartId, live.attributes)))
+              throw new Error("Shopify did not clear the old report binding. No checkout started.");
+            const confirmed = await fetchLiveCart(cartId);
+            if (!confirmed || confirmed.attributes.some((a) => a.key === CLAIM_ATTRIBUTE_KEY))
+              throw new Error("Shopify did not clear the old report binding. No checkout started.");
             verifiedLive = confirmed;
           }
           const byVariant = new Map(verifiedLive.lines.map((l) => [l.variantId, l]));
