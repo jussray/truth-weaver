@@ -4,6 +4,7 @@ import {
   NOTICE_AUTHORITY,
   noticeAnalyzerInputSchema,
   enforceNoticeSourceState,
+  noticeSubmitBlockReason,
   parseNoticeAnalyzerModelText,
 } from "./notice-analyzer";
 
@@ -63,5 +64,29 @@ describe("notice analyzer contracts", () => {
   it("fails closed on malformed model output instead of inventing a fallback", () => {
     expect(() => parseNoticeAnalyzerModelText("Here is your answer: no structured result."))
       .toThrow(/JSON object/i);
+  });
+});
+
+describe("notice submit gate", () => {
+  const ready = { filePending: false, scanRejected: false, consent: true };
+
+  it("allows submission only when nothing blocks it", () => {
+    expect(noticeSubmitBlockReason(ready)).toBeNull();
+  });
+
+  it("blocks while a document is still being read", () => {
+    expect(noticeSubmitBlockReason({ ...ready, filePending: true })).toMatch(/Finish reading/);
+  });
+
+  it("blocks after a rejected scan even when consent is given", () => {
+    expect(noticeSubmitBlockReason({ ...ready, scanRejected: true })).toMatch(/last scan was unreadable/);
+  });
+
+  it("reports the rejected scan before missing consent", () => {
+    expect(noticeSubmitBlockReason({ ...ready, scanRejected: true, consent: false })).toMatch(/last scan was unreadable/);
+  });
+
+  it("still requires consent once the rejection is cleared", () => {
+    expect(noticeSubmitBlockReason({ ...ready, consent: false })).toMatch(/Consent/);
   });
 });
