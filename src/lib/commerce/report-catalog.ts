@@ -91,6 +91,8 @@ export const REPORT_OFFER_KEYS = Object.keys(REPORT_OFFERS) as ReportOfferKey[];
 
 /** Cart attribute that carries the server-issued purchase claim. Underscore keeps it out of the checkout UI. */
 export const CLAIM_ATTRIBUTE_KEY = "_tw_claim";
+/** Session-only pointer to the most recently opted-in, server-saved analysis. */
+export const SAVED_ANALYSIS_SESSION_KEY = "tw.paid-analysis-id.v1";
 export const CLAIM_NONCE = /^[A-Za-z0-9_-]{43}$/;
 
 /** Exact variant + SKU match against a created Shopify product. */
