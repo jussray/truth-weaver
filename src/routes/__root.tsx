@@ -80,6 +80,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "google-site-verification", content: "JJb1OTStyEmsBW5Vmx-trTl0j_NGTcZqJSs3LVoO01Y" },
       { title: "Truth Weaver Counsel" },
       { name: "description", content: "Plain-English legal research, notice reviews and guides, built on official law sources." },
       { name: "twitter:card", content: "summary_large_image" },
