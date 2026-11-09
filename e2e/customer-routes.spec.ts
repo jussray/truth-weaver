@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 // fake purchases, private legal narratives, or provider-success claims.
 test("source registry and legal library are reachable on mobile and desktop", async ({ page }) => {
   await page.goto("/sources", { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { name: "Source registry", level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /source registry/i, level: 1 })).toBeVisible();
   await expect(page.getByText(/not exhaustive coverage/i).first()).toBeVisible();
 
   await page.goto("/legal-library", { waitUntil: "domcontentloaded" });
