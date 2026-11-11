@@ -50,8 +50,13 @@ function envPresence(def: ConnectorDefinition, env: ConnectorSecretEnv): EnvPres
   );
 }
 
-function isFullyConfigured(def: ConnectorDefinition, env: ConnectorSecretEnv) {
-  return def.requiredEnv.length > 0 && def.requiredEnv.every((name) => Boolean(env[name]));
+function healthProbeEnvNames(def: ConnectorDefinition) {
+  return def.healthProbeEnv?.length ? def.healthProbeEnv : def.requiredEnv;
+}
+
+function isHealthProbeConfigured(def: ConnectorDefinition, env: ConnectorSecretEnv) {
+  const names = healthProbeEnvNames(def);
+  return names.length > 0 && names.every((name) => Boolean(env[name]));
 }
 
 function sanitizeScope(scope: Record<string, unknown> | null): Record<string, string> | null {
@@ -253,13 +258,15 @@ export async function probeConnectorHealth(
     });
   }
 
-  if (!isFullyConfigured(def, env)) {
+  if (!isHealthProbeConfigured(def, env)) {
     const detail =
       baseline === "not_configured"
         ? "No endpoint or credential is configured."
         : baseline === "available"
           ? "Built-in AI is available, but provider callability has not been proven by this check."
-          : "Required connector configuration is incomplete.";
+          : def.authMode === "lovable_app_connector"
+            ? "Managed authorization is not independently read-verifiable by this runtime yet."
+            : "Required connector configuration is incomplete.";
     return mintHealth({
       provider: def.id,
       status: baseline,

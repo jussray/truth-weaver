@@ -83,12 +83,16 @@ describe("connector status", () => {
     }
   });
 
-  it("does not pollute server env discovery with Lovable-managed provider tokens", () => {
+  it("loads explicit read-proof credentials for managed connectors without self-certifying them", () => {
     const names = allConnectorEnvNames();
-    expect(names).not.toContain("NOTION_API_KEY");
-    expect(names).not.toContain("LINEAR_API_KEY");
-    expect(names).not.toContain("SLACK_BOT_TOKEN");
+    expect(names).toContain("NOTION_API_KEY");
+    expect(names).toContain("LINEAR_API_KEY");
+    expect(names).toContain("SLACK_BOT_TOKEN");
     expect(names).toContain("EXA_API_KEY");
+    for (const id of ["notion", "linear", "slack"] as const) {
+      expect(byId(id).requiredEnv).toEqual([]);
+      expect(resolveConnectorStatus(byId(id), Object.fromEntries(names.map((name) => [name, true])))).not.toBe("connected");
+    }
   });
 
   it("custom adapters fail closed until required configuration exists", () => {
@@ -137,6 +141,26 @@ describe("connector status", () => {
     expect(health.lastSuccess).toBeNull();
     expect(health.status).not.toBe("connected");
     expect(JSON.stringify(health)).not.toContain("TEST_BAD_MARKER");
+  });
+
+  it("promotes a managed connector only after its explicit read-proof credential succeeds", async () => {
+    const secret = "TEST_LINEAR_HEALTH_SECRET";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ data: { viewer: { id: "lin_health_1" } } }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      ),
+    );
+
+    const health = await probeConnectorHealth(byId("linear"), { LINEAR_API_KEY: secret }, now);
+    expect(health.status).toBe("connected");
+    expect(health.capability).toBe("identity_read");
+    expect(health.scope).toEqual({ viewerId: "lin_health_1" });
+    expect(health.lastSuccess).toBe(now.toISOString());
+    expect(JSON.stringify(health)).not.toContain(secret);
   });
 
   it("full custom-adapter configuration stays non-green without a safe probe", async () => {
