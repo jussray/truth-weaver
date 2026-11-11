@@ -37,7 +37,7 @@ const ORDER_FIELDS = [
 
 /** Payment paths use only the intended custom-app credential; no merchant legacy fallback. */
 async function adminRead<T>(query: string, variables: Record<string, unknown>): Promise<T | null> {
-  const token = await getTruthWeaverShopifyAdminToken();
+  const token = await getTruthWeaverShopifyAdminToken({ requireClientCredentials: true });
   if (!token) return null;
   try {
     const response = await fetch(ADMIN_URL, {

@@ -16,6 +16,7 @@ test.describe("Truth Weaver live domain (read-only)", () => {
     expect(permittedHosts.has(new URL(page.url()).hostname)).toBe(true);
     await expect(page.getByRole("heading", { name: /Understand the law/i, level: 1 })).toBeVisible();
     await expect(page.getByTestId("triage-input")).toBeVisible();
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://www.truthweaver.jussco.company/");
   });
 
   test("answers a synthetic triage question through the live server function", async ({ page }) => {

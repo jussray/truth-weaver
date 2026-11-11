@@ -1,3 +1,8 @@
+## Canonical production domain (2026-11-11)
+- The approved canonical website is https://www.truthweaver.jussco.company. The non-www hostname is a Cloudflare 301 redirect alias.
+- Every public canonical tag, sitemap, robots sitemap pointer, llms.txt reference, JSON-LD application URL, and Shopify callback URI must use the www hostname. Never flip this without the founder's explicit instruction.
+- A GitHub merge or build alone does not prove the Cloudflare deployment, AI gateway secret, or an actual jurisdiction-aware legal answer. Verify with live Playwright and authoritative source evidence.
+
 # Claude Operating Contract — jussray/truth-weaver
 
 @AGENTS.md

@@ -19,9 +19,13 @@ function matches(left: Credentials, right: Credentials) {
 }
 
 export async function getTruthWeaverShopifyAdminToken(
-  options: { allowMerchantLegacy?: boolean } = {},
+  options: { allowMerchantLegacy?: boolean; requireClientCredentials?: boolean } = {},
 ): Promise<string | null> {
-  const legacy = process.env["SHOPIFY_ADMIN_ACCESS_TOKEN"] ||
+  // A static Admin token can belong to a different (possibly legacy) app.
+  // The personalized-report path must prove *this* Dev Dashboard app can
+  // exchange its own credentials, never silently reuse a merchant token.
+  const legacy = options.requireClientCredentials ? undefined :
+    process.env["SHOPIFY_ADMIN_ACCESS_TOKEN"] ||
     (options.allowMerchantLegacy ? process.env["SHOPIFY_ACCESS_TOKEN"] : undefined);
   if (legacy) return validToken(legacy) ? legacy : null;
 

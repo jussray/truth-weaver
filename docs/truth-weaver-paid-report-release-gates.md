@@ -1,6 +1,6 @@
 # Truth Weaver personalized Shopify report release gates
 
-State: **IMPLEMENTATION BRANCH ONLY — NOT RELEASE-VERIFIED**
+State: **PR #28 MERGED INTO MAIN at `7de5292` — CODE CI GREEN; PRODUCTION PAID DELIVERY NOT VERIFIED**
 Date: 2026-11-08
 
 ## Authored flow
@@ -10,6 +10,10 @@ Date: 2026-11-08
 3. The server issues an expiring, random purchase claim in `tw_purchase_claims`. The Storefront API attaches `_tw_claim` to the cart while preserving other attributes. Checkout stops unless the live cart confirms the exact nonce.
 4. Shopify `orders/paid` webhooks must pass HMAC/shop/topic checks. When a claimed report is present, only a **fresh Shopify Admin order read** plus the matching server-side claim can produce a private per-order report. The old Snapshot entitlement path is preserved for unclaimed orders.
 5. `/fulfillment` lists account-owned per-order reports and independently checks payment, ownership and private PDF bytes before preview/download. The prior free browser Counsel document and legacy Snapshot section remain.
+
+## Additional custom-app credential hardening
+
+A separate candidate branch `fix/tw-report-custom-app-token-gate-20261108` changes personalized paid-order Admin reads to explicitly request a token from the Dev Dashboard app's client credentials. An unrelated legacy/static Admin token may remain available to the older merchant path but cannot satisfy personalized report payment verification. The candidate's tests must pass exact-head CI before any merge.
 
 ## Verification required before releasing or removing product launch holds
 
@@ -25,4 +29,4 @@ Date: 2026-11-08
 
 ## Known non-proof
 
-A successful Vercel build is not proof that the custom app is installed, the Supabase migration is applied, a webhook is registered, or any paid PDF can be delivered. Neither app installation nor production DB/Worker changes are made by this source branch.
+Passing Vitest, Node, Playwright, TypeScript, lint, and build on merged main at `7de5292` does not prove that the custom app is installed, the Supabase migration is applied, a webhook is registered, or any paid PDF can be delivered. This later source-only security branch has not performed app installation or production DB/Worker mutations.

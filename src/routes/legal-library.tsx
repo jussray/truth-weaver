@@ -14,7 +14,7 @@ export const Route = createFileRoute("/legal-library")({
 function LibraryPage() {
   const q = useQuery({ queryKey: ["books"], queryFn: listBooks });
   return (
-    <CounselPage title="Legal library" eyebrow="Secondary sources — cannot by themselves establish verified law">
+    <CounselPage title="Legal library: law books and secondary sources" eyebrow="Secondary sources — cannot by themselves establish verified law">
       {q.isLoading && <StateBox kind="loading">Loading library…</StateBox>}
       {q.error && <StateBox kind="error">{(q.error as Error).message}</StateBox>}
       {q.data?.length === 0 && <StateBox kind="empty">No books registered yet.</StateBox>}
