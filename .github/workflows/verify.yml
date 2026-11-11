@@ -28,7 +28,9 @@ concurrency:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    # Hold the browser verification runner on supported Ubuntu 24.04 while 26.04 mirrors recover.
+    # Keep playwright --with-deps and the full E2E gate mandatory.
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
       - name: Checkout exact PR or main commit
