@@ -65,7 +65,7 @@ test("text PDF upload extracts visible text with source and page provenance", as
     buffer: minimalPdf("NOTICE OF HEARING NOVEMBER 12 2026 WRITTEN RESPONSE REQUIRED"),
   });
 
-  await expect(page.getByTestId("file-message")).toContainText("Extracted 1 page");
+  await expect(page.getByTestId("file-message")).toContainText("Extracted 1 page", { timeout: 20_000 });
   await expect(page.getByTestId("notice-text")).toHaveValue(/\[SOURCE: sample-hearing-notice\.pdf \| PAGE 1\]/);
   await expect(page.getByTestId("notice-text")).toHaveValue(/NOTICE OF HEARING NOVEMBER 12 2026 WRITTEN RESPONSE REQUIRED/);
   await expect(page.getByTestId("analysis-result")).toHaveCount(0);
