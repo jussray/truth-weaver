@@ -21,7 +21,7 @@ function sourceRecord(value: boolean | null, yes: string, no: string) {
 function SourcesPage() {
   const q = useQuery({ queryKey: ["sources"], queryFn: listSources });
   return (
-    <CounselPage title="Source registry" eyebrow="Registered sources — not exhaustive coverage">
+    <CounselPage title="Official legal source registry" eyebrow="Registered sources — not exhaustive coverage">
       <section data-testid="sources-intro" aria-labelledby="sources-intro-title" className="mb-8 max-w-3xl space-y-3 text-sm leading-6 text-parchment/75">
         <h2 id="sources-intro-title" className="font-serif text-2xl text-parchment">Where does Truth Weaver get its legal information?</h2>
         <p>

@@ -92,3 +92,7 @@
 - [ ] Shop categories (guides, templates, courses, bundles): real category pages with what each includes, honest empty state, area filters
 - [ ] Guide/template/course/bundle products in Shopify. Blocked: founder must approve titles, prices and the actual deliverable files; digital delivery after payment not yet wired
 - [ ] Typecheck, unit tests, Playwright, then publish the full site
+
+- [ ] Connect X (Twitter) read-only: key lives in GitHub repo secrets (write-only); user must paste it into the X connect card. BLOCKED on user.
+- [ ] Connect HubSpot (Entire portal, service key). BLOCKED on user completing connect card.
+- [ ] Shopify custom app install. BLOCKED on user in Shopify admin.
