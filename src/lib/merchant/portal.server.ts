@@ -21,7 +21,7 @@ export type MerchantOrder = {
   totalPriceSet: { shopMoney: Money };
 };
 
-async function requireMerchant(token: string): Promise<Merchant> {
+export async function requireMerchant(token: string): Promise<Merchant> {
   if (!token || token.length > 8192) throw new Error("Merchant authorization required.");
   const { data, error } = await supabaseAdmin.auth.getUser(token);
   if (error || !data.user) throw new Error("Merchant authorization required.");
