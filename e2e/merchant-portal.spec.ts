@@ -10,7 +10,7 @@ test("signed-out visitors are sent to sign in", async ({ page }) => {
 });
 
 test.describe("merchant price edit", () => {
-  test.skip(!session || !storageKey, "merchant session not provided");
+  test.skip(!session || !storageKey || process.env["MERCHANT_ALLOW_PRICE_MUTATION"] !== "true", "Explicit merchant session and price-mutation opt-in required");
 
   test("edit price, confirmation names the change, activity log records it", async ({ page }) => {
     await page.goto("/");
@@ -23,23 +23,28 @@ test.describe("merchant price edit", () => {
 
     const input = page.getByLabel(/^Price for /).first();
     const before = await input.inputValue();
-    const next = (Number(before) + 0.01).toFixed(2); // routine raise: one-click
+    const next = (Number(before) + 0.01).toFixed(2);
     await input.fill(next);
     await page.getByRole("button", { name: "Review change" }).first().click();
     await expect(page.getByTestId("price-diff")).toContainText(`$${before}`);
+    const confirmation = page.getByRole("dialog").getByLabel("Confirmation phrase");
+    const displayedPhrase = await page.getByRole("dialog").locator("code").textContent();
+    expect(displayedPhrase).toMatch(/^PRICE [0-9]+ [0-9]+\.[0-9]{2}$/);
+    await confirmation.fill(displayedPhrase!);
     await page.getByRole("button", { name: "Confirm change" }).click();
     await expect(page.getByTestId("price-notice")).toContainText(`from $${before} to $${next}`);
 
     await page.goto("/merchant/audit-log");
     const row = page.getByTestId("audit-rows").locator('li[data-outcome="succeeded"]').first();
-    await expect(row).toContainText("price.update");
-    await expect(row).toContainText(`$${before} → $${next}`);
+    await expect(row).toContainText("variant_price");
+    await expect(row).toContainText(`Price readback ${next} USD`);
 
     // Restore the original price (decrease => typed phrase required).
     await page.goto("/merchant/products");
     await page.getByLabel(/^Price for /).first().fill(before);
     await page.getByRole("button", { name: "Review change" }).first().click();
-    await page.getByRole("button", { name: "Fill phrase" }).click();
+    const restorePhrase = await page.getByRole("dialog").locator("code").textContent();
+    await page.getByRole("dialog").getByLabel("Confirmation phrase").fill(restorePhrase!);
     await page.getByRole("button", { name: "Confirm change" }).click();
     await expect(page.getByTestId("price-notice")).toContainText(`to $${before}`);
   });
