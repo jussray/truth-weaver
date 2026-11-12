@@ -164,6 +164,12 @@ const ApiPublicShopifyOrdersPaidRoute =
     path: '/api/public/shopify/orders-paid',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicStripeWebhookRoute =
+  ApiPublicStripeWebhookRouteImport.update({
+    id: '/api/public/stripe/webhook',
+    path: '/api/public/stripe/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -524,6 +530,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/shopify/orders-paid'
       fullPath: '/api/public/shopify/orders-paid'
       preLoaderRoute: typeof ApiPublicShopifyOrdersPaidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/stripe/webhook': {
+      id: '/api/public/stripe/webhook'
+      path: '/api/public/stripe/webhook'
+      fullPath: '/api/public/stripe/webhook'
+      preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
