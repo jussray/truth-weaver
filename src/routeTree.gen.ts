@@ -34,6 +34,7 @@ import { Route as ProductHandleRouteImport } from './routes/product.$handle'
 import { Route as AuthenticatedIssuesIssueIdRouteImport } from './routes/_authenticated/issues.$issueId'
 import { Route as AuthenticatedIssuesNewRouteImport } from './routes/_authenticated/issues.new'
 import { Route as ApiPublicShopifyOrdersPaidRouteImport } from './routes/api/public/shopify/orders-paid'
+import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe/webhook'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -189,6 +190,7 @@ export interface FileRoutesByFullPath {
   '/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/issues/new': typeof AuthenticatedIssuesNewRoute
   '/api/public/shopify/orders-paid': typeof ApiPublicShopifyOrdersPaidRoute
+  '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -214,6 +216,7 @@ export interface FileRoutesByTo {
   '/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/issues/new': typeof AuthenticatedIssuesNewRoute
   '/api/public/shopify/orders-paid': typeof ApiPublicShopifyOrdersPaidRoute
+  '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -242,6 +245,7 @@ export interface FileRoutesById {
   '/_authenticated/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/_authenticated/issues/new': typeof AuthenticatedIssuesNewRoute
   '/api/public/shopify/orders-paid': typeof ApiPublicShopifyOrdersPaidRoute
+  '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -270,6 +274,7 @@ export interface FileRouteTypes {
     | '/issues/$issueId'
     | '/issues/new'
     | '/api/public/shopify/orders-paid'
+    | '/api/public/stripe/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -295,6 +300,7 @@ export interface FileRouteTypes {
     | '/issues/$issueId'
     | '/issues/new'
     | '/api/public/shopify/orders-paid'
+    | '/api/public/stripe/webhook'
   id:
     | '__root__'
     | '/'
@@ -322,6 +328,7 @@ export interface FileRouteTypes {
     | '/_authenticated/issues/$issueId'
     | '/_authenticated/issues/new'
     | '/api/public/shopify/orders-paid'
+    | '/api/public/stripe/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -339,6 +346,7 @@ export interface RootRouteChildren {
   SourcesRoute: typeof SourcesRoute
   ProductHandleRoute: typeof ProductHandleRoute
   ApiPublicShopifyOrdersPaidRoute: typeof ApiPublicShopifyOrdersPaidRoute
+  ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -577,6 +585,7 @@ const rootRouteChildren: RootRouteChildren = {
   SourcesRoute: SourcesRoute,
   ProductHandleRoute: ProductHandleRoute,
   ApiPublicShopifyOrdersPaidRoute: ApiPublicShopifyOrdersPaidRoute,
+  ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
