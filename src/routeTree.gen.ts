@@ -34,6 +34,7 @@ import { Route as ProductHandleRouteImport } from './routes/product.$handle'
 import { Route as AuthenticatedIssuesIssueIdRouteImport } from './routes/_authenticated/issues.$issueId'
 import { Route as AuthenticatedIssuesNewRouteImport } from './routes/_authenticated/issues.new'
 import { Route as ApiPublicShopifyOrdersPaidRouteImport } from './routes/api/public/shopify/orders-paid'
+import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe/webhook'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -163,6 +164,12 @@ const ApiPublicShopifyOrdersPaidRoute =
     path: '/api/public/shopify/orders-paid',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicStripeWebhookRoute =
+  ApiPublicStripeWebhookRouteImport.update({
+    id: '/api/public/stripe/webhook',
+    path: '/api/public/stripe/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -189,6 +196,7 @@ export interface FileRoutesByFullPath {
   '/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/issues/new': typeof AuthenticatedIssuesNewRoute
   '/api/public/shopify/orders-paid': typeof ApiPublicShopifyOrdersPaidRoute
+  '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -214,6 +222,7 @@ export interface FileRoutesByTo {
   '/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/issues/new': typeof AuthenticatedIssuesNewRoute
   '/api/public/shopify/orders-paid': typeof ApiPublicShopifyOrdersPaidRoute
+  '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -242,6 +251,7 @@ export interface FileRoutesById {
   '/_authenticated/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/_authenticated/issues/new': typeof AuthenticatedIssuesNewRoute
   '/api/public/shopify/orders-paid': typeof ApiPublicShopifyOrdersPaidRoute
+  '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -270,6 +280,7 @@ export interface FileRouteTypes {
     | '/issues/$issueId'
     | '/issues/new'
     | '/api/public/shopify/orders-paid'
+    | '/api/public/stripe/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -295,6 +306,7 @@ export interface FileRouteTypes {
     | '/issues/$issueId'
     | '/issues/new'
     | '/api/public/shopify/orders-paid'
+    | '/api/public/stripe/webhook'
   id:
     | '__root__'
     | '/'
@@ -322,6 +334,7 @@ export interface FileRouteTypes {
     | '/_authenticated/issues/$issueId'
     | '/_authenticated/issues/new'
     | '/api/public/shopify/orders-paid'
+    | '/api/public/stripe/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -339,6 +352,7 @@ export interface RootRouteChildren {
   SourcesRoute: typeof SourcesRoute
   ProductHandleRoute: typeof ProductHandleRoute
   ApiPublicShopifyOrdersPaidRoute: typeof ApiPublicShopifyOrdersPaidRoute
+  ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -518,6 +532,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicShopifyOrdersPaidRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/stripe/webhook': {
+      id: '/api/public/stripe/webhook'
+      path: '/api/public/stripe/webhook'
+      fullPath: '/api/public/stripe/webhook'
+      preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -577,6 +598,7 @@ const rootRouteChildren: RootRouteChildren = {
   SourcesRoute: SourcesRoute,
   ProductHandleRoute: ProductHandleRoute,
   ApiPublicShopifyOrdersPaidRoute: ApiPublicShopifyOrdersPaidRoute,
+  ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

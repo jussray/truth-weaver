@@ -1,5 +1,5 @@
 import { NOTICE_TEXT_MAX } from "./notice-analyzer";
-import { assessOcrQuality } from "./ocr-quality";
+import { assessOcrQuality as assessScanLegibility } from "./ocr-quality";
 
 /** Unreadable OCR must block legal notice analysis. */
 export class OcrUnreadableError extends Error {
@@ -10,6 +10,18 @@ const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const MAX_OCR_PAGES = 6;
 
 export type OcrProgress = (message: string) => void;
+
+/** OCR confidence is a review warning, never verification of a legal deadline. */
+export function assessOcrQuality(text: string, averageConfidence: number): string | null {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  if (!Number.isFinite(averageConfidence) || averageConfidence < 65 || words.length < 12) {
+    return "Warning: this scan may be blurry, incomplete, or unreadable. Retake the photo in bright light, hold the camera steady, or paste the original text. Do not rely on extracted dates or amounts.";
+  }
+  if (averageConfidence < 85) {
+    return "Warning: some scanned words may be inaccurate. Compare names, dates, amounts and deadlines against the original document.";
+  }
+  return null;
+}
 
 /**
  * On-device OCR (English). Lazy-loads tesseract.js in the browser only.
@@ -29,10 +41,10 @@ async function recognize(images: Array<Blob | HTMLCanvasElement>, onProgress: Oc
       confidence.push(data.confidence);
     }
     const text = parts.join("\n\n").trim();
-    const quality = assessOcrQuality(confidence);
+    const quality = assessScanLegibility(confidence);
     if (!quality.ok) throw new OcrUnreadableError(quality.reason);
     const averageConfidence = confidence.reduce((sum, value) => sum + value, 0) / confidence.length;
-    return { text, averageConfidence };
+    return { text, averageConfidence, qualityWarning: assessOcrQuality(text, averageConfidence) };
   } finally {
     await worker.terminate();
   }

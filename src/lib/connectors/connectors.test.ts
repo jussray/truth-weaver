@@ -25,7 +25,7 @@ describe("provenance", () => {
   });
 
   it("no connector result can become VERIFIED LAW", () => {
-    for (const provider of ["web", "shopify", "github", "perplexity", "gemini", "muse", "exa", "notion", "linear", "slack"] as const) {
+    for (const provider of ["web", "shopify", "github", "perplexity", "gemini", "muse", "exa", "notion", "linear", "slack", "x"] as const) {
       const p = createProvenance(
         { provider, evidenceType: "primary_law", sourceUrl: "https://example.gov/a", jurisdiction: "US", requestedVerification: "VERIFIED LAW" },
         now,
@@ -69,7 +69,7 @@ describe("connector status", () => {
   });
 
   it("Lovable-managed connectors cannot self-certify from env or linkage presence", () => {
-    for (const id of ["notion", "linear", "slack"] as const) {
+    for (const id of ["notion", "linear", "slack", "x"] as const) {
       const connector = byId(id);
       expect(connector.authMode).toBe("lovable_app_connector");
       expect(connector.requiredEnv).toEqual([]);
@@ -89,7 +89,7 @@ describe("connector status", () => {
     expect(names).toContain("LINEAR_API_KEY");
     expect(names).toContain("SLACK_BOT_TOKEN");
     expect(names).toContain("EXA_API_KEY");
-    for (const id of ["notion", "linear", "slack"] as const) {
+    for (const id of ["notion", "linear", "slack", "x"] as const) {
       expect(byId(id).requiredEnv).toEqual([]);
       expect(resolveConnectorStatus(byId(id), Object.fromEntries(names.map((name) => [name, true])))).not.toBe("connected");
     }

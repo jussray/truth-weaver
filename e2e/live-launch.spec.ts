@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 
-const liveUrl = process.env.TRUTH_WEAVER_LIVE_URL;
+const rawLiveUrl = process.env.TRUTH_WEAVER_LIVE_URL;
+// Canonical production host is truthweaver.jussco.company; normalize any www. prefix which is edge-restricted
+const liveUrl = rawLiveUrl ? rawLiveUrl.replace("://www.truthweaver.jussco.company", "://truthweaver.jussco.company") : undefined;
 const requireCatalog = process.env.TRUTH_WEAVER_REQUIRE_CATALOG === "true";
 const permittedHosts = new Set([
   "www.truthweaver.jussco.company",

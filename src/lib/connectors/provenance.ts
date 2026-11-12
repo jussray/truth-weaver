@@ -19,6 +19,7 @@ export const PROVIDER_IDS = [
   "linear",
   "slack",
   "web",
+  "x",
 ] as const;
 export type ProviderId = (typeof PROVIDER_IDS)[number];
 

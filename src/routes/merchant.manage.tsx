@@ -3,8 +3,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { CounselPage, StateBox, WorkspaceNav, tw } from "@/components/counsel/page";
 import { supabase } from "@/integrations/supabase/client";
 import { confirmationPhrase } from "@/lib/merchant/policy";
-import { readMerchantDashboard, changeMerchantProductStatus, changeMerchantVariantPrice } from "@/lib/merchant/portal.functions";
+import {
+  readMerchantDashboard,
+  changeMerchantProductStatus,
+  changeMerchantVariantPrice,
+  readMerchantPaidReportReadiness,
+} from "@/lib/merchant/portal.functions";
 import type { MerchantProduct, MerchantOrder } from "@/lib/merchant/portal.server";
+import type { PaidReportReadiness } from "@/lib/merchant/paid-report-readiness.server";
 
 type Status = "ACTIVE" | "DRAFT" | "ARCHIVED";
 type Dashboard = { products: MerchantProduct[]; productsHasMore: boolean; orders: MerchantOrder[]; ordersUnavailable: boolean };
@@ -22,17 +28,24 @@ async function currentToken() {
 
 function MerchantPage() {
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
+  const [readiness, setReadiness] = useState<PaidReportReadiness | null>(null);
   const [loading, setLoading] = useState(true);
   const [denied, setDenied] = useState(false);
 
   async function refresh() {
     setLoading(true);
     try {
-      const result = await readMerchantDashboard({ data: { authAccessToken: await currentToken() } });
-      setDashboard(result);
+      const token = await currentToken();
+      const [dashResult, readyResult] = await Promise.all([
+        readMerchantDashboard({ data: { authAccessToken: token } }),
+        readMerchantPaidReportReadiness({ data: { authAccessToken: token } }),
+      ]);
+      setDashboard(dashResult);
+      setReadiness(readyResult);
       setDenied(false);
     } catch {
       setDashboard(null);
+      setReadiness(null);
       setDenied(true);
     } finally { setLoading(false); }
   }
@@ -46,7 +59,7 @@ function MerchantPage() {
         exact per-item confirmation, an audit receipt, and fresh Shopify readback.
         This screen never changes banking or payout settings.
       </p>
-      {loading && <StateBox kind="loading">Checking Shopify and merchant authorization...</StateBox>}
+      {loading && <StateBox kind="loading">Checking Shopify, JussPay, and merchant authorization...</StateBox>}
       {!loading && denied && <StateBox kind="error">Merchant access denied or Shopify Admin is unavailable. Nothing was changed.</StateBox>}
       {dashboard && (
         <>
@@ -61,6 +74,9 @@ function MerchantPage() {
               {dashboard.products.map(p => <ProductEditor key={p.id} product={p} onSaved={refresh} />)}
             </div>
           </section>
+
+          {readiness && <PaidReportReadinessSection readiness={readiness} onRefresh={refresh} />}
+
           <section className={tw.card + " mt-6"}>
             <h2 className="font-serif text-2xl">Orders</h2>
             <p className="mt-2 text-sm text-parchment/70">Provider statuses only. No customer names or addresses are retrieved. Refunds, cancellations, and shipping changes stay in Shopify Admin.</p>
@@ -80,6 +96,78 @@ function MerchantPage() {
   );
 }
 
+function PaidReportReadinessSection({ readiness, onRefresh }: { readiness: PaidReportReadiness; onRefresh: () => Promise<void> }) {
+  return (
+    <section className={tw.card + " mt-6"} aria-labelledby="readiness-heading">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className={tw.label}>Paid report release gate</p>
+          <h2 id="readiness-heading" className="mt-1 font-serif text-2xl">Fulfillment & credential readiness</h2>
+        </div>
+        <button type="button" className={tw.ghost} onClick={() => void onRefresh()}>Recheck credentials</button>
+      </div>
+
+      <div className="mt-4">
+        {readiness.isReady ? (
+          <StateBox kind="empty">
+            All required Shopify credentials and Supabase private storage tables are verified. Paid report delivery is ready.
+          </StateBox>
+        ) : (
+          <StateBox kind="error">
+            {readiness.launchHoldReason ?? "Launch hold active: Required credentials or private storage tables remain unverified."}
+          </StateBox>
+        )}
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="rounded-lg border border-gold/20 p-3">
+          <p className="text-xs uppercase tracking-wider text-gold">Shopify Custom App</p>
+          <p className="mt-1 font-serif text-lg">Status: {readiness.shopify.status}</p>
+          <ul className="mt-2 space-y-1 text-xs text-parchment/70">
+            <li>Client ID: {readiness.shopify.clientIdConfigured ? "Configured" : "Missing"}</li>
+            <li>Client Secret: {readiness.shopify.clientSecretConfigured ? "Configured" : "Missing"}</li>
+            <li>Webhook Secret: {readiness.shopify.webhookSecretConfigured ? "Configured" : "Missing"}</li>
+          </ul>
+        </div>
+
+        <div className="rounded-lg border border-gold/20 p-3">
+          <p className="text-xs uppercase tracking-wider text-gold">JussPay Stripe Core</p>
+          <p className="mt-1 font-serif text-lg">Status: {readiness.stripe.status}</p>
+          <ul className="mt-2 space-y-1 text-xs text-parchment/70">
+            <li>Account: <code>{readiness.stripe.account}</code></li>
+            <li>Secret Key: {readiness.stripe.secretKeyConfigured ? "Configured" : "Missing"}</li>
+            <li>Webhook Secret: {readiness.stripe.webhookSecretConfigured ? "Configured" : "Missing"}</li>
+          </ul>
+        </div>
+
+        <div className="rounded-lg border border-gold/20 p-3">
+          <p className="text-xs uppercase tracking-wider text-gold">Supabase Infrastructure</p>
+          <p className="mt-1 font-serif text-lg">Status: {readiness.supabase.status}</p>
+          <ul className="mt-2 space-y-1 text-xs text-parchment/70">
+            <li>Saved analyses: {readiness.supabase.savedAnalysesTable ? "Table present" : "Table missing"}</li>
+            <li>Purchase claims: {readiness.supabase.purchaseClaimsTable ? "Table present" : "Table missing"}</li>
+            <li>Order reports: {readiness.supabase.orderReportsTable ? "Table present" : "Table missing"}</li>
+            <li>Private bucket: {readiness.supabase.privateReportBucket ? "Bucket present" : "Bucket missing"}</li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-lg border border-gold/20 p-3">
+        <p className="text-xs uppercase tracking-wider text-gold">Catalog deliverables ({readiness.catalog.totalOffers} products)</p>
+        <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {readiness.catalog.offers.map((offer) => (
+            <div key={offer.key} className="rounded border border-parchment/15 p-2 text-xs">
+              <p className="font-semibold text-parchment">{offer.label} (${offer.priceUsd})</p>
+              <p className="text-parchment/60">SKU: {offer.sku}</p>
+              <p className="text-parchment/60">Status: {offer.variantPinned ? "Shopify variant pinned" : "SKU match ready"}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function ProductEditor({ product, onSaved }: { product: MerchantProduct; onSaved: () => Promise<void> }) {
   const [status, setStatus] = useState<Status>(product.status);
   const [statusProof, setStatusProof] = useState("");
@@ -91,7 +179,6 @@ function ProductEditor({ product, onSaved }: { product: MerchantProduct; onSaved
     v.sku === "TW-SNAPSHOT-ONE" || v.sku === "TW-DEEPDIVE-ONE" || v.sku === "TW-PREMIUM-ONE");
   const statusPhrase = confirmationPhrase("status", product.id, status);
 
-  // Refreshing the provider snapshot invalidates stale edits and confirmations.
   useEffect(() => {
     setStatus(product.status);
     setStatusProof("");
