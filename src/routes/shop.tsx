@@ -77,7 +77,7 @@ function ShopPage() {
         {q.isLoading ? (
           <p role="status" className="mt-10 text-parchment/60">Loading products…</p>
         ) : q.error ? (
-          <p data-shop-unavailable role="alert" className="mt-10 text-parchment/70">The store couldn't be reached right now. Please try again shortly.</p>
+          <p data-shop-unavailable role="alert" className="mt-10 text-parchment/70">The store couldn't be reached right now. Shopify's catalog connection could not be verified. Please try again shortly.</p>
         ) : products.length === 0 ? (
           <div data-shop-unavailable className="mt-10 max-w-2xl rounded-2xl border border-gold/25 bg-forest-deep/60 p-6 leading-7 text-parchment/80">
             <p className="font-serif text-2xl text-parchment">No products found</p>

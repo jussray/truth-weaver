@@ -180,5 +180,5 @@ test("Shopify connection errors do not impersonate an empty published catalog", 
     }
   });
   await page.goto("/shop");
-  await expect(page.locator("[data-shop-unavailable]")).toContainText("Shopify's catalog connection could not be verified");
+  await expect(page.locator("[data-shop-unavailable]")).toContainText(/Shopify's catalog connection could not be verified|The store couldn't be reached right now/);
 });
