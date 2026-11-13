@@ -8,6 +8,7 @@ const NAV: { label: string; href: string }[] = [
   { label: "Research", href: "/#legal-research" },
   { label: "Shop", href: "/shop" },
   { label: "Notice Analyzer", href: "/notice-analyzer" },
+  { label: "Document Scanner", href: "/notice-analyzer#document-scanner" },
   { label: "My workspace", href: "/dashboard" },
   { label: "Sources", href: "/sources" },
   { label: "Legal library", href: "/legal-library" },

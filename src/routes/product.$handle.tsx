@@ -24,7 +24,9 @@ function ProductPage() {
   const [variantIdx, setVariantIdx] = useState(0);
 
   const p = q.data?.node;
-  const variant = p?.variants.edges[variantIdx]?.node;
+  const firstAvailableIndex = p?.variants.edges.findIndex((entry) => entry.node.availableForSale) ?? -1;
+  const selectedIndex = variantIdx === 0 && firstAvailableIndex > 0 ? firstAvailableIndex : variantIdx;
+  const variant = p?.variants.edges[selectedIndex]?.node;
   const held = !!variant && !isStorefrontVariantSellable(variant.id, p?.tags);
   const purchasable = !!variant?.availableForSale && !held;
 

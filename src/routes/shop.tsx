@@ -33,7 +33,7 @@ function ShopPage() {
   const { category: categorySlug, area } = Route.useSearch();
   const category = findCategory(categorySlug);
   const query = buildShopQuery(category?.slug, area);
-  const q = useQuery({ queryKey: ["products", query ?? "all"], queryFn: () => fetchProducts(query) });
+  const q = useQuery({ queryKey: ["products", query ?? "all"], queryFn: () => fetchProducts(query), staleTime: 60_000, retry: 1 });
   const products = q.data ?? [];
   const pill = (active: boolean) =>
     `rounded-full border px-4 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold ${active ? "border-gold bg-gold/10 text-gold" : "border-parchment/15 text-parchment/70 hover:border-gold/50"}`;

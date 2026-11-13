@@ -133,7 +133,7 @@ export const listMerchantOrders = createServerFn({ method: "POST" })
 /** Admin-only, audited reveal of customer contact details for one order. */
 export const revealOrderCustomer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(z.object({ orderId: z.string().regex(ORDER_GID), reason: z.string().trim().min(5).max(200) }).parse)
+  .validator(z.object({ orderId: z.string().regex(ORDER_GID), reason: z.string().trim().min(5).max(200) }))
   .handler(async ({ data, context }) => {
     const ctx = context as Ctx;
     await assertMerchant(ctx);
@@ -167,7 +167,7 @@ export const listAuditLog = createServerFn({ method: "POST" })
 
 export const createVendorInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(z.object({ label: z.string().trim().min(2).max(120) }).parse)
+  .validator(z.object({ label: z.string().trim().min(2).max(120) }))
   .handler(async ({ data, context }) => {
     await assertMerchant(context as Ctx);
     const { data: code, error } = await context.supabase.rpc("create_merchant_invite", { _label: data.label });
@@ -177,7 +177,7 @@ export const createVendorInvite = createServerFn({ method: "POST" })
 
 export const redeemVendorInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(z.object({ code: z.string().trim().regex(/^[0-9a-f]{36}$/) }).parse)
+  .validator(z.object({ code: z.string().trim().regex(/^[0-9a-f]{36}$/) }))
   .handler(async ({ data, context }) => {
     const { data: ok, error } = await context.supabase.rpc("redeem_merchant_invite", { _code: data.code });
     return { ok: !error && ok === true };

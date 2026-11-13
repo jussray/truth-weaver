@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { SiteChrome } from "@/components/storefront/site-chrome";
+import { DocumentScanner } from "@/components/scanner/document-scanner";
 import { supabase } from "@/integrations/supabase/client";
 import { SAVED_ANALYSIS_SESSION_KEY } from "@/lib/commerce/report-catalog";
 import { extractNoticePdfText } from "@/lib/extract-notice-pdf";
@@ -261,6 +262,15 @@ function NoticeAnalyzerPage() {
                     className="rounded-xl border border-parchment/15 bg-ink px-3 py-3 text-parchment outline-none placeholder:text-parchment/30 focus:border-gold/60"
                   />
                 </label>
+              </div>
+              <div className="mt-5" id="document-scanner">
+                <DocumentScanner onText={(text, pageCount) => {
+                  updateField("noticeText", text);
+                  setResult(null);
+                  setError("");
+                  setConsent(false);
+                  setFileMessage(`Read ${pageCount} camera-scanned page(s) on this device. Review every date, amount and name before consenting to analysis.`);
+                }} />
               </div>
             </div>
 

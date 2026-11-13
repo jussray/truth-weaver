@@ -12,6 +12,15 @@ export const Route = createFileRoute("/merchant/audit-log")({
 
 type Rows = Awaited<ReturnType<typeof listAuditLog>>;
 
+/** An audit receipt may contain arbitrary JSON, never assume an object shape. */
+function priceFromAuditState(value: Json | null): string | null {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return null;
+  const candidate = value["price"];
+  if (typeof candidate === "string") return candidate;
+  if (typeof candidate === "number" && Number.isFinite(candidate)) return String(candidate);
+  return null;
+}
+
 function AuditPage() {
   const [rows, setRows] = useState<Rows | null>(null);
   const [error, setError] = useState<string | null>(null);
