@@ -23,13 +23,16 @@ test("document scanner captures a page locally and never submits a notice automa
   await page.getByRole("button", { name: "Rotate" }).click();
   await page.getByRole("slider", { name: "Trim edges of page 1" }).focus();
   await page.getByRole("slider", { name: "Trim edges of page 1" }).press("ArrowRight");
-  await expect(page.locator("[data-testid=\"notice-text\"]")).toHaveValue("");
-  await expect(page.locator("[data-testid=\"notice-consent\"]")).not.toBeChecked();
+  const noticeVal = await page.evaluate(() => (document.querySelector('[data-testid="notice-text"]') as HTMLTextAreaElement)?.value ?? "");
+  expect(noticeVal).toBe("");
+  const consentChecked = await page.evaluate(() => (document.querySelector('[data-testid="notice-consent"]') as HTMLInputElement)?.checked ?? false);
+  expect(consentChecked).toBe(false);
   expect(analysisRequests).toBe(0);
 
   await page.getByRole("button", { name: "Discard scans" }).click();
   await expect(page.getByTestId("document-scanner-dialog")).toHaveCount(0);
-  await expect(page.locator("[data-testid=\"notice-text\"]")).toHaveValue("");
+  const noticeVal = await page.evaluate(() => (document.querySelector('[data-testid="notice-text"]') as HTMLTextAreaElement)?.value ?? "");
+  expect(noticeVal).toBe("");
   await page.getByTestId("open-document-scanner").click();
   await expect(page.getByTestId("scanner-page")).toHaveCount(0);
   expect(analysisRequests).toBe(0);
@@ -68,8 +71,10 @@ test("document scanner saves a two-page PDF locally without submitting legal con
     page.getByTestId("scanner-save-pdf").click(),
   ]);
   expect(download.suggestedFilename()).toBe("truth-weaver-scanned-document.pdf");
-  await expect(page.locator("[data-testid=\"notice-text\"]")).toHaveValue("");
-  await expect(page.locator("[data-testid=\"notice-consent\"]")).not.toBeChecked();
+  const noticeVal = await page.evaluate(() => (document.querySelector('[data-testid="notice-text"]') as HTMLTextAreaElement)?.value ?? "");
+  expect(noticeVal).toBe("");
+  const consentChecked = await page.evaluate(() => (document.querySelector('[data-testid="notice-consent"]') as HTMLInputElement)?.checked ?? false);
+  expect(consentChecked).toBe(false);
   expect(analysisCalls).toBe(0);
 });
 

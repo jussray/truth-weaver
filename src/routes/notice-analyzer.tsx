@@ -233,7 +233,7 @@ function NoticeAnalyzerPage() {
 
       <section className="bg-ink px-5 py-12 sm:px-6 lg:py-16">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr]">
-          <form onSubmit={handleSubmit} aria-busy={!uploadReady || filePending} className="space-y-5" data-testid="notice-analyzer-form">
+          <form onSubmit={handleSubmit} inert={!uploadReady} aria-busy={!uploadReady || filePending} className="space-y-5" data-testid="notice-analyzer-form">
             <div className="rounded-2xl border border-gold/20 bg-forest-deep/35 p-5">
               <h2 className="font-serif text-2xl text-parchment">Where did this notice come from?</h2>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -294,15 +294,7 @@ function NoticeAnalyzerPage() {
                   <input type="file" accept=".pdf,application/pdf,.txt,text/plain,.png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" disabled={!uploadReady} onChange={handleNoticeFile} className="sr-only" />
                 </label>
               </div>
-              <div className="mt-5" id="document-scanner">
-                <DocumentScanner onText={(text, pageCount) => {
-                  updateField("noticeText", text);
-                  setResult(null);
-                  setError("");
-                  setConsent(false);
-                  setFileMessage(`Read ${pageCount} camera-scanned page(s) on this device. Review every date, amount and name before consenting to analysis.`);
-                }} />
-              </div>
+
               <p className="mt-2 text-xs leading-5 text-parchment/55">
                 PDFs (up to 5 MB), photos and .txt are read on your device first. Scanned PDFs (up to 6 pages) and photos are read automatically and may contain mistakes. After you consent and choose Analyze, the reviewed text and details you entered are sent for analysis; they do not stay only on your device.
               </p>
