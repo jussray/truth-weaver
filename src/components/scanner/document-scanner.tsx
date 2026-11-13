@@ -335,7 +335,7 @@ export function DocumentScanner({ onText }: { onText: (text: string, pageCount: 
             {progress && <p role="status" className="mt-4 text-xs text-gold">{progress}</p>}
             {error && <p role="alert" className="mt-4 text-xs text-warn">{error}</p>}
             <div className="mt-5 flex flex-wrap justify-between gap-3">
-              <button type="button" onClick={reset} disabled={busy} className="rounded-full border border-gold/30 px-4 py-2 text-sm">Discard scans</button>
+              <button type="button" data-testid="scanner-discard-scans" aria-label="Discard scans" onClick={reset} disabled={busy} className="rounded-full border border-gold/30 px-4 py-2 text-sm">Discard scans</button>
               <button type="button" onClick={() => void downloadPdf()} disabled={busy || pages.length === 0}
                 data-testid="scanner-save-pdf"
                 className="inline-flex items-center gap-2 rounded-full border border-gold/40 px-4 py-2 text-sm font-semibold text-gold disabled:opacity-50">

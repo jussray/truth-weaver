@@ -27,7 +27,7 @@ test("document scanner captures a page locally and never submits a notice automa
   expect(await page.evaluate(() => (document.querySelector('[data-testid="notice-consent"]') as HTMLInputElement)?.checked ?? false)).toBe(false);
   expect(analysisRequests).toBe(0);
 
-  await page.getByRole("button", { name: "Discard scans" }).click();
+  await page.getByTestId("scanner-discard-scans").click();
   await expect(page.getByTestId("document-scanner-dialog")).toHaveCount(0);
   await expect(page.getByTestId("notice-text")).toHaveValue("");
   await page.getByTestId("open-document-scanner").click();
