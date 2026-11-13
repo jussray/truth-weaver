@@ -263,6 +263,15 @@ function NoticeAnalyzerPage() {
                   />
                 </label>
               </div>
+              <div className="mt-5" id="document-scanner">
+                <DocumentScanner onText={(text, pageCount) => {
+                  updateField("noticeText", text);
+                  setResult(null);
+                  setError("");
+                  setConsent(false);
+                  setFileMessage(`Read ${pageCount} camera-scanned page(s) on this device. Review every date, amount and name before consenting to analysis.`);
+                }} />
+              </div>
 
             </div>
 
