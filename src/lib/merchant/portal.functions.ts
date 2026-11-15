@@ -182,3 +182,13 @@ export const redeemVendorInvite = createServerFn({ method: "POST" })
     const { data: ok, error } = await context.supabase.rpc("redeem_merchant_invite", { _code: data.code });
     return { ok: !error && ok === true };
   });
+
+
+export const readMerchantPaidReportReadiness = createServerFn({ method: "POST" })
+  .validator(auth)
+  .handler(async ({ data }) => {
+    const { requireMerchant } = await import("./portal.server");
+    await requireMerchant(data.authAccessToken);
+    const { getPaidReportReadiness } = await import("./paid-report-readiness.server");
+    return getPaidReportReadiness();
+  });

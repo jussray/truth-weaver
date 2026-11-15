@@ -28,7 +28,8 @@ concurrency:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    # Pin a stable host; Playwright browser launch checks the real installed libraries.
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
       - name: Checkout exact PR or main commit
@@ -72,7 +73,18 @@ jobs:
       - id: readback
         run: bun run readback:cloudflare-build
       - id: browsers
-        run: bunx playwright install --with-deps chromium
+        # Ubuntu mirror DNS failures can block apt even when browser libraries are present.
+        # Install the actual Chromium headless shell; launch it to prove runtime deps.
+        # Failure to launch is a hard failure, and the E2E suite remains mandatory.
+        run: |
+          bunx playwright install --only-shell chromium
+          node --input-type=module <<'NODE'
+          import { chromium } from '@playwright/test';
+          const browser = await chromium.launch({ headless: true });
+          const page = await browser.newPage();
+          await page.goto('about:blank');
+          await browser.close();
+          NODE
       - id: e2e
         run: bun run test:e2e
         env:

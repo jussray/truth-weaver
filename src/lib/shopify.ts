@@ -64,12 +64,17 @@ export async function storefrontApiRequest(query: string, variables: Record<stri
 
 export async function fetchProducts(query?: string): Promise<ShopifyProduct[]> {
   const data = await storefrontApiRequest(PRODUCTS_QUERY, { first: 50, query: query ?? null });
-  return data?.data?.products?.edges ?? [];
+  const edges: unknown = data?.data?.products?.edges;
+  if (!Array.isArray(edges)) throw new Error("Invalid Shopify Storefront catalog response.");
+  return edges as ShopifyProduct[];
 }
 
 export async function fetchProductByHandle(handle: string): Promise<ShopifyProduct | null> {
   const data = await storefrontApiRequest(PRODUCT_BY_HANDLE_QUERY, { handle });
-  const node = data?.data?.product;
+  if (!data || !data.data || !("product" in data.data)) {
+    throw new Error("Invalid Shopify product response.");
+  }
+  const node = data.data.product;
   return node ? { node } : null;
 }
 

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { SiteChrome } from "@/components/storefront/site-chrome";
+import { DocumentScanner } from "@/components/scanner/document-scanner";
 import { supabase } from "@/integrations/supabase/client";
 import { SAVED_ANALYSIS_SESSION_KEY } from "@/lib/commerce/report-catalog";
 import { extractNoticePdfText } from "@/lib/extract-notice-pdf";
@@ -262,6 +263,16 @@ function NoticeAnalyzerPage() {
                   />
                 </label>
               </div>
+              <div className="mt-5" id="document-scanner">
+                <DocumentScanner onText={(text, pageCount) => {
+                  updateField("noticeText", text);
+                  setResult(null);
+                  setError("");
+                  setConsent(false);
+                  setFileMessage(`Read ${pageCount} camera-scanned page(s) on this device. Review every date, amount and name before consenting to analysis.`);
+                }} />
+              </div>
+
             </div>
 
             <div className="rounded-2xl border border-gold/20 bg-forest-deep/35 p-5">
@@ -292,6 +303,7 @@ function NoticeAnalyzerPage() {
                   <input type="file" accept=".pdf,application/pdf,.txt,text/plain,.png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" disabled={!uploadReady} onChange={handleNoticeFile} className="sr-only" />
                 </label>
               </div>
+
               <p className="mt-2 text-xs leading-5 text-parchment/55">
                 PDFs (up to 5 MB), photos and .txt are read on your device first. Scanned PDFs (up to 6 pages) and photos are read automatically and may contain mistakes. After you consent and choose Analyze, the reviewed text and details you entered are sent for analysis; they do not stay only on your device.
               </p>

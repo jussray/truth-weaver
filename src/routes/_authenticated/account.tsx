@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 
-import { CounselPage, StateBox, WorkspaceNav, tw } from "@/components/counsel/page";
+import { CounselPage, WorkspaceNav, tw } from "@/components/counsel/page";
 import { supabase } from "@/integrations/supabase/client";
 import { ShopifyCustomerConnect } from "@/components/commerce/shopify-customer-connect";
 
@@ -45,7 +45,7 @@ function AccountPage() {
           <div className="mt-4"><ShopifyCustomerConnect /></div>
           <Link to="/fulfillment" className={`${tw.ghost} mt-4`}>Order status, tracking and returns</Link>
           <a href="/merchant/manage" className={`${tw.ghost} ml-2 mt-4`}>Merchant management (assigned role required)</a>
-          <div className="mt-4"><StateBox kind="empty">No order proof or report entitlement is available to this application yet. Snapshot downloads stay locked until verified fulfillment is deployed.</StateBox></div>
+          <p className="mt-4 text-sm text-parchment/70">A linked Shopify account is not proof of payment. Your verified Snapshot purchase records and any prepared private reports appear under Orders and fulfillment. Each download requires a fresh server check of payment, ownership and access. Draft offers remain unavailable for sale.</p>
         </section>
       </div>
     </CounselPage>

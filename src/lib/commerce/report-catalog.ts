@@ -5,7 +5,8 @@
  * access always needs a fresh, server-side Shopify paid-order check.
  *
  * `variantGid` is filled in only after the matching Shopify product exists.
- * A null variant can never match an order line, so it can never unlock a report.
+ * When `variantGid` is null, SKU-based matching allows prepared offers (Guides,
+ * Templates, Courses, Bundles) to be unlocked once verified in Shopify or JussPay.
  */
 export type ReportKind = "snapshot" | "guide" | "templates" | "course";
 export type ReportOfferKey = "snapshot" | "guide" | "templates" | "course" | "bundle";
@@ -95,13 +96,28 @@ export const CLAIM_ATTRIBUTE_KEY = "_tw_claim";
 export const SAVED_ANALYSIS_SESSION_KEY = "tw.paid-analysis-id.v1";
 export const CLAIM_NONCE = /^[A-Za-z0-9_-]{43}$/;
 
-/** Exact variant + SKU match against a created Shopify product. */
+/**
+ * Exact variant + SKU match against a created Shopify product,
+ * or exact SKU match for prepared catalog products whose variant is unpinned.
+ */
 export function offerForLine(variantGid: string | null | undefined, sku: string | null | undefined): ReportOffer | null {
-  if (!variantGid || !sku) return null;
+  if (!sku) return null;
   for (const offer of Object.values(REPORT_OFFERS)) {
-    if (offer.variantGid !== null && offer.variantGid === variantGid && offer.sku === sku) return offer;
+    if (offer.variantGid !== null) {
+      if (variantGid && offer.variantGid === variantGid && offer.sku === sku) return offer;
+    } else {
+      if (offer.sku === sku) return offer;
+    }
   }
   return null;
+}
+
+/** Matches offer for JussPay Stripe checkout by offer key or SKU. */
+export function offerForJussPay(keyOrSku: string): ReportOffer | null {
+  if (!keyOrSku) return null;
+  const direct = REPORT_OFFERS[keyOrSku as ReportOfferKey];
+  if (direct) return direct;
+  return Object.values(REPORT_OFFERS).find((o) => o.sku === keyOrSku) ?? null;
 }
 
 /** True when a cart line is a report product that needs a saved analysis before checkout. */

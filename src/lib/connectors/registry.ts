@@ -39,8 +39,10 @@ export type ConnectorDefinition = {
   role: string;
   path: ConnectorPath;
   authMode: ConnectorAuthMode;
-  /** Server env names whose presence is required. Never read on the client. */
+  /** Server env names required for the configured auth path. Never read on the client. */
   requiredEnv: string[];
+  /** Optional server-only credentials used only for bounded read-proof health checks. */
+  healthProbeEnv?: string[];
   /** Human authorization/setup surface. A URL is not evidence that setup completed. */
   setupUrl?: string;
   setupLabel?: string;
@@ -130,6 +132,7 @@ export const CONNECTORS: readonly ConnectorDefinition[] = [
     path: "standard_connector",
     authMode: "lovable_app_connector",
     requiredEnv: [],
+    healthProbeEnv: ["NOTION_API_KEY"],
     setupUrl: LOVABLE_CONNECTORS_URL,
     setupLabel: "Connect Notion in Lovable",
     consumerFacing: true,
@@ -142,6 +145,7 @@ export const CONNECTORS: readonly ConnectorDefinition[] = [
     path: "standard_connector",
     authMode: "lovable_app_connector",
     requiredEnv: [],
+    healthProbeEnv: ["LINEAR_API_KEY"],
     setupUrl: LOVABLE_CONNECTORS_URL,
     setupLabel: "Connect Linear in Lovable",
     consumerFacing: true,
@@ -154,6 +158,7 @@ export const CONNECTORS: readonly ConnectorDefinition[] = [
     path: "standard_connector",
     authMode: "lovable_app_connector",
     requiredEnv: [],
+    healthProbeEnv: ["SLACK_BOT_TOKEN"],
     setupUrl: LOVABLE_CONNECTORS_URL,
     setupLabel: "Connect Slack in Lovable",
     consumerFacing: true,
@@ -168,6 +173,19 @@ export const CONNECTORS: readonly ConnectorDefinition[] = [
     requiredEnv: [],
     consumerFacing: true,
     limits: "Official text first; unofficial pages are secondary or discovery.",
+  },
+  {
+    id: "x",
+    name: "X (formerly Twitter)",
+    role: "Official communications, real-time public updates, and social statements.",
+    path: "standard_connector",
+    authMode: "lovable_app_connector",
+    requiredEnv: [],
+    healthProbeEnv: ["X_BEARER_TOKEN", "TWITTER_BEARER_TOKEN"],
+    setupUrl: LOVABLE_CONNECTORS_URL,
+    setupLabel: "Connect X in Lovable",
+    consumerFacing: true,
+    limits: "Social statements and posts are discovery or public claims only; never governing legal authority.",
   },
   {
     id: "github",
@@ -219,5 +237,5 @@ export function resolveConnectorStatus(
 }
 
 export function allConnectorEnvNames() {
-  return Array.from(new Set(CONNECTORS.flatMap((c) => c.requiredEnv)));
+  return Array.from(new Set(CONNECTORS.flatMap((c) => [...c.requiredEnv, ...(c.healthProbeEnv ?? [])])));
 }

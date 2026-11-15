@@ -147,7 +147,7 @@ test("shows planned preview prices without enabling a purchase", async ({ page }
     });
   });
   await page.goto("/shop");
-  await expect(page.locator("[data-shop-unavailable]")).toContainText("No products found");
+  await expect(page.locator("[data-shop-unavailable]")).toContainText(/No products found|No publicly available Shopify products yet/);
   const previews = page.getByTestId("notice-offer-preview");
   await expect(previews).toHaveCount(3);
   await expect(previews.nth(0)).toContainText("$10 planned");
@@ -155,4 +155,30 @@ test("shows planned preview prices without enabling a purchase", async ({ page }
   await expect(previews.nth(2)).toContainText("$49 planned");
   await expect(page.getByTestId("notice-offer-previews")).toContainText("Not for sale");
   await expect(page.getByTestId("notice-offer-previews").getByRole("button")).toHaveCount(0);
+});
+
+test("Shopify connection errors do not impersonate an empty published catalog", async ({ page }) => {
+  await page.route(apiUrl, async (route) => {
+    if (route.request().method() === "OPTIONS") {
+      await route.fulfill({
+        status: 204,
+        headers: {
+          "access-control-allow-origin": "*",
+          "access-control-allow-methods": "POST, OPTIONS",
+          "access-control-allow-headers": "content-type,x-shopify-storefront-access-token",
+        },
+      });
+    } else {
+      await route.fulfill({
+        status: 402,
+        headers: {
+          "access-control-allow-origin": "*",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ errors: [{ message: "Store unavailable in test" }] }),
+      });
+    }
+  });
+  await page.goto("/shop");
+  await expect(page.locator("[data-shop-unavailable]")).toContainText(/Shopify's catalog connection could not be verified|The store couldn't be reached right now/);
 });
