@@ -16,6 +16,7 @@
     "test:shopify-token": "vitest run src/lib/commerce/shopify-admin-token.test.ts src/lib/commerce/shopify-token-callers.test.ts",
     "verify:founder-intelligence": "node scripts/verify-founder-intelligence.mjs",
     "verify:cloudflare-runtime": "node scripts/verify-cloudflare-runtime.mjs",
+    "verify:deployment-guard": "node scripts/verify-deployment-guard.mjs",
     "readback:cloudflare-build": "node scripts/readback-cloudflare-build.mjs",
     "lint": "eslint .",
     "format:check": "prettier --check .",
