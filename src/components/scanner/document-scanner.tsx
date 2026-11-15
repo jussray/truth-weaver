@@ -324,7 +324,10 @@ export function DocumentScanner({ onText }: { onText: (text: string, pageCount: 
                     <label className="flex flex-1 items-center gap-2 text-xs">
                       Trim edges <input type="range" min="0" max="20" value={page.crop} disabled={busy}
                         aria-label={`Trim edges of page ${index + 1}`}
-                        onChange={(e) => setPages((items) => items.map((item) => item.id === page.id ? { ...item, crop: Number(e.currentTarget.value) } : item))}
+                        onChange={(e) => {
+                          const cropValue = Number(e.currentTarget.value);
+                          setPages((items) => items.map((item) => item.id === page.id ? { ...item, crop: cropValue } : item));
+                        }}
                         className="min-w-0 flex-1 accent-gold" />
                       {page.crop}%
                     </label>

@@ -263,7 +263,15 @@ function NoticeAnalyzerPage() {
                   />
                 </label>
               </div>
-
+              <div className="mt-5" id="document-scanner">
+                <DocumentScanner onText={(text, pageCount) => {
+                  updateField("noticeText", text);
+                  setResult(null);
+                  setError("");
+                  setConsent(false);
+                  setFileMessage(`Read ${pageCount} camera-scanned page(s) on this device. Review every date, amount and name before consenting to analysis.`);
+                }} />
+              </div>
 
             </div>
 
@@ -294,15 +302,6 @@ function NoticeAnalyzerPage() {
                   <Upload className="h-4 w-4" aria-hidden /> Load PDF / photo / .txt
                   <input type="file" accept=".pdf,application/pdf,.txt,text/plain,.png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" disabled={!uploadReady} onChange={handleNoticeFile} className="sr-only" />
                 </label>
-              </div>
-              <div className="mt-5">
-                <DocumentScanner onText={(text, pageCount) => {
-                  updateField("noticeText", text);
-                  setResult(null);
-                  setError("");
-                  setConsent(false);
-                  setFileMessage(`Read ${pageCount} camera-scanned page(s) on this device. Review every date, amount and name before consenting to analysis.`);
-                }} />
               </div>
 
               <p className="mt-2 text-xs leading-5 text-parchment/55">
