@@ -186,6 +186,14 @@ for (const name of manifestNames) {
 }
 unknowns.push("UNKNOWN build output, typecheck, unit tests and Playwright are not run by this static check");
 
+// 6. Production deployment runtime guard: Cloudflare Workers is the sole production runtime; Vercel is guarded
+const guardPath = join(dirname(fileURLToPath(import.meta.url)), "verify-deployment-guard.mjs");
+const { spawnSync } = await import("node:child_process");
+const guardRes = spawnSync(process.execPath, [guardPath, root], { encoding: "utf8" });
+if (guardRes.status !== 0) {
+  fail(`verify-deployment-guard failed:\n${guardRes.stderr || guardRes.stdout}`);
+}
+
 if (failures.length > 0) {
   console.error("cloudflare-runtime FAIL");
   for (const message of failures) console.error(`  - ${message}`);
