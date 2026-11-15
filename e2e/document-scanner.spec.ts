@@ -2,6 +2,8 @@ import { expect, test } from "@playwright/test";
 
 /** Privacy boundary: page capture is local until reviewed text is submitted separately. */
 test("document scanner captures a page locally and never submits a notice automatically", async ({ page }) => {
+  page.on("console", (msg) => console.log(`[BROWSER CONSOLE ${msg.type()}] ${msg.text()}`));
+  page.on("pageerror", (err) => console.log(`[BROWSER UNCAUGHT ERROR] ${err.message}`));
   let analysisRequests = 0;
   page.on("request", (request) => {
     if (request.method() === "POST" && /notice-analyzer|analyzeLegalNotice/.test(request.url())) analysisRequests++;
@@ -27,6 +29,11 @@ test("document scanner captures a page locally and never submits a notice automa
   expect(await page.evaluate(() => (document.querySelector('[data-testid="notice-consent"]') as HTMLInputElement)?.checked ?? false)).toBe(false);
   expect(analysisRequests).toBe(0);
 
+  console.log("=== DEBUG STATE BEFORE DISCARD ===");
+  console.log("Dialog count:", await page.getByTestId("document-scanner-dialog").count());
+  console.log("Scanner page count:", await page.getByTestId("scanner-page").count());
+  console.log("Buttons in dialog:", await page.locator("button").allInnerTexts());
+  console.log("All data-testids:", await page.evaluate(() => Array.from(document.querySelectorAll("[data-testid]")).map(el => el.getAttribute("data-testid"))));
   const discardBtn = page.getByTestId("scanner-discard-scans");
   await expect(discardBtn).toBeVisible();
   await discardBtn.click();
