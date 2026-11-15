@@ -43,7 +43,7 @@ export const Route = createFileRoute("/notice-analyzer")({
           applicationCategory: "ReferenceApplication",
           operatingSystem: "Web",
           isAccessibleForFree: true,
-          url: "https://truthweaver.jussco.company/notice-analyzer",
+          url: "https://www.truthweaver.jussco.company/notice-analyzer",
           description: "Reads landlord, court, debt, or government notices in-browser to identify dates, demands, and questions for a qualified lawyer.",
           publisher: { "@id": "https://www.jussco.company/#organization" },
           offers: {

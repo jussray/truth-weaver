@@ -18,6 +18,20 @@ test.describe("Truth Weaver live domain (read-only)", () => {
     expect(permittedHosts.has(new URL(page.url()).hostname)).toBe(true);
     await expect(page.getByRole("heading", { name: /Understand the law/i, level: 1 })).toBeVisible();
     await expect(page.getByTestId("triage-input")).toBeVisible();
+    // Juss: the site must work on both www and the bare domain; either may be canonical.
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /^https:\/\/(www\.)?truthweaver\.jussco\.company\/$/);
+  });
+
+  test("answers a synthetic triage question through the live server function", async ({ page }) => {
+    await page.goto(new URL("/", liveUrl).href, { waitUntil: "domcontentloaded" });
+    expect(permittedHosts.has(new URL(page.url()).hostname)).toBe(true);
+    // Real deployed server function, synthetic non-private input; never mock success.
+    await expect(page.getByTestId("triage-input")).toBeEnabled({ timeout: 20_000 });
+    await page.getByTestId("triage-input").fill("Example only: a landlord kept a security deposit after move-out");
+    await page.getByTestId("triage-submit").click();
+    await expect(page.getByTestId("triage-result").or(page.getByTestId("triage-error"))).toBeVisible({ timeout: 45_000 });
+    await expect(page.getByTestId("triage-error")).toHaveCount(0);
+    await expect(page.getByTestId("triage-result")).toBeVisible();
   });
 
   test("serves the real Shop page and reports the catalog truthfully", async ({ page }) => {

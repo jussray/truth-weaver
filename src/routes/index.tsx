@@ -29,7 +29,7 @@ export const Route = createFileRoute("/")({
           applicationCategory: "ReferenceApplication",
           operatingSystem: "Web",
           isAccessibleForFree: true,
-          url: "https://truthweaver.jussco.company/",
+          url: "https://www.truthweaver.jussco.company/",
           description: "Free plain-English legal research by location and a legal notice reader. Not a law firm and not legal advice.",
           publisher: { "@id": "https://www.jussco.company/#organization" },
           featureList: [

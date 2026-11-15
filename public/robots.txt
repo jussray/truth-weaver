@@ -8,7 +8,7 @@ Disallow: /issues/
 Disallow: /fulfillment
 Disallow: /vendor-invite
 
-Sitemap: https://truthweaver.jussco.company/sitemap.xml
+Sitemap: https://www.truthweaver.jussco.company/sitemap.xml
 
 # AI and Search Crawler Guidance
-# https://truthweaver.jussco.company/llms.txt
+# https://www.truthweaver.jussco.company/llms.txt

@@ -4,9 +4,9 @@ import { canonicalUrl, INDEXABLE_PATHS, pageHead, safeJsonLd, faqPageJsonLd } fr
 
 describe("seo helpers", () => {
   it("builds absolute canonical URLs without query or trailing slash", () => {
-    expect(canonicalUrl("/")).toBe("https://truthweaver.jussco.company/");
-    expect(canonicalUrl("/shop?category=guides")).toBe("https://truthweaver.jussco.company/shop");
-    expect(canonicalUrl("/sources/")).toBe("https://truthweaver.jussco.company/sources");
+    expect(canonicalUrl("/")).toBe("https://www.truthweaver.jussco.company/");
+    expect(canonicalUrl("/shop?category=guides")).toBe("https://www.truthweaver.jussco.company/shop");
+    expect(canonicalUrl("/sources/")).toBe("https://www.truthweaver.jussco.company/sources");
     expect(() => canonicalUrl("//evil.com")).toThrow();
   });
 
@@ -49,7 +49,7 @@ describe("robots and sitemap", () => {
     expect(locs.some((l) => l!.includes("?"))).toBe(false);
   });
   it("robots declares the absolute sitemap and blocks private areas", () => {
-    expect(robots).toContain("Sitemap: https://truthweaver.jussco.company/sitemap.xml");
+    expect(robots).toContain("Sitemap: https://www.truthweaver.jussco.company/sitemap.xml");
     expect(robots).toMatch(/Disallow: \/merchant/);
   });
 });
@@ -58,7 +58,7 @@ describe("llms.txt AI crawler manifest", () => {
   const llms = readFileSync("public/llms.txt", "utf8");
   it("contains canonical title, disclaimers, and canonical URLs", () => {
     expect(llms).toContain("# Truth Weaver Counsel");
-    expect(llms).toContain("https://truthweaver.jussco.company/");
+    expect(llms).toContain("https://www.truthweaver.jussco.company/");
     expect(llms).toContain("Not Legal Advice");
     expect(llms).toContain("Verification Requirement");
   });
