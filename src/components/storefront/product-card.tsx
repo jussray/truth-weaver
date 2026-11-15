@@ -10,7 +10,7 @@ export function ProductCard({ product }: { product: ShopifyProduct }) {
   const addItem = useCartStore((s) => s.addItem);
   const isLoading = useCartStore((s) => s.isLoading);
   const p = product.node;
-  const variant = p.variants.edges[0]?.node;
+  const variant = p.variants.edges.find((entry) => entry.node.availableForSale)?.node ?? p.variants.edges[0]?.node;
   const img = p.images.edges[0]?.node;
   const held = !!variant && !isStorefrontVariantSellable(variant.id, p.tags);
   const purchasable = !!variant?.availableForSale && !held;

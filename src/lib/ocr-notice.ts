@@ -62,6 +62,18 @@ export async function ocrNoticeImage(file: File, onProgress: OcrProgress) {
   return { ...result, text: checkText(result.text) };
 }
 
+/** OCR captured camera pages together, including short pages, without uploading them. */
+export async function ocrNoticeImages(files: File[], onProgress: OcrProgress) {
+  if (!files.length || files.length > MAX_OCR_PAGES) {
+    throw new Error(`Choose between one and ${MAX_OCR_PAGES} scanned pages.`);
+  }
+  if (files.some((file) => file.size === 0 || file.size > MAX_IMAGE_BYTES || !/^image\/(png|jpeg|webp)$/.test(file.type))) {
+    throw new Error("Each scanned image must be PNG, JPG or WebP and no larger than 8 MB.");
+  }
+  const result = await recognize(files, onProgress);
+  return { ...result, text: checkText(result.text) };
+}
+
 export async function ocrNoticePdf(file: File, onProgress: OcrProgress) {
   const [pdfjs, worker] = await Promise.all([
     import("pdfjs-dist/legacy/build/pdf.mjs"),

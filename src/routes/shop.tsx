@@ -33,7 +33,7 @@ function ShopPage() {
   const { category: categorySlug, area } = Route.useSearch();
   const category = findCategory(categorySlug);
   const query = buildShopQuery(category?.slug, area);
-  const q = useQuery({ queryKey: ["products", query ?? "all"], queryFn: () => fetchProducts(query) });
+  const q = useQuery({ queryKey: ["products", query ?? "all"], queryFn: () => fetchProducts(query), staleTime: 60_000, retry: 1 });
   const products = q.data ?? [];
   const pill = (active: boolean) =>
     `rounded-full border px-4 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold ${active ? "border-gold bg-gold/10 text-gold" : "border-parchment/15 text-parchment/70 hover:border-gold/50"}`;
@@ -77,7 +77,7 @@ function ShopPage() {
         {q.isLoading ? (
           <p role="status" className="mt-10 text-parchment/60">Loading products…</p>
         ) : q.error ? (
-          <p data-shop-unavailable role="alert" className="mt-10 text-parchment/70">The store couldn't be reached right now. Please try again shortly.</p>
+          <p data-shop-unavailable role="alert" className="mt-10 text-parchment/70">The store couldn't be reached right now. Shopify's catalog connection could not be verified. Please try again shortly.</p>
         ) : products.length === 0 ? (
           <div data-shop-unavailable className="mt-10 max-w-2xl rounded-2xl border border-gold/25 bg-forest-deep/60 p-6 leading-7 text-parchment/80">
             <p className="font-serif text-2xl text-parchment">No products found</p>
