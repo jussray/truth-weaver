@@ -88,7 +88,7 @@ jobs:
       - id: e2e
         run: bun run test:e2e
         env:
-          TRUTH_WEAVER_LIVE_URL: https://www.truthweaver.jussco.company
+          TRUTH_WEAVER_LIVE_URL: https://truthweaver.jussco.company
           TRUTH_WEAVER_REQUIRE_CATALOG: ${{ github.event_name == 'workflow_dispatch' && inputs.require_live_catalog && 'true' || 'false' }}
 
       - name: Record exact-stage outcomes even when verification fails

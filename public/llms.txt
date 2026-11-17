@@ -4,12 +4,12 @@
 Truth Weaver Counsel is a free reference web application that helps people understand legal situations by finding official law sources, translating them into plain English, and identifying what still needs checking. Truth Weaver is not a law firm, does not provide legal advice, and does not establish an attorney-client relationship.
 
 ## Canonical URLs
-- [Home & Free Legal Research](https://www.truthweaver.jussco.company/): Plain-English legal research by location.
-- [Legal Notice Analyzer](https://www.truthweaver.jussco.company/notice-analyzer): In-browser reader for landlord, court, debt, and government notices. Finds deadlines, demands, and lawyer questions.
-- [Official Sources Registry](https://www.truthweaver.jussco.company/sources): Registered government and court websites checked for verified law.
-- [Source Verification Methodology](https://www.truthweaver.jussco.company/connectors): How citations, dates, and official domains are verified, and why summaries alone are unverified.
-- [Legal Library](https://www.truthweaver.jussco.company/legal-library): Registered secondary treatises, books, and reference guides.
-- [Shop & Guides](https://www.truthweaver.jussco.company/shop): Educational legal guides and reference materials (paid items on launch hold until verified).
+- [Home & Free Legal Research](https://truthweaver.jussco.company/): Plain-English legal research by location.
+- [Legal Notice Analyzer](https://truthweaver.jussco.company/notice-analyzer): In-browser reader for landlord, court, debt, and government notices. Finds deadlines, demands, and lawyer questions.
+- [Official Sources Registry](https://truthweaver.jussco.company/sources): Registered government and court websites checked for verified law.
+- [Source Verification Methodology](https://truthweaver.jussco.company/connectors): How citations, dates, and official domains are verified, and why summaries alone are unverified.
+- [Legal Library](https://truthweaver.jussco.company/legal-library): Registered secondary treatises, books, and reference guides.
+- [Shop & Guides](https://truthweaver.jussco.company/shop): Educational legal guides and reference materials (paid items on launch hold until verified).
 
 ## Core Operational Truths & Disclaimers
 - **Not Legal Advice**: Truth Weaver Counsel is not a law firm. Users must consult a qualified attorney in their jurisdiction for legal counsel.
