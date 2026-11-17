@@ -24,9 +24,7 @@ function ProductPage() {
   const [variantIdx, setVariantIdx] = useState(0);
 
   const p = q.data?.node;
-  const firstAvailableIndex = p?.variants.edges.findIndex((entry) => entry.node.availableForSale) ?? -1;
-  const selectedIndex = variantIdx === 0 && firstAvailableIndex > 0 ? firstAvailableIndex : variantIdx;
-  const variant = p?.variants.edges[selectedIndex]?.node;
+  const variant = p?.variants.edges[variantIdx]?.node;
   const held = !!variant && !isStorefrontVariantSellable(variant.id, p?.tags);
   const purchasable = !!variant?.availableForSale && !held;
 
@@ -47,7 +45,7 @@ function ProductPage() {
               <p className="mt-3 text-2xl font-semibold text-gold-soft">{variant ? formatPrice(variant.price) : formatPrice(p.priceRange.minVariantPrice)}</p>
               {p.variants.edges.length > 1 && (
                 <select value={variantIdx} onChange={(e) => setVariantIdx(Number(e.currentTarget.value))} className="mt-5 rounded-xl border border-parchment/15 bg-ink px-3 py-2 text-parchment">
-                  {p.variants.edges.map((v, i) => <option key={v.node.id} value={i}>{v.node.title}</option>)}
+                  {p.variants.edges.map((v, i) => <option key={v.node.id} value={i}>{v.node.title}{v.node.availableForSale ? "" : " — Sold out"}</option>)}
                 </select>
               )}
               <p className="mt-5 whitespace-pre-line leading-7 text-parchment/75">{p.description}</p>

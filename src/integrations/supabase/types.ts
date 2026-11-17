@@ -904,6 +904,39 @@ export type Database = {
           },
         ]
       }
+      tw_snapshot_generation_reservations: {
+        Row: {
+          auth_user_id: string
+          order_gid: string
+          reserved_at: string
+        }
+        Insert: {
+          auth_user_id: string
+          order_gid: string
+          reserved_at?: string
+        }
+        Update: {
+          auth_user_id?: string
+          order_gid?: string
+          reserved_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tw_snapshot_generation_owner_fk"
+            columns: ["order_gid", "auth_user_id"]
+            isOneToOne: false
+            referencedRelation: "tw_snapshot_entitlements"
+            referencedColumns: ["order_gid", "auth_user_id"]
+          },
+          {
+            foreignKeyName: "tw_snapshot_generation_reservations_order_gid_fkey"
+            columns: ["order_gid"]
+            isOneToOne: true
+            referencedRelation: "tw_snapshot_entitlements"
+            referencedColumns: ["order_gid"]
+          },
+        ]
+      }
       tw_snapshot_report_locations: {
         Row: {
           auth_user_id: string
@@ -971,8 +1004,6 @@ export type Database = {
         Returns: boolean
       }
       redeem_merchant_invite: { Args: { _code: string }; Returns: boolean }
-      // Generated from the service-role-only atomic reservation migration.
-      // Client access remains denied by SQL REVOKE and RLS; types grant no permission.
       tw_reserve_snapshot_generation: {
         Args: { p_auth_user_id: string; p_order_gid: string }
         Returns: boolean

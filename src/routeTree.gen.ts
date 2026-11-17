@@ -164,12 +164,11 @@ const ApiPublicShopifyOrdersPaidRoute =
     path: '/api/public/shopify/orders-paid',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicStripeWebhookRoute =
-  ApiPublicStripeWebhookRouteImport.update({
-    id: '/api/public/stripe/webhook',
-    path: '/api/public/stripe/webhook',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
+  id: '/api/public/stripe/webhook',
+  path: '/api/public/stripe/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
