@@ -971,12 +971,6 @@ export type Database = {
         Returns: boolean
       }
       redeem_merchant_invite: { Args: { _code: string }; Returns: boolean }
-      // Generated from the service-role-only atomic reservation migration.
-      // Client access remains denied by SQL REVOKE and RLS; types grant no permission.
-      tw_reserve_snapshot_generation: {
-        Args: { p_auth_user_id: string; p_order_gid: string }
-        Returns: boolean
-      }
     }
     Enums: {
       app_role: "merchant"
