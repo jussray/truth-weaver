@@ -1,6 +1,8 @@
-## Canonical production domain (2026-11-11)
-- The approved canonical website is https://www.truthweaver.jussco.company. The non-www hostname is a Cloudflare 301 redirect alias.
-- Every public canonical tag, sitemap, robots sitemap pointer, llms.txt reference, JSON-LD application URL, and Shopify callback URI must use the www hostname. Never flip this without the founder's explicit instruction.
+## Canonical production domain (Juss, 2026-11-17: option A3)
+- The canonical website is https://truthweaver.jussco.company, served by Lovable hosting (DNS-only A record). `www.truthweaver.jussco.company` is a 301 alias: zone route `www.truthweaver.jussco.company/*` and its custom domain both point to Worker `truthweaver-www-redirect` (path and query kept; non-GET uses 308).
+- Canonical tags, sitemap, robots sitemap pointer, llms.txt and JSON-LD URLs use the bare hostname. Shopify customer-account and Lovable OAuth callback URIs stay on `www` because they are registered with those providers; they reach the app through the redirect. Move them only together with the provider registration.
+- Shopify and Stripe webhooks must target the bare hostname: providers do not follow redirects.
+- Worker `truth-weaver` is not live (0 secrets). Do not attach a live hostname to it without its secrets and a Playwright readback.
 - A GitHub merge or build alone does not prove the Cloudflare deployment, AI gateway secret, or an actual jurisdiction-aware legal answer. Verify with live Playwright and authoritative source evidence.
 
 # Claude Operating Contract — jussray/truth-weaver

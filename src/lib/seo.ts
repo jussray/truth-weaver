@@ -3,7 +3,7 @@
  * truth states, commerce holds or authorization. Every JSON-LD fact here must
  * match visible page text; no ratings, credentials, prices or Product/Offer.
  */
-export const SITE_URL = "https://www.truthweaver.jussco.company";
+export const SITE_URL = "https://truthweaver.jussco.company";
 export const PARENT_URL = "https://www.jussco.company";
 export const PARENT_NAME = "Juss & Co.";
 export const PRODUCT_NAME = "Truth Weaver Counsel";
