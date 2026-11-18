@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Sparkles } from "lucide-react";
 
 import { ProductCard } from "@/components/storefront/product-card";
+import { bearerHeaders } from "@/lib/auth-headers";
 import { getRecommendations } from "@/lib/recommendations.functions";
 
 export interface RelatedProductsProps {
@@ -13,7 +14,10 @@ export interface RelatedProductsProps {
 export function RelatedProducts({ handle }: RelatedProductsProps) {
   const q = useQuery({
     queryKey: ["recommendations", handle],
-    queryFn: () => getRecommendations({ data: { handle } }),
+    queryFn: async () => {
+      const headers = await bearerHeaders();
+      return getRecommendations(headers ? { data: { handle }, headers } : { data: { handle } });
+    },
     staleTime: 5 * 60 * 1000,
     retry: false,
   });

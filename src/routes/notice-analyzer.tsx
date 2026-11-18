@@ -74,6 +74,7 @@ function NoticeAnalyzerPage() {
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [result, setResult] = useState<NoticeAnalyzerResult | null>(null);
   const [error, setError] = useState("");
+  const [needsSignIn, setNeedsSignIn] = useState(false);
   const [pending, setPending] = useState(false);
   const [filePending, setFilePending] = useState(false);
   const [fileMessage, setFileMessage] = useState("");
@@ -162,16 +163,23 @@ function NoticeAnalyzerPage() {
     }
     setPending(true);
     setError("");
+    setNeedsSignIn(false);
     setResult(null);
     setSaveMessage("");
     // Do not accidentally use the previous notice when starting a new analysis.
     try { sessionStorage.removeItem(SAVED_ANALYSIS_SESSION_KEY); } catch { /* browser storage may be disabled */ }
 
     try {
-      const authToken = saveForReport ? (await supabase.auth.getSession()).data.session?.access_token : null;
-      const response = await analyzeLegalNotice(authToken
-        ? { data: form, headers: { Authorization: `Bearer ${authToken}` } }
-        : { data: form });
+      const authToken = (await supabase.auth.getSession()).data.session?.access_token ?? null;
+      if (!authToken) {
+        setNeedsSignIn(true);
+        setError("Sign in to your free account to analyze a notice. Nothing was sent for analysis.");
+        return;
+      }
+      const response = await analyzeLegalNotice({
+        data: { notice: form, saveForReport },
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
       setResult(response);
       if (saveForReport) {
         if (response.savedAnalysisId) {
@@ -373,7 +381,7 @@ function NoticeAnalyzerPage() {
 
             {error ? (
               <div role="alert" data-testid="analysis-error" className="rounded-2xl border border-warn/40 bg-warn/10 p-4 text-sm leading-6 text-parchment">
-                <div className="flex gap-3"><AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warn" aria-hidden /><span>{error}</span></div>
+                <div className="flex gap-3"><AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warn" aria-hidden /><span>{error}{needsSignIn ? <> <Link to="/login" className="font-semibold text-gold underline underline-offset-4">Sign in free</Link></> : null}</span></div>
               </div>
             ) : null}
           </form>

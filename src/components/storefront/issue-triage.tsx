@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Compass } from "lucide-react";
 
+import { bearerHeaders } from "@/lib/auth-headers";
 import { triageIssueWithAi, type AiTriageResult } from "@/lib/issue-triage.functions";
 
 // Classification is only a starting point. Research requires place, dates and sources.
@@ -11,6 +12,7 @@ export function IssueTriageBanner({ onContinue }: { onContinue: (description: st
   useEffect(() => setReady(true), []);
   const [results, setResults] = useState<AiTriageResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [needsSignIn, setNeedsSignIn] = useState(false);
   const [loading, setLoading] = useState(false);
   const reqId = useRef(0);
   const description = text.trim();
@@ -25,9 +27,17 @@ export function IssueTriageBanner({ onContinue }: { onContinue: (description: st
     const id = ++reqId.current;
     setLoading(true);
     setError(null);
+    setNeedsSignIn(false);
     setResults(null);
     try {
-      const ai = await triageIssueWithAi({ data: { text: description } });
+      const headers = await bearerHeaders();
+      if (id !== reqId.current) return;
+      if (!headers) {
+        setNeedsSignIn(true);
+        setError("Sign in to your free account to match your issue. You can still continue with what you wrote.");
+        return;
+      }
+      const ai = await triageIssueWithAi({ data: { text: description }, headers });
       if (id !== reqId.current) return;
       setResults(ai);
     } catch {
@@ -84,7 +94,7 @@ export function IssueTriageBanner({ onContinue }: { onContinue: (description: st
       {loading ? <p role="status" className="mt-3 text-sm text-parchment/70">Looking for a useful starting point, not a legal verdict.</p> : null}
       {error ? (
         <p data-testid="triage-error" role="alert" className="mt-3 text-sm leading-6 text-parchment/85">
-          {error} You can also <a href="#legal-areas" className="text-gold underline">browse the legal topics</a>.
+          {error}{needsSignIn ? <> <a href="/login" className="font-semibold text-gold underline">Sign in free</a>.</> : null} You can also <a href="#legal-areas" className="text-gold underline">browse the legal topics</a>.
         </p>
       ) : null}
       {results ? (

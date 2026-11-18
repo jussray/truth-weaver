@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
 export const LEGAL_AREAS = [
   "Housing & Real Estate",
   "Credit & Debt",
@@ -19,7 +21,9 @@ const inputSchema = z.object({ text: z.string().trim().min(3).max(2000) });
 
 export type AiTriageResult = { area: string; reason: string }[];
 
+// Metered AI call: requires a validated signed-in session.
 export const triageIssueWithAi = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .validator(inputSchema)
   .handler(async ({ data }): Promise<AiTriageResult> => {
     const key = process.env["LOVABLE_API_KEY"];

@@ -35,13 +35,21 @@ function outputText(response: unknown): string {
     .join("");
 }
 
-export async function recommendForHandle(handle: string): Promise<RecommendationResult> {
+export async function recommendForHandle(
+  handle: string,
+  options: { allowAi?: boolean } = {},
+): Promise<RecommendationResult> {
   // The shop list is a capped first page; resolve the viewed product directly so
   // product pages beyond that page are still eligible for recommendations.
   const [current, catalog] = await Promise.all([fetchProductByHandle(handle), fetchProducts()]);
   if (!current) return { mode: "none", items: [], notice: null };
   const candidates = candidatesFor(current, catalog);
   if (candidates.length === 0) return { mode: "none", items: [], notice: null };
+
+  if (!options.allowAi) {
+    const items = categoryFallback(current, candidates);
+    return { mode: items.length ? "category" : "none", items, notice: null };
+  }
 
   const key = handle + "|" + candidates.map((c) => c.node.id).sort().join(",");
   const hit = cache.get(key);

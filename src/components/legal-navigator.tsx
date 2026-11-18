@@ -13,6 +13,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
+import { bearerHeaders } from "@/lib/auth-headers";
 import { CONTINUITY_COOKIE_NAME, writeContinuityCookie } from "@/lib/continuity";
 import { researchLegalSituation } from "@/lib/legal-navigator.functions";
 import { createLocalJurisdictionFailClosedResult } from "@/lib/legal-navigator";
@@ -77,6 +78,7 @@ export function LegalNavigator({ initialValues }: { initialValues?: LegalNavigat
   const [result, setResult] = useState<ResearchResult | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+  const [needsSignIn, setNeedsSignIn] = useState(false);
 
   function update(field: keyof FormState, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -86,6 +88,7 @@ export function LegalNavigator({ initialValues }: { initialValues?: LegalNavigat
     event.preventDefault();
     setPending(true);
     setError("");
+    setNeedsSignIn(false);
     try {
       const data = {
         ...form,
@@ -98,7 +101,14 @@ export function LegalNavigator({ initialValues }: { initialValues?: LegalNavigat
         return;
       }
 
-      const next = await researchLegalSituation({ data });
+      const headers = await bearerHeaders();
+      if (!headers) {
+        setResult(null);
+        setNeedsSignIn(true);
+        setError("Sign in to your free account to research official sources. This keeps the service available for everyone.");
+        return;
+      }
+      const next = await researchLegalSituation({ data, headers });
       setResult(next);
       writeContinuityCookie(next.continuity);
     } catch (cause) {
@@ -202,6 +212,7 @@ export function LegalNavigator({ initialValues }: { initialValues?: LegalNavigat
               {error ? (
                 <div role="alert" className="rounded-xl border border-warn/40 bg-warn/10 p-4 text-sm text-parchment">
                   {error}
+                  {needsSignIn ? <a href="/login" className="ml-1 font-semibold text-gold underline underline-offset-4">Sign in free</a> : null}
                 </div>
               ) : null}
             </form>

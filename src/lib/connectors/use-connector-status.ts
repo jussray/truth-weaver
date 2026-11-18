@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import type { ConnectorHealth } from "./health";
 import type { ProviderId } from "./provenance";
 import { CONNECTORS, type ConnectorStatus } from "./registry";
+import { authed } from "@/lib/merchant/authed-call";
 import { getConnectorHealth } from "./status.functions";
 
 /**
@@ -15,7 +16,7 @@ export function useConnectorStatuses() {
   const fetchHealth = useServerFn(getConnectorHealth);
   const q = useQuery({
     queryKey: ["connector-health"],
-    queryFn: () => fetchHealth(),
+    queryFn: () => authed(fetchHealth),
     staleTime: 60_000,
     retry: 1,
   });
