@@ -141,3 +141,16 @@ Run the test suite:
 ```bash
 python3 -m unittest discover -s test -p "test_*.py" -v
 ```
+
+
+## Scheduled Lead Triage Pipeline
+
+The automated lead triage pipeline is implemented in `scripts/x_lead_triage.py`:
+- **Epistemic Classification**: Ingested social mentions are tagged with status `ALLEGED_FACT` under the Truth Weaver truth-continuity model.
+- **Categorization**: Analyzes text for urgency patterns including `housing_urgent` (eviction, notice to quit), `debt_defense` (summons, collections lawsuits), and `legal_demand` (formal attorney notices).
+- **Execution**: Run locally or in CI via:
+  ```bash
+  python3 scripts/x_lead_triage.py --dry-run
+  python3 scripts/x_lead_triage.py --json --output triage-summary.json
+  ```
+- **Automated Workflow Specification**: Runs on schedule with `X_BEARER_TOKEN` or `TWITTER_BEARER_TOKEN`.
