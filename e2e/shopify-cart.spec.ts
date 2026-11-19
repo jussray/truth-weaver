@@ -182,3 +182,45 @@ test("Shopify connection errors do not impersonate an empty published catalog", 
   await page.goto("/shop");
   await expect(page.locator("[data-shop-unavailable]")).toContainText(/Shopify's catalog connection could not be verified|The store couldn't be reached right now/);
 });
+
+test("prepared guides and courses have read-only previews across shop categories", async ({ page }) => {
+  await page.route(apiUrl, async (route) => {
+    const headers = {
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "POST, OPTIONS",
+      "access-control-allow-headers": "content-type,x-shopify-storefront-access-token",
+      "content-type": "application/json",
+    };
+    if (route.request().method() === "OPTIONS") {
+      await route.fulfill({ status: 204, headers });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      headers,
+      body: JSON.stringify({ data: { products: { edges: [] } } }),
+    });
+  });
+
+  await page.goto("/shop");
+  const previews = page.getByTestId("planned-product-card");
+  await expect(previews).toHaveCount(4);
+  await expect(page.getByTestId("planned-catalog")).toContainText("Notice Response Guide");
+  await expect(page.getByTestId("planned-catalog")).toContainText("Notice Response Templates");
+  await expect(page.getByTestId("planned-catalog")).toContainText("Notice Basics Course");
+  await expect(page.getByTestId("planned-catalog")).toContainText("Notice Complete Bundle");
+  await expect(previews.first()).toContainText("In development · Not for sale");
+  await expect(previews.getByRole("button")).toHaveCount(0);
+
+  await page.goto("/shop?category=courses");
+  await expect(previews).toHaveCount(1);
+  await expect(previews.first()).toContainText("Notice Basics Course");
+  await expect(previews.first()).toContainText("Five short lessons in order");
+
+  await page.goto("/shop?category=guides");
+  await expect(previews).toHaveCount(1);
+  await expect(previews.first()).toContainText("Notice Response Guide");
+
+  await page.goto("/shop?category=courses&area=Housing");
+  await expect(previews).toHaveCount(0);
+});
