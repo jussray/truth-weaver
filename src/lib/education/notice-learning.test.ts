@@ -58,7 +58,11 @@ describe("TruthWeaver public learning and governed exports", () => {
     expect(workflow.gates.requireHumanPublicationApproval).toBe(true);
     expect(workflow.sources).toHaveLength(LEARNING_SOURCES.length);
     expect(workflow.catalogSkus).toHaveLength(4);
-    expect(LEARNING_RESEARCH_WORKFLOW.steps.map((step) => step.id)).toContain("redteam");
+    const steps = LEARNING_RESEARCH_WORKFLOW.steps.map((step) => step.id);
+    expect(steps.filter((id) => id.startsWith("redteam-"))).toHaveLength(2);
+    expect(steps.filter((id) => id.startsWith("ooda-"))).toHaveLength(2);
+    expect(steps.filter((id) => id.startsWith("l99-"))).toHaveLength(2);
+    expect(LEARNING_RESEARCH_WORKFLOW.challengeLenses).toHaveLength(3);
   });
 
   it("does not export a paid snapshot or customer-specific notice as a public resource", () => {
