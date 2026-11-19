@@ -116,6 +116,7 @@ function ShopPage() {
                   <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-parchment/70">
                     {offer.includes.map((item) => <li key={item}>{item}</li>)}
                   </ul>
+                  <a href={`/learn?resource=${offer.key}`} className="mt-5 inline-flex rounded-full border border-gold/50 px-4 py-2 text-sm font-semibold text-gold-soft hover:bg-gold/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold">Read free educational sample</a>
                 </article>
               ))}
             </div>
