@@ -62,7 +62,7 @@ export function buildShopQuery(categorySlug?: string, area?: string): string | u
   return parts.length ? parts.join(" AND ") : undefined;
 }
 
-/** Preview only: prepared report offers are not Shopify listings or purchase entitlements. */
+/** Preview only: draft catalog records do not prove publication or purchase entitlement. */
 export function plannedShopOffers(categorySlug?: string, area?: string) {
   if (area || (categorySlug !== undefined && !findCategory(categorySlug))) return [];
   return Object.values(REPORT_OFFERS).filter(
