@@ -20,10 +20,10 @@ describe("shop categories", () => {
     expect(buildShopQuery("weapons")).toBeUndefined();
     expect(buildShopQuery(undefined, 'Housing" OR tag:"x')).toBe('tag:"Housing OR tag:x"');
   });
-  it("lists only the four prepared, non-Snapshot report offers on the unfiltered shop", () => {
+  it("lists the four prepared, pinned, non-Snapshot report offers on the unfiltered shop", () => {
     const offers = plannedShopOffers();
     expect(offers.map((offer) => offer.key)).toEqual(["guide", "templates", "course", "bundle"]);
-    expect(offers.every((offer) => offer.variantGid === null)).toBe(true);
+    expect(offers.every((offer) => offer.variantGid?.startsWith("gid://shopify/ProductVariant/") === true)).toBe(true);
   });
 
   it("limits previews to the selected category", () => {
