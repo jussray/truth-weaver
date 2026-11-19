@@ -18,7 +18,7 @@ describe("TruthWeaver public learning and governed exports", () => {
     for (const key of LEARNING_KEYS) {
       expect(REPORT_OFFERS[key].variantGid).toMatch(/^gid:\/\/shopify\/ProductVariant\/\d+$/);
       expect(learningResourceMarkdown(key)).toContain("NOT A PAID DELIVERABLE");
-      expect(learningResourceMarkdown(key)).toContain("Not legal advice");
+      expect(learningResourceMarkdown(key)).toContain("NOT LEGAL ADVICE");
       expect(learningResourceMarkdown(key)).toContain("Official source index");
     }
   });
