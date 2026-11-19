@@ -1,3 +1,5 @@
+import { REPORT_OFFERS } from "./commerce/report-catalog";
+
 /**
  * Store categories. Each maps to a Shopify product_type. A product appears in
  * a category only when the merchant sets that product_type in Shopify; the app
@@ -58,4 +60,12 @@ export function buildShopQuery(categorySlug?: string, area?: string): string | u
   if (category) parts.push(`(product_type:${quote(category.productType)} OR product_type:${quote(category.slug)})`);
   if (area) parts.push(`tag:${quote(area)}`);
   return parts.length ? parts.join(" AND ") : undefined;
+}
+
+/** Preview only: prepared report offers are not Shopify listings or purchase entitlements. */
+export function plannedShopOffers(categorySlug?: string, area?: string) {
+  if (area || (categorySlug !== undefined && !findCategory(categorySlug))) return [];
+  return Object.values(REPORT_OFFERS).filter(
+    (offer) => offer.category !== null && (!categorySlug || offer.category === categorySlug),
+  );
 }
