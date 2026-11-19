@@ -102,7 +102,7 @@ function ShopPage() {
           <section data-testid="planned-catalog" aria-label="Educational products in preparation" className="mt-10">
             <h2 className="font-serif text-2xl text-parchment">Educational products in preparation</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-parchment/65">
-              These are previews from our prepared catalog, not active Shopify listings. Prices are planned, and the
+              These are previews of draft products, not active public listings. Prices are planned, and the
               lessons and downloads are not yet available for purchase.
             </p>
             <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
