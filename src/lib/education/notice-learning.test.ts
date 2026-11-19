@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { REPORT_OFFERS } from "../commerce/report-catalog";
+import { REPORT_OFFERS, offerForLine } from "../commerce/report-catalog";
 import {
   LEARNING_KEYS,
   LEARNING_RESEARCH_WORKFLOW,
@@ -20,6 +20,15 @@ describe("TruthWeaver public learning and governed exports", () => {
       expect(learningResourceMarkdown(key)).toContain("NOT A PAID DELIVERABLE");
       expect(learningResourceMarkdown(key)).toContain("NOT LEGAL ADVICE");
       expect(learningResourceMarkdown(key)).toContain("Official source index");
+    }
+  });
+
+  it("matches buyer-specific product variants and SKUs, never a SKU by itself", () => {
+    for (const key of LEARNING_KEYS) {
+      const offer = REPORT_OFFERS[key];
+      expect(offerForLine(offer.variantGid, offer.sku)?.key).toBe(key);
+      expect(offerForLine(null, offer.sku)).toBeNull();
+      expect(offerForLine("gid://shopify/ProductVariant/999999", offer.sku)).toBeNull();
     }
   });
 
