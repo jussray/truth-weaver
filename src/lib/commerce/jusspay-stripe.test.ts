@@ -26,18 +26,20 @@ describe("JussPay Stripe Core & Multi-product Catalog", () => {
     expect(reportKindsFor(["bundle"])).toEqual(["snapshot", "guide", "templates", "course"]);
   });
 
-  it("resolves pinned variants and unpinned SKU offers", () => {
+  it("requires exact pinned variants and SKUs for created Shopify offers", () => {
     // Snapshot has pinned variant
     const snap = offerForLine("gid://shopify/ProductVariant/68176830562525", "TW-SNAPSHOT-ONE");
     expect(snap?.key).toBe("snapshot");
 
     // Course matches via SKU
-    const course = offerForLine(null, "TW-COURSE-NOTICE");
+    const course = offerForLine(REPORT_OFFERS.course.variantGid, "TW-COURSE-NOTICE");
     expect(course?.key).toBe("course");
+    expect(offerForLine(null, "TW-COURSE-NOTICE")).toBeNull();
 
     // Bundle matches via SKU
-    const bundle = offerForLine(undefined, "TW-BUNDLE-NOTICE");
+    const bundle = offerForLine(REPORT_OFFERS.bundle.variantGid, "TW-BUNDLE-NOTICE");
     expect(bundle?.key).toBe("bundle");
+    expect(offerForLine("gid://shopify/ProductVariant/unknown", "TW-BUNDLE-NOTICE")).toBeNull();
 
     // JussPay direct resolution
     expect(offerForJussPay("course")?.sku).toBe("TW-COURSE-NOTICE");
