@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { NOTICE_VARIANTS, evaluatePaidNoticeOrder, usdCents, type ShopifyOrderForProof } from "./shopify-order-proof";
 import { verifyFreshTruthWeaverPurchase } from "./shopify-order.server";
 
@@ -81,6 +81,23 @@ describe("Shopify order proof (no buyer download is unlocked)", () => {
 });
 
 describe("server-only Shopify Admin reader", () => {
+  it("fails closed without Admin credentials and makes no request", async () => {
+    const request = vi.fn();
+    expect(await verifyFreshTruthWeaverPurchase(orderId, "snapshot", customerId, {
+      adminToken: "", request: request as typeof fetch,
+    })).toEqual({ granted: false, reason: "missing_proof" });
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { status: 401, body: { errors: [{ message: "Invalid access token" }] } },
+    { status: 403, body: { errors: [{ message: "Access denied: missing read_orders scope" }] } },
+  ])("fails closed on Admin authorization/scope denial ($status)", async ({ status, body }) => {
+    const request: typeof fetch = async () => new Response(JSON.stringify(body), { status });
+    expect(await verifyFreshTruthWeaverPurchase(orderId, "snapshot", customerId, {
+      adminToken: "test-token", request,
+    })).toEqual({ granted: false, reason: "missing_proof" });
+  });
   it("sends a scoped authenticated read to the right store and rejects missing proof", async () => {
     let calls = 0;
     const request: typeof fetch = async (url, init) => {
