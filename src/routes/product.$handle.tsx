@@ -34,7 +34,10 @@ function ProductPage() {
         {q.isLoading ? (
           <p className="text-parchment/60">Loading…</p>
         ) : !p ? (
-          <p className="text-parchment/70">Product not found. <a href="/shop" className="text-gold underline">Back to shop</a></p>
+          <>
+            <h1 className="font-serif text-4xl text-parchment">Product not found</h1>
+            <p className="mt-4 text-parchment/70"><a href="/shop" className="text-gold underline">Back to shop</a></p>
+          </>
         ) : (
           <div className="grid gap-10 md:grid-cols-2">
             <div className="overflow-hidden rounded-2xl border border-gold/20 bg-ink">
@@ -44,7 +47,7 @@ function ProductPage() {
               <h1 className="font-serif text-4xl text-parchment">{p.title}</h1>
               <p className="mt-3 text-2xl font-semibold text-gold-soft">{variant ? formatPrice(variant.price) : formatPrice(p.priceRange.minVariantPrice)}</p>
               {p.variants.edges.length > 1 && (
-                <select value={variantIdx} onChange={(e) => setVariantIdx(Number(e.currentTarget.value))} className="mt-5 rounded-xl border border-parchment/15 bg-ink px-3 py-2 text-parchment">
+                <select aria-label="Product option" value={variantIdx} onChange={(e) => setVariantIdx(Number(e.currentTarget.value))} className="mt-5 rounded-xl border border-parchment/15 bg-ink px-3 py-2 text-parchment">
                   {p.variants.edges.map((v, i) => <option key={v.node.id} value={i}>{v.node.title}{v.node.availableForSale ? "" : " — Sold out"}</option>)}
                 </select>
               )}
