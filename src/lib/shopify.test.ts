@@ -1,8 +1,44 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { addLineToShopifyCart, attachReportClaimToCart, clearReportClaimFromCart, createShopifyCart, fetchLiveCart, formatCheckoutUrl } from "./shopify";
+import { addLineToShopifyCart, attachReportClaimToCart, clearReportClaimFromCart, createShopifyCart, fetchLiveCart, fetchProductByHandle, fetchProducts, formatCheckoutUrl } from "./shopify";
 import { NOTICE_VARIANTS } from "./commerce/shopify-order-proof";
 import { isStorefrontVariantSellable } from "./commerce/storefront-launch-guard";
+
+describe("Truth Weaver Storefront failure handling", () => {
+  it.each([
+    { label: "authentication failure", status: 401, body: { errors: [{ message: "Unauthorized" }] } },
+    { label: "scope/permission failure", status: 403, body: { errors: [{ message: "Forbidden" }] } },
+    { label: "GraphQL error", status: 200, body: { errors: [{ message: "Access denied" }] } },
+    { label: "malformed catalog shape", status: 200, body: { data: { products: { edges: null } } } },
+  ])("does not expose catalog results after $label", async ({ status, body }) => {
+    const request = vi.fn().mockResolvedValue(new Response(JSON.stringify(body), { status }));
+    vi.stubGlobal("fetch", request);
+    try {
+      await expect(fetchProducts()).rejects.toThrow();
+      expect(request).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("does not resolve a product when Shopify returns malformed JSON", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("not-json", { status: 200 })));
+    try {
+      await expect(fetchProductByHandle("notice-guide")).rejects.toThrow();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("does not create a checkout cart when Shopify rejects the request", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ errors: [{ message: "Unauthorized" }] }), { status: 200 })));
+    try {
+      await expect(createShopifyCart("gid://shopify/ProductVariant/999", 1)).rejects.toThrow();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+});
 
 describe("Truth Weaver Shopify checkout URL", () => {
   it("preserves Shopify's checkout URL and its existing query string", () => {
