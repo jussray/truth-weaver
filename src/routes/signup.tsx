@@ -1,8 +1,9 @@
 import { pageHead } from "@/lib/seo";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { CounselPage, StateBox, tw } from "@/components/counsel/page";
+import { LovableSignInButton } from "@/components/auth/lovable-sign-in-button";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/signup")({
@@ -12,6 +13,7 @@ export const Route = createFileRoute("/signup")({
 });
 
 function SignupPage() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -42,6 +44,10 @@ function SignupPage() {
         </div>
       ) : (
         <form onSubmit={submit} className={`${tw.card} mx-auto max-w-md space-y-4`}>
+          <LovableSignInButton onSignedIn={() => navigate({ to: "/dashboard", replace: true })} />
+          <div className="flex items-center gap-3 text-xs uppercase tracking-[0.18em] text-parchment/50">
+            <span className="h-px flex-1 bg-parchment/15" />or<span className="h-px flex-1 bg-parchment/15" />
+          </div>
           <label className="block space-y-1">
             <span className={tw.label}>Email</span>
             <input className={tw.input} type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
