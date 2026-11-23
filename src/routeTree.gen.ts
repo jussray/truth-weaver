@@ -25,12 +25,14 @@ import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedFulfillmentRouteImport } from './routes/_authenticated/fulfillment'
 import { Route as AuthenticatedVendorInviteRouteImport } from './routes/_authenticated/vendor-invite'
+import { Route as GuidesPhiladelphiaEvictionNoticeRouteImport } from './routes/guides.philadelphia-eviction-notice'
 import { Route as MerchantIndexRouteImport } from './routes/merchant.index'
 import { Route as MerchantAuditLogRouteImport } from './routes/merchant.audit-log'
 import { Route as MerchantManageRouteImport } from './routes/merchant.manage'
 import { Route as MerchantOrdersRouteImport } from './routes/merchant.orders'
 import { Route as MerchantProductsRouteImport } from './routes/merchant.products'
 import { Route as ProductHandleRouteImport } from './routes/product.$handle'
+import { Route as AuthenticatedDashboardLeadsRouteImport } from './routes/_authenticated/dashboard.leads'
 import { Route as AuthenticatedIssuesIssueIdRouteImport } from './routes/_authenticated/issues.$issueId'
 import { Route as AuthenticatedIssuesNewRouteImport } from './routes/_authenticated/issues.new'
 import { Route as ApiPublicShopifyOrdersPaidRouteImport } from './routes/api/public/shopify/orders-paid'
@@ -117,6 +119,12 @@ const AuthenticatedVendorInviteRoute =
     path: '/vendor-invite',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const GuidesPhiladelphiaEvictionNoticeRoute =
+  GuidesPhiladelphiaEvictionNoticeRouteImport.update({
+    id: '/guides/philadelphia-eviction-notice',
+    path: '/guides/philadelphia-eviction-notice',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const MerchantIndexRoute = MerchantIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -147,6 +155,12 @@ const ProductHandleRoute = ProductHandleRouteImport.update({
   path: '/product/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedDashboardLeadsRoute =
+  AuthenticatedDashboardLeadsRouteImport.update({
+    id: '/leads',
+    path: '/leads',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const AuthenticatedIssuesIssueIdRoute =
   AuthenticatedIssuesIssueIdRouteImport.update({
     id: '/issues/$issueId',
@@ -183,15 +197,17 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/sources': typeof SourcesRoute
   '/account': typeof AuthenticatedAccountRoute
-  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/fulfillment': typeof AuthenticatedFulfillmentRoute
   '/vendor-invite': typeof AuthenticatedVendorInviteRoute
+  '/guides/philadelphia-eviction-notice': typeof GuidesPhiladelphiaEvictionNoticeRoute
   '/merchant/audit-log': typeof MerchantAuditLogRoute
   '/merchant/manage': typeof MerchantManageRoute
   '/merchant/orders': typeof MerchantOrdersRoute
   '/merchant/products': typeof MerchantProductsRoute
   '/product/$handle': typeof ProductHandleRoute
   '/merchant/': typeof MerchantIndexRoute
+  '/dashboard/leads': typeof AuthenticatedDashboardLeadsRoute
   '/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/issues/new': typeof AuthenticatedIssuesNewRoute
   '/api/public/shopify/orders-paid': typeof ApiPublicShopifyOrdersPaidRoute
@@ -209,15 +225,17 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/sources': typeof SourcesRoute
   '/account': typeof AuthenticatedAccountRoute
-  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/fulfillment': typeof AuthenticatedFulfillmentRoute
   '/vendor-invite': typeof AuthenticatedVendorInviteRoute
+  '/guides/philadelphia-eviction-notice': typeof GuidesPhiladelphiaEvictionNoticeRoute
   '/merchant/audit-log': typeof MerchantAuditLogRoute
   '/merchant/manage': typeof MerchantManageRoute
   '/merchant/orders': typeof MerchantOrdersRoute
   '/merchant/products': typeof MerchantProductsRoute
   '/product/$handle': typeof ProductHandleRoute
   '/merchant': typeof MerchantIndexRoute
+  '/dashboard/leads': typeof AuthenticatedDashboardLeadsRoute
   '/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/issues/new': typeof AuthenticatedIssuesNewRoute
   '/api/public/shopify/orders-paid': typeof ApiPublicShopifyOrdersPaidRoute
@@ -238,15 +256,17 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/sources': typeof SourcesRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
-  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/_authenticated/fulfillment': typeof AuthenticatedFulfillmentRoute
   '/_authenticated/vendor-invite': typeof AuthenticatedVendorInviteRoute
+  '/guides/philadelphia-eviction-notice': typeof GuidesPhiladelphiaEvictionNoticeRoute
   '/merchant/audit-log': typeof MerchantAuditLogRoute
   '/merchant/manage': typeof MerchantManageRoute
   '/merchant/orders': typeof MerchantOrdersRoute
   '/merchant/products': typeof MerchantProductsRoute
   '/product/$handle': typeof ProductHandleRoute
   '/merchant/': typeof MerchantIndexRoute
+  '/_authenticated/dashboard/leads': typeof AuthenticatedDashboardLeadsRoute
   '/_authenticated/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
   '/_authenticated/issues/new': typeof AuthenticatedIssuesNewRoute
   '/api/public/shopify/orders-paid': typeof ApiPublicShopifyOrdersPaidRoute
@@ -270,12 +290,14 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/fulfillment'
     | '/vendor-invite'
+    | '/guides/philadelphia-eviction-notice'
     | '/merchant/audit-log'
     | '/merchant/manage'
     | '/merchant/orders'
     | '/merchant/products'
     | '/product/$handle'
     | '/merchant/'
+    | '/dashboard/leads'
     | '/issues/$issueId'
     | '/issues/new'
     | '/api/public/shopify/orders-paid'
@@ -296,12 +318,14 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/fulfillment'
     | '/vendor-invite'
+    | '/guides/philadelphia-eviction-notice'
     | '/merchant/audit-log'
     | '/merchant/manage'
     | '/merchant/orders'
     | '/merchant/products'
     | '/product/$handle'
     | '/merchant'
+    | '/dashboard/leads'
     | '/issues/$issueId'
     | '/issues/new'
     | '/api/public/shopify/orders-paid'
@@ -324,12 +348,14 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/fulfillment'
     | '/_authenticated/vendor-invite'
+    | '/guides/philadelphia-eviction-notice'
     | '/merchant/audit-log'
     | '/merchant/manage'
     | '/merchant/orders'
     | '/merchant/products'
     | '/product/$handle'
     | '/merchant/'
+    | '/_authenticated/dashboard/leads'
     | '/_authenticated/issues/$issueId'
     | '/_authenticated/issues/new'
     | '/api/public/shopify/orders-paid'
@@ -349,6 +375,7 @@ export interface RootRouteChildren {
   ShopRoute: typeof ShopRoute
   SignupRoute: typeof SignupRoute
   SourcesRoute: typeof SourcesRoute
+  GuidesPhiladelphiaEvictionNoticeRoute: typeof GuidesPhiladelphiaEvictionNoticeRoute
   ProductHandleRoute: typeof ProductHandleRoute
   ApiPublicShopifyOrdersPaidRoute: typeof ApiPublicShopifyOrdersPaidRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
@@ -468,6 +495,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedVendorInviteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/guides/philadelphia-eviction-notice': {
+      id: '/guides/philadelphia-eviction-notice'
+      path: '/guides/philadelphia-eviction-notice'
+      fullPath: '/guides/philadelphia-eviction-notice'
+      preLoaderRoute: typeof GuidesPhiladelphiaEvictionNoticeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/merchant/': {
       id: '/merchant/'
       path: '/'
@@ -510,6 +544,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/dashboard/leads': {
+      id: '/_authenticated/dashboard/leads'
+      path: '/leads'
+      fullPath: '/dashboard/leads'
+      preLoaderRoute: typeof AuthenticatedDashboardLeadsRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
     '/_authenticated/issues/$issueId': {
       id: '/_authenticated/issues/$issueId'
       path: '/issues/$issueId'
@@ -541,9 +582,23 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedDashboardRouteChildren {
+  AuthenticatedDashboardLeadsRoute: typeof AuthenticatedDashboardLeadsRoute
+}
+
+const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
+  {
+    AuthenticatedDashboardLeadsRoute: AuthenticatedDashboardLeadsRoute,
+  }
+
+const AuthenticatedDashboardRouteWithChildren =
+  AuthenticatedDashboardRoute._addFileChildren(
+    AuthenticatedDashboardRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
-  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRouteWithChildren
   AuthenticatedFulfillmentRoute: typeof AuthenticatedFulfillmentRoute
   AuthenticatedVendorInviteRoute: typeof AuthenticatedVendorInviteRoute
   AuthenticatedIssuesIssueIdRoute: typeof AuthenticatedIssuesIssueIdRoute
@@ -552,7 +607,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRoute,
-  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRouteWithChildren,
   AuthenticatedFulfillmentRoute: AuthenticatedFulfillmentRoute,
   AuthenticatedVendorInviteRoute: AuthenticatedVendorInviteRoute,
   AuthenticatedIssuesIssueIdRoute: AuthenticatedIssuesIssueIdRoute,
@@ -595,6 +650,7 @@ const rootRouteChildren: RootRouteChildren = {
   ShopRoute: ShopRoute,
   SignupRoute: SignupRoute,
   SourcesRoute: SourcesRoute,
+  GuidesPhiladelphiaEvictionNoticeRoute: GuidesPhiladelphiaEvictionNoticeRoute,
   ProductHandleRoute: ProductHandleRoute,
   ApiPublicShopifyOrdersPaidRoute: ApiPublicShopifyOrdersPaidRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,

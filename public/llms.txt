@@ -10,6 +10,7 @@ Truth Weaver Counsel is a free reference web application that helps people under
 - [Source Verification Methodology](https://truthweaver.jussco.company/connectors): How citations, dates, and official domains are verified, and why summaries alone are unverified.
 - [Legal Library](https://truthweaver.jussco.company/legal-library): Registered secondary treatises, books, and reference guides.
 - [Shop & Guides](https://truthweaver.jussco.company/shop): Educational legal guides and reference materials (paid items on launch hold until verified).
+- [Philadelphia Eviction Notice Guide](https://truthweaver.jussco.company/guides/philadelphia-eviction-notice): Pennsylvania 68 P.S. § 250.501 notice periods and Philadelphia Code § 9-804 Eviction Diversion Program compliance.
 
 ## Core Operational Truths & Disclaimers
 - **Not Legal Advice**: Truth Weaver Counsel is not a law firm. Users must consult a qualified attorney in their jurisdiction for legal counsel.

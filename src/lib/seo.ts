@@ -11,7 +11,7 @@ export const PRODUCT_NAME = "Truth Weaver Counsel";
 export const OG_IMAGE = `${SITE_URL}/og-truth-weaver.jpg`;
 
 /** Public, indexable canonical paths. Must match public/sitemap.xml exactly. */
-export const INDEXABLE_PATHS = ["/", "/notice-analyzer", "/connectors", "/sources", "/legal-library", "/shop"] as const;
+export const INDEXABLE_PATHS = ["/", "/notice-analyzer", "/connectors", "/sources", "/legal-library", "/shop", "/guides/philadelphia-eviction-notice"] as const;
 
 export function canonicalUrl(path: string): string {
   const clean = path.split(/[?#]/)[0] || "/";
