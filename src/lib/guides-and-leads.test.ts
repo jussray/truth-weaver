@@ -35,9 +35,9 @@ describe("Philadelphia Eviction Notice Guide statutory requirements & SEO", () =
       ],
     });
 
-    const robots = head.meta.find((m: any) => m.name === "robots");
+    const robots = head.meta.find((m) => m.name === "robots");
     expect(robots).toEqual({ name: "robots", content: "index, follow" });
-    const canonical = head.links.find((l: any) => l.rel === "canonical");
+    const canonical = head.links.find((l) => l.rel === "canonical");
     expect(canonical?.href).toBe("https://truthweaver.jussco.company/guides/philadelphia-eviction-notice");
   });
 });

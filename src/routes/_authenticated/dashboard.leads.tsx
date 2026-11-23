@@ -113,6 +113,7 @@ function DashboardLeadsPage() {
       setLoading(true);
       try {
         const { data, error } = await supabase
+          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
           .from("tw_inquiries" as any)
           .select("*")
           .order("created_at", { ascending: false });
@@ -171,7 +172,8 @@ function DashboardLeadsPage() {
     try {
       const { data: auth } = await supabase.auth.getUser();
       if (auth.user) {
-        await supabase.from("tw_inquiries" as any).insert({
+        await supabase/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+          .from("tw_inquiries" as any).insert({
           ...newLead,
           user_id: auth.user.id,
         });
