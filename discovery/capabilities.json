@@ -1,0 +1,9 @@
+{
+  "project": "truth-weaver",
+  "status": "draft",
+  "intendedUseCases": [
+    "Research legal questions using official sources",
+    "Identify missing facts and authority gaps"
+  ],
+  "verifiedCapabilities": []
+}
