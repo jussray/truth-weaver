@@ -5,6 +5,7 @@
  */
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { SNAPSHOT_REPORT_BUCKET } from "@/lib/commerce/snapshot-report-access";
 import { REPORT_OFFERS } from "@/lib/commerce/report-catalog";
 import { JUSSPAY_STRIPE_ACCOUNT } from "@/lib/commerce/jusspay-stripe.server";
 
@@ -82,28 +83,28 @@ export async function getPaidReportReadiness(): Promise<PaidReportReadiness> {
 
   try {
     const { error: e1 } = await supabaseAdmin.from("tw_saved_analyses").select("id").limit(1);
-    savedAnalysesOk = !e1 || e1.code !== "42P01";
+    savedAnalysesOk = !e1;
   } catch {
     savedAnalysesOk = false;
   }
 
   try {
     const { error: e2 } = await supabaseAdmin.from("tw_purchase_claims").select("nonce").limit(1);
-    purchaseClaimsOk = !e2 || e2.code !== "42P01";
+    purchaseClaimsOk = !e2;
   } catch {
     purchaseClaimsOk = false;
   }
 
   try {
     const { error: e3 } = await supabaseAdmin.from("tw_order_reports").select("order_gid").limit(1);
-    orderReportsOk = !e3 || e3.code !== "42P01";
+    orderReportsOk = !e3;
   } catch {
     orderReportsOk = false;
   }
 
   try {
-    const { data: buckets } = await supabaseAdmin.storage.listBuckets();
-    privateBucketOk = Boolean(buckets?.some((b) => b.name === "counsel-reports" || b.name === "snapshot-reports"));
+    const { data: bucket, error } = await supabaseAdmin.storage.getBucket(SNAPSHOT_REPORT_BUCKET);
+    privateBucketOk = !error && bucket?.id === SNAPSHOT_REPORT_BUCKET && bucket.public === false;
   } catch {
     privateBucketOk = false;
   }
@@ -121,7 +122,7 @@ export async function getPaidReportReadiness(): Promise<PaidReportReadiness> {
     label: offer.label,
     priceUsd: offer.priceUsd,
     variantPinned: offer.variantGid !== null,
-    deliverableReady: true,
+    deliverableReady: false,
   }));
 
   const isReady =

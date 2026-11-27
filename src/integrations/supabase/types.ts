@@ -719,6 +719,7 @@ export type Database = {
           claim_nonce: string
           created_at: string
           failure_reason: string | null
+          jusspay_verified_at: string | null
           offers: string[]
           order_created_at: string
           order_gid: string
@@ -726,7 +727,7 @@ export type Database = {
           private_storage_key: string | null
           ready_at: string | null
           revoked_at: string | null
-          shopify_verified_at: string
+          shopify_verified_at: string | null
           status: string
           updated_at: string
           user_id: string
@@ -737,6 +738,7 @@ export type Database = {
           claim_nonce: string
           created_at?: string
           failure_reason?: string | null
+          jusspay_verified_at?: string | null
           offers: string[]
           order_created_at: string
           order_gid: string
@@ -744,7 +746,7 @@ export type Database = {
           private_storage_key?: string | null
           ready_at?: string | null
           revoked_at?: string | null
-          shopify_verified_at: string
+          shopify_verified_at: string | null
           status?: string
           updated_at?: string
           user_id: string
@@ -755,6 +757,7 @@ export type Database = {
           claim_nonce?: string
           created_at?: string
           failure_reason?: string | null
+          jusspay_verified_at?: string | null
           offers?: string[]
           order_created_at?: string
           order_gid?: string
@@ -762,7 +765,7 @@ export type Database = {
           private_storage_key?: string | null
           ready_at?: string | null
           revoked_at?: string | null
-          shopify_verified_at?: string
+          shopify_verified_at?: string | null
           status?: string
           updated_at?: string
           user_id?: string
