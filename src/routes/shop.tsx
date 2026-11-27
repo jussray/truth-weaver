@@ -30,15 +30,33 @@ const ICONS: Record<ShopCategory["slug"], typeof BookOpen> = {
   bundles: Package,
 };
 
+// Exact public Shopify handles; do not use titles or prices as identities.
+const SHOPIFY_HANDLE_BY_OFFER: Partial<Record<string, string>> = {
+  "TW-SNAPSHOT-ONE": "truth-weaver-notice-analyzer",
+  "TW-DEEPDIVE-ONE": "truth-weaver-notice-deep-dive-interactive-analysis",
+  "TW-PREMIUM-ONE": "truth-weaver-notice-premium-research-packet",
+  "TW-GUIDE-NOTICE": "truth-weaver-notice-response-guide",
+  "TW-TEMPLATES-NOTICE": "truth-weaver-notice-response-templates",
+  "TW-COURSE-NOTICE": "truth-weaver-notice-basics-course",
+  "TW-BUNDLE-NOTICE": "truth-weaver-notice-complete-bundle",
+};
+
 function ShopPage() {
   const { category: categorySlug, area } = Route.useSearch();
   const category = findCategory(categorySlug);
   const query = buildShopQuery(category?.slug, area);
   const q = useQuery({ queryKey: ["products", query ?? "all"], queryFn: () => fetchProducts(query), staleTime: 60_000, retry: 1 });
   const products = q.data ?? [];
-  const preparedResources = !area && !q.isLoading && products.length === 0
+  const publishedHandles = new Set(products.map(({ node }) => node.handle));
+  const showPreviews = !area && !q.isLoading;
+  const preparedResources = showPreviews
     ? Object.values(REPORT_OFFERS).filter((offer) =>
-      offer.category !== null && (!category || offer.category === category.slug))
+      offer.category !== null && (!category || offer.category === category.slug) &&
+      !publishedHandles.has(SHOPIFY_HANDLE_BY_OFFER[offer.sku] ?? ""))
+    : [];
+  const noticePreviews = showPreviews && !category
+    ? Object.values(NOTICE_OFFERS).filter((offer) =>
+      !publishedHandles.has(SHOPIFY_HANDLE_BY_OFFER[offer.sku] ?? ""))
     : [];
   const pill = (active: boolean) =>
     `rounded-full border px-4 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold ${active ? "border-gold bg-gold/10 text-gold" : "border-parchment/15 text-parchment/70 hover:border-gold/50"}`;
@@ -121,14 +139,14 @@ function ShopPage() {
           </section>
         ) : null}
 
-        {!q.isLoading && !category && !area && products.length === 0 ? (
+        {noticePreviews.length > 0 ? (
           <section data-testid="notice-offer-previews" aria-label="Planned notice products" className="mt-10">
             <h2 className="font-serif text-2xl text-parchment">Notice tools in preparation</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-parchment/65">
               These are planned prices, not active offers. Purchases open only when report delivery, access controls and payments have been verified.
             </p>
             <div className="mt-5 grid gap-4 sm:grid-cols-3">
-              {Object.values(NOTICE_OFFERS).map((offer) => (
+              {noticePreviews.map((offer) => (
                 <article key={offer.sku} data-testid="notice-offer-preview" className="rounded-2xl border border-gold/25 bg-forest-deep/40 p-5">
                   <p className="text-xs font-bold uppercase tracking-[0.16em] text-gold">In development · Not for sale</p>
                   <h3 className="mt-3 font-serif text-xl text-parchment">{offer.label}</h3>
