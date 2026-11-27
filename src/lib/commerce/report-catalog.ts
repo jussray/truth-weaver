@@ -4,9 +4,9 @@
  * tied to the paid Shopify order. Definitions here are not entitlements:
  * access always needs a fresh, server-side Shopify paid-order check.
  *
- * `variantGid` is filled in only after the matching Shopify product exists.
- * When `variantGid` is null, SKU-based matching allows prepared offers (Guides,
- * Templates, Courses, Bundles) to be unlocked once verified in Shopify or JussPay.
+ * Shopify orders match both the exact Admin-verified variant ID and the SKU.
+ * Missing IDs and recycled SKUs are never accepted for payment proof.
+ * JussPay offers are mapped separately by offer key/SKU.
  */
 export type ReportKind = "snapshot" | "guide" | "templates" | "course";
 export type ReportOfferKey = "snapshot" | "guide" | "templates" | "course" | "bundle";
@@ -48,7 +48,7 @@ export const REPORT_OFFERS: Readonly<Record<ReportOfferKey, ReportOffer>> = {
     summary: "A plain-English PDF guide built from your saved notice analysis: your timeline, a step-by-step plan for each demand, how to find the governing law for your place, and questions for a lawyer.",
     includes: ["Your stated-date timeline", "Step-by-step plan for each demand", "How to find the governing law for your place", "Questions to bring to a lawyer"],
     kinds: ["guide"],
-    variantGid: null,
+    variantGid: "gid://shopify/ProductVariant/68623863808221",
   },
   templates: {
     key: "templates",
@@ -60,7 +60,7 @@ export const REPORT_OFFERS: Readonly<Record<ReportOfferKey, ReportOffer>> = {
     summary: "Fill-in PDF templates prepared from your saved notice analysis: a deadline tracker, a records log, a neutral request-for-information letter outline, and a lawyer intake sheet.",
     includes: ["Deadline tracker with your stated dates", "Records and communications log", "Request-for-information letter outline", "Lawyer intake sheet"],
     kinds: ["templates"],
-    variantGid: null,
+    variantGid: "gid://shopify/ProductVariant/68623865315549",
   },
   course: {
     key: "course",
@@ -72,7 +72,7 @@ export const REPORT_OFFERS: Readonly<Record<ReportOfferKey, ReportOffer>> = {
     summary: "A five-lesson PDF workbook on reading a legal notice, dates and deadlines, finding the governing law, keeping records and getting help, with exercises applied to your saved notice.",
     includes: ["Five short lessons in order", "Exercises using your own notice", "Self-check questions with answers", "Research steps using official sources"],
     kinds: ["course"],
-    variantGid: null,
+    variantGid: "gid://shopify/ProductVariant/68623865544925",
   },
   bundle: {
     key: "bundle",
@@ -84,7 +84,7 @@ export const REPORT_OFFERS: Readonly<Record<ReportOfferKey, ReportOffer>> = {
     summary: "The Notice Snapshot, Response Guide, Response Templates and Basics Course together in one PDF, prepared from your saved notice analysis.",
     includes: ["Notice Snapshot", "Notice Response Guide", "Notice Response Templates", "Notice Basics Course"],
     kinds: ["snapshot", "guide", "templates", "course"],
-    variantGid: null,
+    variantGid: "gid://shopify/ProductVariant/68623865643229",
   },
 };
 
@@ -97,19 +97,11 @@ export const SAVED_ANALYSIS_SESSION_KEY = "tw.paid-analysis-id.v1";
 export const CLAIM_NONCE = /^[A-Za-z0-9_-]{43}$/;
 
 /**
- * Exact variant + SKU match against a created Shopify product,
- * or exact SKU match for prepared catalog products whose variant is unpinned.
+ * Shopify paid orders must match both an Admin-verified variant and the offer's SKU.
  */
 export function offerForLine(variantGid: string | null | undefined, sku: string | null | undefined): ReportOffer | null {
-  if (!sku) return null;
-  for (const offer of Object.values(REPORT_OFFERS)) {
-    if (offer.variantGid !== null) {
-      if (variantGid && offer.variantGid === variantGid && offer.sku === sku) return offer;
-    } else {
-      if (offer.sku === sku) return offer;
-    }
-  }
-  return null;
+  if (!variantGid || !sku) return null;
+  return Object.values(REPORT_OFFERS).find((offer) => offer.variantGid === variantGid && offer.sku === sku) ?? null;
 }
 
 /** Matches offer for JussPay Stripe checkout by offer key or SKU. */
