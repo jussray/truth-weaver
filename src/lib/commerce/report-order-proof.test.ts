@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { offerForLine, isReportVariant } from "./report-catalog";
 import {
   claimNonceFrom,
   evaluatePaidReportOrder,
@@ -88,5 +89,30 @@ describe("paid per-order report proof", () => {
       .toEqual({ ok: false, reason: "claim_expired" });
     expect(validateClaimForOrder({ ...claim, consumedOrderGid: "gid://shopify/Order/3" }, proof))
       .toEqual({ ok: false, reason: "claim_used" });
+  });
+});
+
+
+describe("exact variant + SKU ownership for created Shopify report products", () => {
+  const verified = [
+    ["snapshot", "gid://shopify/ProductVariant/68176830562525"],
+    ["guide", "gid://shopify/ProductVariant/68623863808221"],
+    ["templates", "gid://shopify/ProductVariant/68623865315549"],
+    ["course", "gid://shopify/ProductVariant/68623865544925"],
+    ["bundle", "gid://shopify/ProductVariant/68623865643229"],
+  ] as const;
+
+  it.each(verified)("requires the exact Shopify variant ID for %s", (key, variantId) => {
+    const offer = REPORT_OFFERS[key];
+    expect(offer.variantGid).toBe(variantId);
+    expect(offerForLine(variantId, offer.sku)?.key).toBe(key);
+    expect(isReportVariant(variantId)).toBe(true);
+  });
+
+  it.each(verified)("rejects a recycled SKU on an unrelated variant for %s", (key) => {
+    const offer = REPORT_OFFERS[key];
+    expect(offerForLine("gid://shopify/ProductVariant/123456789", offer.sku)).toBeNull();
+    expect(offerForLine(null, offer.sku)).toBeNull();
+    expect(offerForLine(offer.variantGid, "TW-UNRELATED-SKU")).toBeNull();
   });
 });
