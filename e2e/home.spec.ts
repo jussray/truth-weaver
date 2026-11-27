@@ -11,7 +11,7 @@ test("public storefront homepage renders the cinematic legal storefront", async 
   await expect(page.getByText(/Knowledge changes lives/i)).toBeVisible();
   await expect(page.getByRole("heading", { level: 1, name: /Understand the Law/i })).toBeVisible();
   await expect(page.getByRole("link", { name: "Shop Legal Tools" }).first()).toBeVisible();
-  await expect(page.getByRole("link", { name: "Start Free Legal Research" })).toHaveAttribute("href", "#legal-research");
+  await expect(page.getByRole("link", { name: "Start Free Legal Research" })).toHaveAttribute("href", "/#legal-research");
   await expect(page.locator("[data-legal-areas] article")).toHaveCount(11);
   await expect(page.getByRole("link", { name: "Research Your Situation" })).toBeVisible();
   await expect(page.getByText(/FCR module/i)).toHaveCount(0);
