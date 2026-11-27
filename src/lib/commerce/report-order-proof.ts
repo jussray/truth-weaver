@@ -1,4 +1,4 @@
-import { CLAIM_ATTRIBUTE_KEY, CLAIM_NONCE, offerForLine, type ReportOfferKey } from "./report-catalog";
+import { CLAIM_ATTRIBUTE_KEY, CLAIM_NONCE, REPORT_OFFERS, offerForLine, type ReportOfferKey } from "./report-catalog";
 import { usdCents } from "./shopify-order-proof";
 
 /**
@@ -47,10 +47,32 @@ export type ReportProofDenial =
   | "invalid_quantity";
 
 export type ReportProofDecision =
-  | { granted: true; orderId: string; orderName: string; createdAt: string; offers: ReportOfferKey[]; claimNonce: string }
+  | { granted: true; orderId: string; orderName: string; createdAt: string; offers: ReportOfferKey[]; claimNonce: string; buyer?: { userId: string; analysisId: string } }
   | { granted: false; reason: ReportProofDenial };
 
 export const ORDER_GID = /^gid:\/\/shopify\/Order\/[1-9][0-9]{0,19}$/;
+
+export const STRIPE_REPORT_ORDER_GID = /^gid:\/\/stripe\/CheckoutSession\/cs_live_[A-Za-z0-9_]{1,180}$/;
+export const REPORT_ORDER_GID = /^(?:gid:\/\/shopify\/Order\/[1-9][0-9]{0,19}|gid:\/\/stripe\/CheckoutSession\/cs_live_[A-Za-z0-9_]{1,180})$/;
+
+/** Accept only the bounded response of the server-owned JussPay verification port. */
+export function evaluateJussPayReportProof(value: unknown, orderGid: string): ReportProofDecision {
+  const deny = { granted: false, reason: "missing_proof" } as const;
+  if (!STRIPE_REPORT_ORDER_GID.test(orderGid) || !value || typeof value !== "object" || Array.isArray(value)) return deny;
+  const p = value as Record<string, unknown>;
+  if (p.schema !== "jusspay/truthweaver-paid-proof@v1" || p.paid !== true ||
+      p.sessionId !== orderGid.split("/").pop() || p.currency !== "usd" ||
+      typeof p.offerKey !== "string" || !Object.hasOwn(REPORT_OFFERS, p.offerKey) ||
+      typeof p.userId !== "string" || !UUID.test(p.userId) ||
+      typeof p.analysisId !== "string" || !UUID.test(p.analysisId) ||
+      typeof p.claimNonce !== "string" || !CLAIM_NONCE.test(p.claimNonce) ||
+      typeof p.createdAt !== "string" || !Number.isFinite(Date.parse(p.createdAt))) return deny;
+  const offer = REPORT_OFFERS[p.offerKey as ReportOfferKey];
+  if (p.amountTotalMinor !== offer.priceUsd * 100) return deny;
+  return { granted: true, orderId: orderGid, orderName: "Stripe " + String(p.sessionId).slice(-8).toUpperCase(),
+    createdAt: p.createdAt, offers: [offer.key], claimNonce: p.claimNonce,
+    buyer: { userId: p.userId, analysisId: p.analysisId } };
+}
 
 /** Returns the single claim nonce on the order, or null when absent, duplicated or malformed. */
 export function claimNonceFrom(attributes: ReportOrderForProof["customAttributes"]): string | null {
@@ -118,6 +140,10 @@ export function validateClaimForOrder(
 ): { ok: true } | { ok: false; reason: ClaimDenial } {
   if (!claim) return { ok: false, reason: "claim_missing" };
   if (claim.nonce !== proof.claimNonce || !UUID.test(claim.userId) || !UUID.test(claim.analysisId)) {
+    return { ok: false, reason: "claim_mismatch" };
+  }
+  if (STRIPE_REPORT_ORDER_GID.test(proof.orderId) &&
+      (!proof.buyer || proof.buyer.userId !== claim.userId || proof.buyer.analysisId !== claim.analysisId)) {
     return { ok: false, reason: "claim_mismatch" };
   }
   const created = Date.parse(claim.createdAt);
