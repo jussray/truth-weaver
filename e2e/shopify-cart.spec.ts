@@ -49,7 +49,7 @@ const cartLines = {
   ],
 };
 
-async function mockShopify(page: Page, rejectCart = false) {
+async function mockShopify(page: Page, rejectCart = false, products = [item]) {
   await page.route(apiUrl, async (route) => {
     const headers = {
       "access-control-allow-origin": "*",
@@ -67,7 +67,7 @@ async function mockShopify(page: Page, rejectCart = false) {
     };
     let data: unknown;
     if (body.query.includes("products(")) {
-      data = { products: { edges: [item] } };
+      data = { products: { edges: products } };
     } else if (body.query.includes("cartCreate(")) {
       data = {
         cartCreate: rejectCart
@@ -108,7 +108,7 @@ test("a mocked available product reaches Shopify checkout without mutating its U
   );
   await page.goto("/shop");
   const product = page.locator("[data-product-card]");
-  await expect(product).toHaveCount(1);
+  await expect(product).toHaveCount(1, { timeout: 15_000 });
   await expect(product.getByText("Simulated Playwright Product (not for sale)").first()).toBeVisible();
   await product.getByRole("button", { name: "Add to cart" }).click();
   await expect(page.locator('[data-testid="cart-button"]:visible').first()).toContainText("1");
@@ -209,4 +209,35 @@ test("shows matching draft resource previews without purchase controls", async (
   await page.goto("/shop?category=courses&area=housing");
   await expect(page.locator("[data-shop-unavailable]")).toBeVisible();
   await expect(previews).toHaveCount(0);
+});
+
+test("held Shopify products coexist with unmatched previews without duplicate identities", async ({ page }) => {
+  const heldProduct = (title: string, handle: string, id: string) => ({
+    node: { ...item.node, id: "gid://shopify/Product/" + id, title, handle, tags: ["launch-hold"] },
+  });
+  await mockShopify(page, false, [
+    heldProduct("Notice Snapshot", "truth-weaver-notice-analyzer", "1"),
+    heldProduct("Notice Deep Dive", "truth-weaver-notice-deep-dive-interactive-analysis", "2"),
+    heldProduct("Notice Premium", "truth-weaver-notice-premium-research-packet", "3"),
+  ]);
+  await page.goto("/shop");
+  await expect(page.locator("[data-product-card]")).toHaveCount(3);
+  await expect(page.getByTestId("notice-offer-preview")).toHaveCount(0);
+  await expect(page.getByTestId("prepared-resource-preview")).toHaveCount(4);
+  await expect(page.getByRole("button", { name: "Add to cart" })).toHaveCount(0);
+});
+
+test("an existing resource suppresses only its own preview; area searches suppress all previews", async ({ page }) => {
+  await mockShopify(page, false, [{
+    node: { ...item.node, handle: "truth-weaver-notice-response-guide", tags: ["launch-hold"] },
+  }]);
+  await page.goto("/shop");
+  await expect(page.locator("[data-product-card]")).toHaveCount(1);
+  await expect(page.getByTestId("prepared-resource-preview")).toHaveCount(3);
+  await expect(page.getByTestId("notice-offer-preview")).toHaveCount(3);
+  await expect(page.getByTestId("prepared-resource-previews")).not.toContainText("Notice Response Guide");
+  await page.goto("/shop?category=courses&area=housing");
+  await expect(page.locator("[data-product-card]")).toHaveCount(1);
+  await expect(page.getByTestId("prepared-resource-preview")).toHaveCount(0);
+  await expect(page.getByTestId("notice-offer-preview")).toHaveCount(0);
 });
