@@ -1,10 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader, setResponseHeader } from "@tanstack/react-start/server";
 import { z } from "zod";
+import { REPORT_ORDER_GID } from "./report-order-proof";
 
 const analysisSchema = z.object({ analysisId: z.string().uuid() });
 const orderSchema = z.object({
-  orderGid: z.string().regex(/^gid:\/\/shopify\/Order\/[1-9][0-9]*$/),
+  orderGid: z.string().regex(REPORT_ORDER_GID),
 });
 
 function bearerToken(): string {

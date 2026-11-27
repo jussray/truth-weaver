@@ -4,7 +4,10 @@ import { renderPaidReportPdf } from "./paid-report-pdf";
 import { CLAIM_NONCE, REPORT_OFFERS, offerLabels, type ReportOfferKey } from "./report-catalog";
 import {
   ORDER_GID,
+  REPORT_ORDER_GID,
+  STRIPE_REPORT_ORDER_GID,
   evaluatePaidReportOrder,
+  type ReportProofDecision,
   validateClaimForOrder,
   type ReportOrderForProof,
   type StoredClaim,
@@ -38,6 +41,7 @@ export type NewOrderReport = Pick<OrderReportRow, "orderGid" | "userId" | "claim
 
 export interface OrderReportPorts {
   readOrder(orderGid: string): Promise<ReportOrderForProof | null>;
+  readJussPayProof?(orderGid: string): Promise<ReportProofDecision | null>;
   claim(nonce: string): Promise<StoredClaim | null>;
   consumeClaim(nonce: string, orderGid: string): Promise<boolean>;
   report(orderGid: string): Promise<OrderReportRow | null>;
@@ -65,11 +69,17 @@ export function storedAnalysisFromRow(row: { metadata: unknown; result: unknown;
   return parseStoredAnalysis(JSON.stringify({ version: 1, savedAt: savedAt.toISOString(), metadata: row.metadata, result: row.result }));
 }
 
-export async function processPaidOrder(orderGid: string, ports: OrderReportPorts, now: () => Date = () => new Date()): Promise<ProcessResult> {
-  if (!ORDER_GID.test(orderGid)) return { state: "denied", reason: "missing_proof" };
+async function resolveReportPaymentProof(orderGid: string, ports: Pick<OrderReportPorts, "readOrder" | "readJussPayProof">): Promise<ReportProofDecision | null> {
+  if (STRIPE_REPORT_ORDER_GID.test(orderGid)) return await ports.readJussPayProof?.(orderGid) ?? null;
+  if (!ORDER_GID.test(orderGid)) return null;
   const order = await ports.readOrder(orderGid);
-  if (!order) return { state: "not_verifiable" };
-  const proof = evaluatePaidReportOrder(order);
+  return order ? evaluatePaidReportOrder(order) : null;
+}
+
+export async function processPaidOrder(orderGid: string, ports: OrderReportPorts, now: () => Date = () => new Date()): Promise<ProcessResult> {
+  if (!REPORT_ORDER_GID.test(orderGid)) return { state: "denied", reason: "missing_proof" };
+  const proof = await resolveReportPaymentProof(orderGid, ports);
+  if (!proof) return { state: "not_verifiable" };
   if (!proof.granted) return { state: "denied", reason: proof.reason };
   if (proof.orderId !== orderGid) return { state: "denied", reason: "missing_proof" };
 
@@ -92,7 +102,7 @@ export async function processPaidOrder(orderGid: string, ports: OrderReportPorts
     });
     row = await ports.report(orderGid);
   }
-  if (!row || row.userId !== claim.userId || row.claimNonce !== claim.nonce) return { state: "denied", reason: "claim_mismatch" };
+  if (!row || row.userId !== claim.userId || row.claimNonce !== claim.nonce || row.analysisId !== claim.analysisId || row.offers.length !== proof.offers.length || !row.offers.every((offer) => proof.offers.includes(offer))) return { state: "denied", reason: "claim_mismatch" };
   if (row.revokedAt !== null) return { state: "denied", reason: "revoked" };
   if (row.status === "ready" && row.storageKey) return { state: "ready", orderGid };
 
@@ -131,6 +141,7 @@ export interface ReportAccessPorts {
   authenticate(token: string): Promise<string | null>;
   report(orderGid: string): Promise<OrderReportRow | null>;
   readOrder(orderGid: string): Promise<ReportOrderForProof | null>;
+  readJussPayProof?(orderGid: string): Promise<ReportProofDecision | null>;
   privateBucket(): Promise<boolean>;
   object(key: string): Promise<{ bucketId: string; contentType: string; size: number } | null>;
   download(key: string): Promise<Blob | null>;
@@ -147,14 +158,15 @@ export async function accessOrderReport(token: string, orderGid: string, ports: 
   try {
     const userId = await ports.authenticate(token);
     if (!userId || !UUID.test(userId)) return { state: "not_authenticated" };
-    if (!ORDER_GID.test(orderGid)) return denied;
+    if (!REPORT_ORDER_GID.test(orderGid)) return denied;
     const row = await ports.report(orderGid);
     if (!row || row.userId !== userId || row.status !== "ready" || row.revokedAt !== null ||
         !row.storageKey || !safeSnapshotKey(row.storageKey)) return denied;
 
-    const proof = evaluatePaidReportOrder(await ports.readOrder(orderGid));
-    if (!proof.granted || proof.orderId !== orderGid || proof.claimNonce !== row.claimNonce ||
-        !row.offers.every((offer) => proof.offers.includes(offer))) return { state: "payment_not_confirmed" };
+    const proof = await resolveReportPaymentProof(orderGid, ports);
+    if (!proof?.granted || proof.orderId !== orderGid || proof.claimNonce !== row.claimNonce ||
+        (STRIPE_REPORT_ORDER_GID.test(orderGid) && (!proof.buyer || proof.buyer.userId !== userId || proof.buyer.analysisId !== row.analysisId)) ||
+        row.offers.length !== proof.offers.length || !row.offers.every((offer) => proof.offers.includes(offer))) return { state: "payment_not_confirmed" };
 
     if (!(await ports.privateBucket())) return denied;
     const object = await ports.object(row.storageKey);
