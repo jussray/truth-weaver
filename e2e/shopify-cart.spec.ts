@@ -147,7 +147,8 @@ test("shows planned preview prices without enabling a purchase", async ({ page }
     });
   });
   await page.goto("/shop");
-  await expect(page.locator("[data-shop-unavailable]")).toContainText(/No products found|No publicly available Shopify products yet/);
+  // Cold local Vite runs hydrate the route and its query after the first paint.
+  await expect(page.locator("[data-shop-unavailable]")).toContainText(/No products found|No publicly available Shopify products yet/, { timeout: 15_000 });
   const previews = page.getByTestId("notice-offer-preview");
   await expect(previews).toHaveCount(3);
   await expect(previews.nth(0)).toContainText("$10 planned");
@@ -181,4 +182,31 @@ test("Shopify connection errors do not impersonate an empty published catalog", 
   });
   await page.goto("/shop");
   await expect(page.locator("[data-shop-unavailable]")).toContainText(/Shopify's catalog connection could not be verified|The store couldn't be reached right now/);
+});
+
+test("shows matching draft resource previews without purchase controls", async ({ page }) => {
+  await page.route(apiUrl, async (route) => {
+    const headers = {
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "POST, OPTIONS",
+      "access-control-allow-headers": "content-type,x-shopify-storefront-access-token",
+      "content-type": "application/json",
+    };
+    await route.fulfill(route.request().method() === "OPTIONS"
+      ? { status: 204, headers }
+      : { status: 200, headers, json: { data: { products: { edges: [] } } } });
+  });
+  await page.goto("/shop");
+  const previews = page.getByTestId("prepared-resource-preview");
+  await expect(previews).toHaveCount(4);
+  await expect(previews.first()).toContainText("Notice Response Guide");
+  await expect(previews.first()).toContainText("Not for sale");
+  await expect(page.getByTestId("prepared-resource-previews").getByRole("button")).toHaveCount(0);
+  await expect(page.getByTestId("prepared-resource-previews").getByRole("link")).toHaveCount(0);
+  await page.getByRole("navigation", { name: "Store categories" }).getByRole("link", { name: "Courses" }).click();
+  await expect(previews).toHaveCount(1);
+  await expect(previews.first()).toContainText("Notice Basics Course");
+  await page.goto("/shop?category=courses&area=housing");
+  await expect(page.locator("[data-shop-unavailable]")).toBeVisible();
+  await expect(previews).toHaveCount(0);
 });
