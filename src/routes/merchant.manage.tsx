@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { CounselPage, StateBox, WorkspaceNav, tw } from "@/components/counsel/page";
 import { supabase } from "@/integrations/supabase/client";
-import { confirmationPhrase } from "@/lib/merchant/policy";
+import { confirmationPhrase, LAUNCH_HOLD_SKUS } from "@/lib/merchant/policy";
 import {
   readMerchantDashboard,
   changeMerchantProductStatus,
@@ -175,8 +175,7 @@ function ProductEditor({ product, onSaved }: { product: MerchantProduct; onSaved
   const [priceProofs, setPriceProofs] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
-  const held = product.variants.nodes.some(v =>
-    v.sku === "TW-SNAPSHOT-ONE" || v.sku === "TW-DEEPDIVE-ONE" || v.sku === "TW-PREMIUM-ONE");
+  const held = product.variants.nodes.some((v) => v.sku !== null && LAUNCH_HOLD_SKUS.includes(v.sku));
   const statusPhrase = confirmationPhrase("status", product.id, status);
 
   useEffect(() => {
