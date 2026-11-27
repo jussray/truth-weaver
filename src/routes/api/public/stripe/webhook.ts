@@ -36,7 +36,7 @@ export const Route = createFileRoute("/api/public/stripe/webhook")({
     if (event.livemode !== true || !["checkout.session.completed","checkout.session.async_payment_succeeded"].includes(event.type ?? ""))
       return Response.json({ received: true, ignored: true });
     const session = event.data?.object;
-    if (!session?.metadata?.offerKey || !session.metadata.claimNonce)
+    if (!session?.metadata?.['offerKey'] || !session.metadata['claimNonce'])
       return Response.json({ received: true, ignored: true });
     const gid = "gid://stripe/CheckoutSession/" + (session.id ?? "");
     if (!STRIPE_REPORT_ORDER_GID.test(gid)) return new Response("Invalid session", { status: 400 });
