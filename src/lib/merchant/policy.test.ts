@@ -61,3 +61,14 @@ describe("Truth Weaver paid-report readiness evidence gates", () => {
     expect(hasPrivateReportStorage(null)).toBe(false);
   });
 });
+
+describe("merchant launch holds cover every paid report SKU", () => {
+  it.each([
+    "TW-SNAPSHOT-ONE", "TW-DEEPDIVE-ONE", "TW-PREMIUM-ONE",
+    "TW-GUIDE-NOTICE", "TW-TEMPLATES-NOTICE",
+    "TW-COURSE-NOTICE", "TW-BUNDLE-NOTICE",
+  ])("protects newly created paid report products: %s", (sku) => {
+    expect(canSetStatus("ACTIVE", [sku]).allowed).toBe(false);
+    expect(canSetStatus("DRAFT", [sku]).allowed).toBe(true);
+  });
+});
