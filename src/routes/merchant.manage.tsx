@@ -110,7 +110,7 @@ function PaidReportReadinessSection({ readiness, onRefresh }: { readiness: PaidR
       <div className="mt-4">
         {readiness.isReady ? (
           <StateBox kind="empty">
-            All required Shopify credentials and Supabase private storage tables are verified. Paid report delivery is ready.
+            Credential and private-storage prerequisites were detected. This does not verify custom-app installation, live payment, or order-specific PDF delivery. Keep products on launch hold until end-to-end proof.
           </StateBox>
         ) : (
           <StateBox kind="error">
@@ -159,7 +159,7 @@ function PaidReportReadinessSection({ readiness, onRefresh }: { readiness: PaidR
             <div key={offer.key} className="rounded border border-parchment/15 p-2 text-xs">
               <p className="font-semibold text-parchment">{offer.label} (${offer.priceUsd})</p>
               <p className="text-parchment/60">SKU: {offer.sku}</p>
-              <p className="text-parchment/60">Status: {offer.variantPinned ? "Shopify variant pinned" : "SKU match ready"}</p>
+              <p className="text-parchment/60">Status: {offer.variantPinned ? "Shopify variant pinned (delivery unverified)" : "Shopify variant not pinned — launch held"}</p>
             </div>
           ))}
         </div>

@@ -6,6 +6,7 @@
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { REPORT_OFFERS } from "@/lib/commerce/report-catalog";
+import { SNAPSHOT_REPORT_BUCKET } from "@/lib/commerce/snapshot-report-access";
 import { JUSSPAY_STRIPE_ACCOUNT } from "@/lib/commerce/jusspay-stripe.server";
 
 export type ReadinessItem = {
@@ -51,6 +52,18 @@ export type PaidReportReadiness = {
   };
 };
 
+/** A permission, network or API error is not evidence that a table exists. */
+export function readinessTableProbeSucceeded(error: { code?: string } | null): boolean {
+  return error === null;
+}
+
+/** Match the same private bucket that actually serves paid PDFs. */
+export function hasPrivateReportStorage(
+  buckets: readonly { name: string; public: boolean }[] | null | undefined,
+): boolean {
+  return Boolean(buckets?.some((b) => b.name === SNAPSHOT_REPORT_BUCKET && b.public === false));
+}
+
 export async function getPaidReportReadiness(): Promise<PaidReportReadiness> {
   const shopifyClientId = Boolean(process.env["SHOPIFY_CLIENT_ID"]?.trim());
   const shopifyClientSecret = Boolean(process.env["SHOPIFY_CLIENT_SECRET"]?.trim());
@@ -82,28 +95,28 @@ export async function getPaidReportReadiness(): Promise<PaidReportReadiness> {
 
   try {
     const { error: e1 } = await supabaseAdmin.from("tw_saved_analyses").select("id").limit(1);
-    savedAnalysesOk = !e1 || e1.code !== "42P01";
+    savedAnalysesOk = readinessTableProbeSucceeded(e1);
   } catch {
     savedAnalysesOk = false;
   }
 
   try {
     const { error: e2 } = await supabaseAdmin.from("tw_purchase_claims").select("nonce").limit(1);
-    purchaseClaimsOk = !e2 || e2.code !== "42P01";
+    purchaseClaimsOk = readinessTableProbeSucceeded(e2);
   } catch {
     purchaseClaimsOk = false;
   }
 
   try {
     const { error: e3 } = await supabaseAdmin.from("tw_order_reports").select("order_gid").limit(1);
-    orderReportsOk = !e3 || e3.code !== "42P01";
+    orderReportsOk = readinessTableProbeSucceeded(e3);
   } catch {
     orderReportsOk = false;
   }
 
   try {
-    const { data: buckets } = await supabaseAdmin.storage.listBuckets();
-    privateBucketOk = Boolean(buckets?.some((b) => b.name === "counsel-reports" || b.name === "snapshot-reports"));
+    const { data: buckets, error: bucketError } = await supabaseAdmin.storage.listBuckets();
+    privateBucketOk = !bucketError && hasPrivateReportStorage(buckets);
   } catch {
     privateBucketOk = false;
   }
@@ -121,7 +134,8 @@ export async function getPaidReportReadiness(): Promise<PaidReportReadiness> {
     label: offer.label,
     priceUsd: offer.priceUsd,
     variantPinned: offer.variantGid !== null,
-    deliverableReady: true,
+    // Source implementation is not evidence of a real paid-order → private PDF delivery.
+    deliverableReady: false,
   }));
 
   const isReady =
