@@ -147,7 +147,8 @@ test("shows planned preview prices without enabling a purchase", async ({ page }
     });
   });
   await page.goto("/shop");
-  await expect(page.locator("[data-shop-unavailable]")).toContainText(/No products found|No publicly available Shopify products yet/);
+  // Cold local Vite runs hydrate the route and its query after the first paint.
+  await expect(page.locator("[data-shop-unavailable]")).toContainText(/No products found|No publicly available Shopify products yet/, { timeout: 15_000 });
   const previews = page.getByTestId("notice-offer-preview");
   await expect(previews).toHaveCount(3);
   await expect(previews.nth(0)).toContainText("$10 planned");
