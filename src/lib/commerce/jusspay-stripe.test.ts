@@ -26,20 +26,14 @@ describe("JussPay Stripe Core & Multi-product Catalog", () => {
     expect(reportKindsFor(["bundle"])).toEqual(["snapshot", "guide", "templates", "course"]);
   });
 
-  it("resolves pinned variants and unpinned SKU offers", () => {
-    // Snapshot has pinned variant
-    const snap = offerForLine("gid://shopify/ProductVariant/68176830562525", "TW-SNAPSHOT-ONE");
-    expect(snap?.key).toBe("snapshot");
+  it("requires exact Shopify variants while retaining independent JussPay offer lookup", () => {
+    expect(offerForLine("gid://shopify/ProductVariant/68176830562525", "TW-SNAPSHOT-ONE")?.key).toBe("snapshot");
+    expect(offerForLine("gid://shopify/ProductVariant/68623865544925", "TW-COURSE-NOTICE")?.key).toBe("course");
+    expect(offerForLine("gid://shopify/ProductVariant/68623865643229", "TW-BUNDLE-NOTICE")?.key).toBe("bundle");
+    expect(offerForLine(null, "TW-COURSE-NOTICE")).toBeNull();
+    expect(offerForLine(undefined, "TW-BUNDLE-NOTICE")).toBeNull();
 
-    // Course matches via SKU
-    const course = offerForLine(null, "TW-COURSE-NOTICE");
-    expect(course?.key).toBe("course");
-
-    // Bundle matches via SKU
-    const bundle = offerForLine(undefined, "TW-BUNDLE-NOTICE");
-    expect(bundle?.key).toBe("bundle");
-
-    // JussPay direct resolution
+    // Stripe/JussPay uses an offer key or SKU, not a Shopify variant.
     expect(offerForJussPay("course")?.sku).toBe("TW-COURSE-NOTICE");
     expect(offerForJussPay("TW-BUNDLE-NOTICE")?.key).toBe("bundle");
   });
