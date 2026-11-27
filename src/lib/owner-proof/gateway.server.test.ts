@@ -18,7 +18,7 @@ beforeEach(()=>{
 });
 afterEach(()=>{vi.unstubAllEnvs();vi.unstubAllGlobals();vi.restoreAllMocks();});
 function configured() {
-  vi.stubEnv("CLOUDFLARE_ACCOUNT_ID","9b59861bd1747cf7525571b4c51d2aa0");
+  vi.stubEnv("CLOUDFLARE_ACCOUNT_ID","aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
   vi.stubEnv("CLOUDFLARE_AI_API_TOKEN","synthetic-token-not-real");
   vi.stubEnv("CLOUDFLARE_AI_GATEWAY_ID","truth-weaver-evidence");
   vi.stubEnv("CLOUDFLARE_AI_MODEL","@cf/meta/llama-3.1-8b-instruct");
