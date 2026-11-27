@@ -1,5 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { authed } from "@/lib/merchant/authed-call";
+import { getOwnerProofAccess } from "@/lib/owner-proof/functions";
 
 import { CounselPage, WorkspaceNav, tw } from "@/components/counsel/page";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +27,12 @@ function AccountPage() {
   const { user } = Route.useRouteContext();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const [isOwner,setIsOwner]=useState(false);
+  useEffect(()=>{
+    let active=true;
+    void authed(getOwnerProofAccess).then(r=>{if(active)setIsOwner(r.authorized);}).catch(()=>{if(active)setIsOwner(false);});
+    return ()=>{active=false;};
+  },[]);
   async function signOut() {
     await qc.cancelQueries();
     qc.clear();
@@ -45,6 +54,7 @@ function AccountPage() {
           <div className="mt-4"><ShopifyCustomerConnect /></div>
           <Link to="/fulfillment" className={`${tw.ghost} mt-4`}>Order status, tracking and returns</Link>
           <a href="/merchant/manage" className={`${tw.ghost} ml-2 mt-4`}>Merchant management (assigned role required)</a>
+          {isOwner&&<Link to="/owner-tools" className={`${tw.ghost} ml-2 mt-4`}>Private owner proof tools</Link>}
           <p className="mt-4 text-sm text-parchment/70">A linked Shopify account is not proof of payment. Your verified Snapshot purchase records and any prepared private reports appear under Orders and fulfillment. Each download requires a fresh server check of payment, ownership and access. Draft offers remain unavailable for sale.</p>
         </section>
       </div>

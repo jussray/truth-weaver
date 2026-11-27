@@ -51,6 +51,7 @@ describe("robots and sitemap", () => {
   it("robots declares the absolute sitemap and blocks private areas", () => {
     expect(robots).toContain("Sitemap: https://truthweaver.jussco.company/sitemap.xml");
     expect(robots).toMatch(/Disallow: \/merchant/);
+    expect(robots).toMatch(/Disallow: \/owner-tools/);
   });
 });
 

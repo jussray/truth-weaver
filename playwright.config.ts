@@ -6,6 +6,7 @@ export default defineConfig({
   retries: 0,
   reporter: "list",
   use: {
+    launchOptions: process.env.CI ? undefined : { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ?? "/bin/chromium" },
     baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:4173",
     viewport: { width: 1280, height: 1800 },
     trace: "retain-on-failure",

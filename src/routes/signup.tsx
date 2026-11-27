@@ -46,7 +46,9 @@ function SignupPage() {
         <form onSubmit={submit} className={`${tw.card} mx-auto max-w-md space-y-4`}>
           <LovableSignInButton onSignedIn={() => navigate({ to: "/dashboard", replace: true })} />
           <div className="flex items-center gap-3 text-xs uppercase tracking-[0.18em] text-parchment/50">
-            <span className="h-px flex-1 bg-parchment/15" />or<span className="h-px flex-1 bg-parchment/15" />
+            <span className="h-px flex-1 bg-parchment/15" />
+            or
+            <span className="h-px flex-1 bg-parchment/15" />
           </div>
           <label className="block space-y-1">
             <span className={tw.label}>Email</span>

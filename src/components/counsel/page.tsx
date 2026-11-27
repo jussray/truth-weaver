@@ -63,6 +63,7 @@ export function StateBox({ kind, children }: { kind: "loading" | "empty" | "erro
 export function WorkspaceNav() {
   const items = [
     ["/dashboard", "Dashboard"],
+    ["/dashboard/leads", "Inquiry leads"],
     ["/issues/new", "New issue"],
     ["/sources", "Sources"],
     ["/legal-library", "Legal library"],
