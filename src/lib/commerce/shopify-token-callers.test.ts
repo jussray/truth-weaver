@@ -83,4 +83,25 @@ describe("token caller negative paths: fixtures are not payment proof", () => {
     expect(await reconcileOwnSnapshotPurchases("fixture-session")).toEqual({ state: "unavailable", recorded: 0, reportReady: false });
     expect(mocks.resolve).toHaveBeenCalledWith(); expect(fetcher).not.toHaveBeenCalled(); expect(mocks.from).toHaveBeenCalledTimes(1);
   });
+  it("reconciliation reads fresh Shopify payment data with caches disabled", async () => {
+    const customerId = "gid://shopify/Customer/9";
+    mocks.getUser.mockResolvedValue({ data: { user: { id: "fixture-owner-id" } }, error: null });
+    mocks.from.mockReturnValue({
+      select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { shopify_customer_gid: customerId }, error: null }),
+    });
+    mocks.resolve.mockResolvedValue("synthetic-admin-token");
+    const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      data: { customer: { id: customerId, orders: { pageInfo: { hasNextPage: false }, edges: [] } } },
+    }), { status: 200 }));
+    vi.stubGlobal("fetch", fetcher);
+    expect(await reconcileOwnSnapshotPurchases("synthetic-session")).toEqual({
+      state: "verified", recorded: 0, reportReady: false,
+    });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(fetcher.mock.calls[0]?.[1]).toMatchObject({
+      method: "POST", redirect: "error", cache: "no-store",
+    });
+  });
+
 });
