@@ -38,7 +38,7 @@ export async function reconcileOwnSnapshotPurchases(authAccessToken: string):
       "}",
     ].join("\n");
     const response = await fetch("https://" + TRUTH_WEAVER_SHOPIFY_DOMAIN + "/admin/api/2026-10/graphql.json", {
-      method: "POST", redirect: "error", signal: AbortSignal.timeout(10_000),
+      method: "POST", redirect: "error", cache: "no-store", signal: AbortSignal.timeout(10_000),
       headers: { "Content-Type": "application/json", "X-Shopify-Access-Token": adminToken },
       body: JSON.stringify({ query, variables: { id: binding.shopify_customer_gid } }),
     });

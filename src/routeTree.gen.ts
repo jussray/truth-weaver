@@ -22,6 +22,7 @@ import { Route as ShopRouteImport } from './routes/shop'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SourcesRouteImport } from './routes/sources'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
+import { Route as AuthenticatedOwnerToolsRouteImport } from './routes/_authenticated/owner-tools'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedFulfillmentRouteImport } from './routes/_authenticated/fulfillment'
 import { Route as AuthenticatedVendorInviteRouteImport } from './routes/_authenticated/vendor-invite'
@@ -100,6 +101,11 @@ const SourcesRoute = SourcesRouteImport.update({
 const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
   id: '/account',
   path: '/account',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedOwnerToolsRoute = AuthenticatedOwnerToolsRouteImport.update({
+  id: '/owner-tools',
+  path: '/owner-tools',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -197,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/sources': typeof SourcesRoute
   '/account': typeof AuthenticatedAccountRoute
+  '/owner-tools': typeof AuthenticatedOwnerToolsRoute
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/fulfillment': typeof AuthenticatedFulfillmentRoute
   '/vendor-invite': typeof AuthenticatedVendorInviteRoute
@@ -225,6 +232,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/sources': typeof SourcesRoute
   '/account': typeof AuthenticatedAccountRoute
+  '/owner-tools': typeof AuthenticatedOwnerToolsRoute
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/fulfillment': typeof AuthenticatedFulfillmentRoute
   '/vendor-invite': typeof AuthenticatedVendorInviteRoute
@@ -256,6 +264,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/sources': typeof SourcesRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
+  '/_authenticated/owner-tools': typeof AuthenticatedOwnerToolsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/_authenticated/fulfillment': typeof AuthenticatedFulfillmentRoute
   '/_authenticated/vendor-invite': typeof AuthenticatedVendorInviteRoute
@@ -287,6 +296,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/sources'
     | '/account'
+    | '/owner-tools'
     | '/dashboard'
     | '/fulfillment'
     | '/vendor-invite'
@@ -315,6 +325,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/sources'
     | '/account'
+    | '/owner-tools'
     | '/dashboard'
     | '/fulfillment'
     | '/vendor-invite'
@@ -345,6 +356,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/sources'
     | '/_authenticated/account'
+    | '/_authenticated/owner-tools'
     | '/_authenticated/dashboard'
     | '/_authenticated/fulfillment'
     | '/_authenticated/vendor-invite'
@@ -474,6 +486,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/owner-tools': {
+      id: '/_authenticated/owner-tools'
+      path: '/owner-tools'
+      fullPath: '/owner-tools'
+      preLoaderRoute: typeof AuthenticatedOwnerToolsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -598,6 +617,7 @@ const AuthenticatedDashboardRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
+  AuthenticatedOwnerToolsRoute: typeof AuthenticatedOwnerToolsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRouteWithChildren
   AuthenticatedFulfillmentRoute: typeof AuthenticatedFulfillmentRoute
   AuthenticatedVendorInviteRoute: typeof AuthenticatedVendorInviteRoute
@@ -607,6 +627,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRoute,
+  AuthenticatedOwnerToolsRoute: AuthenticatedOwnerToolsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRouteWithChildren,
   AuthenticatedFulfillmentRoute: AuthenticatedFulfillmentRoute,
   AuthenticatedVendorInviteRoute: AuthenticatedVendorInviteRoute,

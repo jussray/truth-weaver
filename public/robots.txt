@@ -4,6 +4,7 @@ Disallow: /api/
 Disallow: /merchant
 Disallow: /dashboard
 Disallow: /account
+Disallow: /owner-tools
 Disallow: /issues/
 Disallow: /fulfillment
 Disallow: /vendor-invite
