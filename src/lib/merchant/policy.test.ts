@@ -54,10 +54,10 @@ describe("Truth Weaver paid-report readiness evidence gates", () => {
   });
 
   it("recognizes only the real private PDF bucket, never a public or misnamed bucket", () => {
-    expect(hasPrivateReportStorage([{ name: "tw-snapshot-reports", public: false }])).toBe(true);
-    expect(hasPrivateReportStorage([{ name: "tw-snapshot-reports", public: true }])).toBe(false);
-    expect(hasPrivateReportStorage([{ name: "snapshot-reports", public: false }])).toBe(false);
-    expect(hasPrivateReportStorage([])).toBe(false);
+    expect(hasPrivateReportStorage({ id: "tw-snapshot-reports", public: false })).toBe(true);
+    expect(hasPrivateReportStorage({ id: "tw-snapshot-reports", public: true })).toBe(false);
+    expect(hasPrivateReportStorage({ id: "snapshot-reports", public: false })).toBe(false);
+    expect(hasPrivateReportStorage(undefined)).toBe(false);
     expect(hasPrivateReportStorage(null)).toBe(false);
   });
 });

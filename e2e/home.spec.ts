@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test("public storefront homepage renders the cinematic legal storefront", async ({ page }) => {
   const errors: string[] = [];
+  page.on("response", (res) => { if (res.status() >= 400) console.log("DIAG response", res.status(), new URL(res.url()).origin + new URL(res.url()).pathname, res.request().resourceType()); });
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("console", (m) => {
     if (m.type() === "error") errors.push(m.text());

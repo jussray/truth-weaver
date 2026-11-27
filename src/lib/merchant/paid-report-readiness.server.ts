@@ -5,8 +5,8 @@
  */
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { REPORT_OFFERS } from "@/lib/commerce/report-catalog";
 import { SNAPSHOT_REPORT_BUCKET } from "@/lib/commerce/snapshot-report-access";
+import { REPORT_OFFERS } from "@/lib/commerce/report-catalog";
 import { JUSSPAY_STRIPE_ACCOUNT } from "@/lib/commerce/jusspay-stripe.server";
 
 export type ReadinessItem = {
@@ -52,16 +52,16 @@ export type PaidReportReadiness = {
   };
 };
 
-/** A permission, network or API error is not evidence that a table exists. */
+/** Failed database probes do not prove a table is readable. */
 export function readinessTableProbeSucceeded(error: { code?: string } | null): boolean {
   return error === null;
 }
 
-/** Match the same private bucket that actually serves paid PDFs. */
+/** Check only the exact storage bucket used by the paid report path. */
 export function hasPrivateReportStorage(
-  buckets: readonly { name: string; public: boolean }[] | null | undefined,
+  bucket: { id: string; public: boolean } | null | undefined,
 ): boolean {
-  return Boolean(buckets?.some((b) => b.name === SNAPSHOT_REPORT_BUCKET && b.public === false));
+  return bucket?.id === SNAPSHOT_REPORT_BUCKET && bucket.public === false;
 }
 
 export async function getPaidReportReadiness(): Promise<PaidReportReadiness> {
@@ -115,8 +115,8 @@ export async function getPaidReportReadiness(): Promise<PaidReportReadiness> {
   }
 
   try {
-    const { data: buckets, error: bucketError } = await supabaseAdmin.storage.listBuckets();
-    privateBucketOk = !bucketError && hasPrivateReportStorage(buckets);
+    const { data: bucket, error } = await supabaseAdmin.storage.getBucket(SNAPSHOT_REPORT_BUCKET);
+    privateBucketOk = !error && hasPrivateReportStorage(bucket);
   } catch {
     privateBucketOk = false;
   }
@@ -134,7 +134,6 @@ export async function getPaidReportReadiness(): Promise<PaidReportReadiness> {
     label: offer.label,
     priceUsd: offer.priceUsd,
     variantPinned: offer.variantGid !== null,
-    // Source implementation is not evidence of a real paid-order → private PDF delivery.
     deliverableReady: false,
   }));
 
