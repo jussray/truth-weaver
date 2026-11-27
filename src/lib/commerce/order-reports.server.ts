@@ -16,7 +16,8 @@ import {
   type ReportAccessPorts,
 } from "./order-report-processing";
 import { CLAIM_ATTRIBUTE_KEY, REPORT_OFFER_KEYS, type ReportOfferKey } from "./report-catalog";
-import { ORDER_GID, claimNonceFrom, type ReportOrderForProof, type StoredClaim } from "./report-order-proof";
+import { ORDER_GID, REPORT_ORDER_GID, STRIPE_REPORT_ORDER_GID, claimNonceFrom, type ReportOrderForProof, type StoredClaim } from "./report-order-proof";
+import { readJussPayReportProof } from "./jusspay-stripe.server";
 import { getTruthWeaverShopifyAdminToken } from "./shopify-admin-token.server";
 import { TRUTH_WEAVER_SHOPIFY_DOMAIN } from "./shopify-order-proof";
 import { SNAPSHOT_REPORT_BUCKET, readBoundedSnapshotStream } from "./snapshot-report-access";
@@ -100,6 +101,7 @@ async function savedAnalysis(id: string, userId: string): Promise<StoredCounselA
 
 const processingPorts: OrderReportPorts = {
   readOrder,
+  readJussPayProof: readJussPayReportProof,
   async claim(nonce) {
     const { data, error } = await supabaseAdmin.from("tw_purchase_claims")
       .select("nonce, user_id, analysis_id, created_at, expires_at, consumed_order_gid").eq("nonce", nonce).maybeSingle();
@@ -119,11 +121,13 @@ const processingPorts: OrderReportPorts = {
   report: reportRow,
   async insertReport(row) {
     // Idempotent: a concurrent insert for the same order is re-read by the caller.
-    await supabaseAdmin.from("tw_order_reports").upsert({
+    const { error } = await supabaseAdmin.from("tw_order_reports").upsert({
       order_gid: row.orderGid, user_id: row.userId, claim_nonce: row.claimNonce, analysis_id: row.analysisId,
       order_name: row.orderName, offers: row.offers, status: "pending",
-      order_created_at: row.orderCreatedAt, shopify_verified_at: row.verifiedAt,
+      order_created_at: row.orderCreatedAt,
+      ...(STRIPE_REPORT_ORDER_GID.test(row.orderGid) ? { shopify_verified_at: null, jusspay_verified_at: row.verifiedAt } : { shopify_verified_at: row.verifiedAt }),
     }, { onConflict: "order_gid", ignoreDuplicates: true });
+    if (error) throw new Error("Report persistence unavailable");
   },
   analysis: savedAnalysis,
   newKey(userId, orderGid) {
@@ -141,7 +145,7 @@ const processingPorts: OrderReportPorts = {
   async markReady(orderGid, key, size, at) {
     const { data, error } = await supabaseAdmin.from("tw_order_reports")
       .update({ status: "ready", private_storage_key: key, byte_size: size, ready_at: at.toISOString(), failure_reason: null })
-      .eq("order_gid", orderGid).neq("status", "ready").select("order_gid");
+      .eq("order_gid", orderGid).neq("status", "ready").is("revoked_at", null).select("order_gid");
     return !error && Array.isArray(data) && data.length === 1;
   },
   async markFailed(orderGid, reason) {
@@ -161,6 +165,7 @@ const accessPorts: ReportAccessPorts = {
   authenticate,
   report: reportRow,
   readOrder,
+  readJussPayProof: readJussPayReportProof,
   async privateBucket() {
     const { data, error } = await supabaseAdmin.storage.getBucket(SNAPSHOT_REPORT_BUCKET);
     return !error && data?.id === SNAPSHOT_REPORT_BUCKET && data.public === false;
@@ -204,7 +209,7 @@ export async function ownOrderAnalysis(token: string, orderGid: string): Promise
   try {
     const userId = await authenticate(token);
     if (!userId) return { state: "not_authenticated", analysis: null };
-    if (!ORDER_GID.test(orderGid)) return { state: "not_available", analysis: null };
+    if (!REPORT_ORDER_GID.test(orderGid)) return { state: "not_available", analysis: null };
     const row = await reportRow(orderGid);
     if (!row || row.userId !== userId || !row.analysisId) return { state: "not_available", analysis: null };
     const analysis = await savedAnalysis(row.analysisId, userId);
