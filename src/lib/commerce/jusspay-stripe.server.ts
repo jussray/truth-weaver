@@ -211,3 +211,22 @@ export async function verifyPaidStripeSession(
     return null;
   }
 }
+
+/** No Stripe key in this proof path; the fixed JussPay origin owns verification. */
+export async function readJussPayReportProof(orderGid: string): Promise<import("./report-order-proof").ReportProofDecision | null> {
+  const { STRIPE_REPORT_ORDER_GID, evaluateJussPayReportProof } = await import("./report-order-proof");
+  const key = process.env["TW_JUSSPAY_SERVICE_KEY"];
+  if (process.env["TW_JUSSPAY_REPORTS_ENABLED"] !== "true" || !key || key.length < 32 ||
+      !STRIPE_REPORT_ORDER_GID.test(orderGid)) return null;
+  try {
+    const response = await fetch("https://jusspay.jussco.company/truthweaver/verify-paid", {
+      method: "POST", redirect: "error", cache: "no-store", signal: AbortSignal.timeout(8000),
+      headers: { "Content-Type": "application/json", "x-tw-service-key": key },
+      body: JSON.stringify({ sessionId: orderGid.split("/").pop() }),
+    });
+    if (!response.ok) return null;
+    const raw = await response.text();
+    if (raw.length > 4096) return null;
+    return evaluateJussPayReportProof(JSON.parse(raw), orderGid);
+  } catch { return null; }
+}

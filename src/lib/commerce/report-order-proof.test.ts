@@ -116,3 +116,24 @@ describe("exact variant + SKU ownership for created Shopify report products", ()
     expect(offerForLine(offer.variantGid, "TW-UNRELATED-SKU")).toBeNull();
   });
 });
+
+describe("central JussPay report proof", () => {
+  const stripeGid = "gid://stripe/CheckoutSession/cs_live_fixture123";
+  const paid = { schema: "jusspay/truthweaver-paid-proof@v1", paid: true, sessionId: "cs_live_fixture123", offerKey: "snapshot", userId, analysisId, claimNonce: nonce, amountTotalMinor: 1000, currency: "usd", createdAt };
+  it("binds exact central proof to the stored buyer and analysis, never to caller metadata", async () => {
+    const { evaluateJussPayReportProof } = await import("./report-order-proof");
+    const proof = evaluateJussPayReportProof(paid, stripeGid);
+    expect(proof.granted).toBe(true);
+    if (!proof.granted) throw new Error("proof denied");
+    expect(validateClaimForOrder(claim, proof)).toEqual({ ok: true });
+    expect(validateClaimForOrder({ ...claim, userId: analysisId }, proof)).toEqual({ ok: false, reason: "claim_mismatch" });
+    expect(validateClaimForOrder({ ...claim, analysisId: userId }, proof)).toEqual({ ok: false, reason: "claim_mismatch" });
+    expect(validateClaimForOrder({ ...claim, consumedOrderGid: orderGid }, proof)).toEqual({ ok: false, reason: "claim_used" });
+  });
+  it("rejects mismatched price, session, invalid identity, and test payment", async () => {
+    const { evaluateJussPayReportProof } = await import("./report-order-proof");
+    for (const change of [{ amountTotalMinor: 1 }, { sessionId: "cs_live_other" }, { userId: "bad" }, { paid: false }, { sessionId: "cs_test_fixture123" }, { offerKey: "constructor" }]) {
+      expect(evaluateJussPayReportProof({ ...paid, ...change }, stripeGid).granted).toBe(false);
+    }
+  });
+});
