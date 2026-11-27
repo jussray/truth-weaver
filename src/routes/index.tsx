@@ -488,7 +488,7 @@ function TruthWeaverModule() {
                 })}
               </ul>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <a href="#legal-research" className="foil-surface group inline-flex items-center justify-center gap-3 rounded-full px-8 py-3.5 text-base font-semibold text-ink shadow-[0_14px_40px_-10px_var(--gold)] transition hover:shadow-[0_18px_60px_-8px_var(--gold)]">
+                <a href="/#legal-research" className="foil-surface group inline-flex items-center justify-center gap-3 rounded-full px-8 py-3.5 text-base font-semibold text-ink shadow-[0_14px_40px_-10px_var(--gold)] transition hover:shadow-[0_18px_60px_-8px_var(--gold)]">
                   Start Free Legal Research <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" aria-hidden />
                 </a>
                 <a href="/shop" className="inline-flex items-center justify-center rounded-full border border-gold/70 bg-ink/40 px-8 py-3.5 text-base font-semibold text-parchment backdrop-blur transition hover:bg-gold/10 hover:shadow-[0_0_30px_-8px_var(--gold)]">
@@ -529,7 +529,7 @@ function TruthWeaverModule() {
                   <h3 className="mt-3 flex min-h-[2.5rem] items-center text-sm leading-tight text-parchment">{title}</h3>
                   <div className="mt-2 flex items-center gap-2 text-xs">
                     <a href={`/shop?area=${encodeURIComponent(title)}`} className="font-semibold text-gold-soft hover:text-gold">Shop →</a>
-                    <a href="#legal-research" className="text-parchment/50 hover:text-parchment">Research</a>
+                    <a href="/#legal-research" className="text-parchment/50 hover:text-parchment">Research</a>
                   </div>
                 </article>
               ))}
@@ -557,7 +557,7 @@ function TruthWeaverModule() {
             </div>
             <div className="flex flex-col items-start gap-2 lg:items-end">
               <h2 className="sr-only">Research your situation</h2>
-              <a href="#legal-research" className="foil-surface group inline-flex items-center gap-3 rounded-full px-7 py-3.5 text-sm font-semibold text-ink shadow-[0_12px_36px_-10px_var(--gold)]">
+              <a href="/#legal-research" className="foil-surface group inline-flex items-center gap-3 rounded-full px-7 py-3.5 text-sm font-semibold text-ink shadow-[0_12px_36px_-10px_var(--gold)]">
                 Research Your Situation <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" aria-hidden />
               </a>
             </div>
