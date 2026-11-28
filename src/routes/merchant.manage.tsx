@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { CounselPage, StateBox, WorkspaceNav, tw } from "@/components/counsel/page";
 import { supabase } from "@/integrations/supabase/client";
-import { confirmationPhrase } from "@/lib/merchant/policy";
+import { confirmationPhrase, LAUNCH_HOLD_SKUS } from "@/lib/merchant/policy";
 import {
   readMerchantDashboard,
   changeMerchantProductStatus,
@@ -110,7 +110,7 @@ function PaidReportReadinessSection({ readiness, onRefresh }: { readiness: PaidR
       <div className="mt-4">
         {readiness.isReady ? (
           <StateBox kind="empty">
-            All required Shopify credentials and Supabase private storage tables are verified. Paid report delivery is ready.
+            Credential and private-storage prerequisites were detected. This does not verify custom-app installation, live payment, or order-specific PDF delivery. Keep products on launch hold until end-to-end proof.
           </StateBox>
         ) : (
           <StateBox kind="error">
@@ -159,7 +159,7 @@ function PaidReportReadinessSection({ readiness, onRefresh }: { readiness: PaidR
             <div key={offer.key} className="rounded border border-parchment/15 p-2 text-xs">
               <p className="font-semibold text-parchment">{offer.label} (${offer.priceUsd})</p>
               <p className="text-parchment/60">SKU: {offer.sku}</p>
-              <p className="text-parchment/60">Status: {offer.variantPinned ? "Shopify variant pinned" : "SKU match ready"}</p>
+              <p className="text-parchment/60">Status: {offer.variantPinned ? "Shopify variant pinned (delivery unverified)" : "Shopify variant not pinned — launch held"}</p>
             </div>
           ))}
         </div>
@@ -175,8 +175,7 @@ function ProductEditor({ product, onSaved }: { product: MerchantProduct; onSaved
   const [priceProofs, setPriceProofs] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
-  const held = product.variants.nodes.some(v =>
-    v.sku === "TW-SNAPSHOT-ONE" || v.sku === "TW-DEEPDIVE-ONE" || v.sku === "TW-PREMIUM-ONE");
+  const held = product.variants.nodes.some((v) => v.sku !== null && LAUNCH_HOLD_SKUS.includes(v.sku));
   const statusPhrase = confirmationPhrase("status", product.id, status);
 
   useEffect(() => {

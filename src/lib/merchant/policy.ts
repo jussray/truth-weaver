@@ -1,4 +1,5 @@
 import { NOTICE_OFFERS } from "../notice-offers";
+import { REPORT_OFFERS } from "../commerce/report-catalog";
 
 /** Pure merchant-portal guards. No I/O. Server functions must call these before any Shopify write. */
 
@@ -8,9 +9,13 @@ export const ORDER_GID = /^gid:\/\/shopify\/Order\/[1-9][0-9]*$/;
 export type ProductStatus = "ACTIVE" | "DRAFT" | "ARCHIVED";
 
 /** SKUs that may never be activated until paid-order AND delivery proof exist. */
-export const LAUNCH_HOLD_SKUS: readonly string[] = Object.values(NOTICE_OFFERS)
-  .filter((o) => !o.readyForSale)
-  .map((o) => o.sku);
+export const LAUNCH_HOLD_SKUS: readonly string[] = [
+  ...new Set([
+    ...Object.values(NOTICE_OFFERS).filter((o) => !o.readyForSale).map((o) => o.sku),
+    // All personalized report SKUs remain held until exact live buyer-to-PDF proof.
+    ...Object.values(REPORT_OFFERS).map((o) => o.sku),
+  ]),
+];
 
 export function validatePrice(price: string): string | null {
   if (!/^(?:0|[1-9][0-9]{0,5})\.[0-9]{2}$/.test(price)) return null;

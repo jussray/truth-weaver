@@ -52,6 +52,18 @@ export type PaidReportReadiness = {
   };
 };
 
+/** Failed database probes do not prove a table is readable. */
+export function readinessTableProbeSucceeded(error: { code?: string } | null): boolean {
+  return error === null;
+}
+
+/** Check only the exact storage bucket used by the paid report path. */
+export function hasPrivateReportStorage(
+  bucket: { id: string; public: boolean } | null | undefined,
+): boolean {
+  return bucket?.id === SNAPSHOT_REPORT_BUCKET && bucket.public === false;
+}
+
 export async function getPaidReportReadiness(): Promise<PaidReportReadiness> {
   const shopifyClientId = Boolean(process.env["SHOPIFY_CLIENT_ID"]?.trim());
   const shopifyClientSecret = Boolean(process.env["SHOPIFY_CLIENT_SECRET"]?.trim());
@@ -83,28 +95,28 @@ export async function getPaidReportReadiness(): Promise<PaidReportReadiness> {
 
   try {
     const { error: e1 } = await supabaseAdmin.from("tw_saved_analyses").select("id").limit(1);
-    savedAnalysesOk = !e1;
+    savedAnalysesOk = readinessTableProbeSucceeded(e1);
   } catch {
     savedAnalysesOk = false;
   }
 
   try {
     const { error: e2 } = await supabaseAdmin.from("tw_purchase_claims").select("nonce").limit(1);
-    purchaseClaimsOk = !e2;
+    purchaseClaimsOk = readinessTableProbeSucceeded(e2);
   } catch {
     purchaseClaimsOk = false;
   }
 
   try {
     const { error: e3 } = await supabaseAdmin.from("tw_order_reports").select("order_gid").limit(1);
-    orderReportsOk = !e3;
+    orderReportsOk = readinessTableProbeSucceeded(e3);
   } catch {
     orderReportsOk = false;
   }
 
   try {
     const { data: bucket, error } = await supabaseAdmin.storage.getBucket(SNAPSHOT_REPORT_BUCKET);
-    privateBucketOk = !error && bucket?.id === SNAPSHOT_REPORT_BUCKET && bucket.public === false;
+    privateBucketOk = !error && hasPrivateReportStorage(bucket);
   } catch {
     privateBucketOk = false;
   }

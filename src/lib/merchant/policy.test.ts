@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { hasPrivateReportStorage, readinessTableProbeSucceeded } from "./paid-report-readiness.server";
 import { canSetStatus, confirmationPhrase, redactOrder, validatePrice } from "./policy";
 
 describe("merchant policy", () => {
@@ -41,5 +42,33 @@ describe("price confirmation tiers", () => {
     expect(priceChangeMessage("Snapshot — Default", "10.00", "12.00")).toBe(
       "Price for Snapshot — Default changed from $10.00 to $12.00.",
     );
+  });
+});
+
+describe("Truth Weaver paid-report readiness evidence gates", () => {
+  it("treats only a successful database probe as proof of table visibility", () => {
+    expect(readinessTableProbeSucceeded(null)).toBe(true);
+    expect(readinessTableProbeSucceeded({ code: "42P01" })).toBe(false);
+    expect(readinessTableProbeSucceeded({ code: "PGRST301" })).toBe(false);
+    expect(readinessTableProbeSucceeded({ code: "08006" })).toBe(false);
+  });
+
+  it("recognizes only the real private PDF bucket, never a public or misnamed bucket", () => {
+    expect(hasPrivateReportStorage({ id: "tw-snapshot-reports", public: false })).toBe(true);
+    expect(hasPrivateReportStorage({ id: "tw-snapshot-reports", public: true })).toBe(false);
+    expect(hasPrivateReportStorage({ id: "snapshot-reports", public: false })).toBe(false);
+    expect(hasPrivateReportStorage(undefined)).toBe(false);
+    expect(hasPrivateReportStorage(null)).toBe(false);
+  });
+});
+
+describe("merchant launch holds cover every paid report SKU", () => {
+  it.each([
+    "TW-SNAPSHOT-ONE", "TW-DEEPDIVE-ONE", "TW-PREMIUM-ONE",
+    "TW-GUIDE-NOTICE", "TW-TEMPLATES-NOTICE",
+    "TW-COURSE-NOTICE", "TW-BUNDLE-NOTICE",
+  ])("protects newly created paid report products: %s", (sku) => {
+    expect(canSetStatus("ACTIVE", [sku]).allowed).toBe(false);
+    expect(canSetStatus("DRAFT", [sku]).allowed).toBe(true);
   });
 });
